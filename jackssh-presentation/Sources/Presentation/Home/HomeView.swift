@@ -58,7 +58,23 @@ public struct HomeView: View {
                               tone: status.ollama.tone, statusLabel: status.ollama.label)
                 }
             }
+            quickActions
             recentActivity(status.recentActivity)
+        }
+    }
+
+    private var quickActions: some View {
+        DSCard {
+            VStack(alignment: .leading, spacing: DSSpacing.md) {
+                Text("Quick actions")
+                    .font(DSTypography.sectionTitle)
+                Button {
+                    router.push(.hosts)
+                } label: {
+                    Label("Manage hosts", systemImage: "server.rack")
+                }
+                .buttonStyle(.bordered)
+            }
         }
     }
 

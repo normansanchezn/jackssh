@@ -15,7 +15,11 @@ struct JackSshApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(router: composition.router, homeViewModel: composition.homeViewModel)
+            RootView(
+                router: composition.router,
+                homeViewModel: composition.homeViewModel,
+                hostsDependencies: composition.hostsDependencies
+            )
                 // Deep links are navigational only — never destructive.
                 .onOpenURL { composition.router.handle(url: $0) }
         }

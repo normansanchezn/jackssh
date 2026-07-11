@@ -7,10 +7,16 @@ import DesignSystem
 public struct RootView: View {
     @State private var router: AppRouter
     private let homeViewModel: HomeViewModel
+    private let hostsDependencies: HostsDependencies
 
-    public init(router: AppRouter, homeViewModel: HomeViewModel) {
+    public init(
+        router: AppRouter,
+        homeViewModel: HomeViewModel,
+        hostsDependencies: HostsDependencies
+    ) {
         _router = State(initialValue: router)
         self.homeViewModel = homeViewModel
+        self.hostsDependencies = hostsDependencies
     }
 
     public var body: some View {
@@ -26,7 +32,7 @@ public struct RootView: View {
     private func destination(for route: AppRoute) -> some View {
         switch route {
         case .hosts:
-            ComingSoonView(title: "Hosts")
+            HostsListView(dependencies: hostsDependencies)
         case let .host(id):
             ComingSoonView(title: "Host \(id)")
         case let .openClawSession(id):
