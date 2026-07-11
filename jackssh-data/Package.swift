@@ -1,26 +1,28 @@
 // swift-tools-version: 6.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
+// Data: implements Domain repository protocols. Owns persistence, Keychain, networking adapters.
 let package = Package(
     name: "jackssh-data",
+    platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "jackssh-data",
-            targets: ["jackssh-data"]
-        ),
+        .library(name: "Data", targets: ["Data"]),
+    ],
+    dependencies: [
+        .package(path: "../jackssh-domain"),
+        .package(path: "../jackssh-shared"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "jackssh-data"
+            name: "Data",
+            dependencies: [
+                .product(name: "Domain", package: "jackssh-domain"),
+                .product(name: "Shared", package: "jackssh-shared"),
+            ]
         ),
         .testTarget(
-            name: "jackssh-dataTests",
-            dependencies: ["jackssh-data"]
+            name: "DataTests",
+            dependencies: ["Data"]
         ),
     ],
     swiftLanguageModes: [.v6]

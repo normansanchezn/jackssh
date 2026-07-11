@@ -7,26 +7,18 @@
 
 import SwiftUI
 import SwiftData
+import Presentation
 
 @main
 struct JackSshApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @State private var composition = CompositionRoot()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView(router: composition.router, homeViewModel: composition.homeViewModel)
+                // Deep links are navigational only — never destructive.
+                .onOpenURL { composition.router.handle(url: $0) }
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(composition.modelContainer)
     }
 }

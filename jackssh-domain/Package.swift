@@ -1,27 +1,16 @@
 // swift-tools-version: 6.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
+// Domain: pure business layer. No SwiftUI, UIKit, networking, persistence, SSH, or Keychain.
 let package = Package(
     name: "jackssh-domain",
+    platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "jackssh-domain",
-            targets: ["jackssh-domain"]
-        ),
+        .library(name: "Domain", targets: ["Domain"]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
-        .target(
-            name: "jackssh-domain"
-        ),
-        .testTarget(
-            name: "jackssh-domainTests",
-            dependencies: ["jackssh-domain"]
-        ),
+        .target(name: "Domain"),
+        .testTarget(name: "DomainTests", dependencies: ["Domain"]),
     ],
     swiftLanguageModes: [.v6]
 )

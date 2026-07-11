@@ -1,26 +1,30 @@
 // swift-tools-version: 6.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
+// Presentation: SwiftUI views + @Observable view models. Depends on Domain and DesignSystem.
 let package = Package(
     name: "jackssh-presentation",
+    platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "jackssh-presentation",
-            targets: ["jackssh-presentation"]
-        ),
+        .library(name: "Presentation", targets: ["Presentation"]),
+    ],
+    dependencies: [
+        .package(path: "../jackssh-domain"),
+        .package(path: "../jackssh-design-system"),
+        .package(path: "../jackssh-shared"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "jackssh-presentation"
+            name: "Presentation",
+            dependencies: [
+                .product(name: "Domain", package: "jackssh-domain"),
+                .product(name: "DesignSystem", package: "jackssh-design-system"),
+                .product(name: "Shared", package: "jackssh-shared"),
+            ]
         ),
         .testTarget(
-            name: "jackssh-presentationTests",
-            dependencies: ["jackssh-presentation"]
+            name: "PresentationTests",
+            dependencies: ["Presentation"]
         ),
     ],
     swiftLanguageModes: [.v6]
