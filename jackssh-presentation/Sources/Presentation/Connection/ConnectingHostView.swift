@@ -5,6 +5,8 @@ import DesignSystem
 public struct ConnectingHostView: View {
     @State private var viewModel: ConnectingHostViewModel
     @Environment(AppRouter.self) private var router
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
 
     public init(viewModel: ConnectingHostViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -30,8 +32,6 @@ public struct ConnectingHostView: View {
 
                 Spacer()
 
-                errorSection
-
                 HStack(spacing: DSSpacing.md) {
                     Button(role: .cancel) {
                         viewModel.cancel()
@@ -56,12 +56,21 @@ public struct ConnectingHostView: View {
             }
             .padding(DSSpacing.lg)
         }
+        .alert("Connection Failed", isPresented: $showErrorAlert) {
+            Button("Retry") { Task { await viewModel.retry() } }
+            Button("Cancel", role: .cancel) { router.popToRoot() }
+        } message: {
+            Text(errorMessage)
+        }
         .task {
             await viewModel.connect()
         }
         .onChange(of: viewModel.state) { oldValue, newValue in
             if case let .connected(session) = newValue {
                 router.push(.connected(hostID: session.hostID.uuidString))
+            } else if case let .failed(failure) = newValue {
+                errorMessage = failure.description
+                showErrorAlert = true
             }
         }
     }
@@ -97,23 +106,6 @@ public struct ConnectingHostView: View {
         case .preparingWorkspace: return 4
         case .connected: return 5
         case .failed, .cancelled: return -1
-        }
-    }
-
-    @ViewBuilder
-    private var errorSection: some View {
-        if case let .failed(failure) = viewModel.state {
-            VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                Text("Connection Failed")
-                    .font(DSTypography.body)
-                    .fontWeight(.semibold)
-                Text(failure.description)
-                    .font(DSTypography.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(DSSpacing.md)
-            .background(Color(.systemRed).opacity(0.1))
-            .cornerRadius(8)
         }
     }
 }

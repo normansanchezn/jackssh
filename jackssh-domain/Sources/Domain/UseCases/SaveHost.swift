@@ -46,6 +46,13 @@ public struct SaveHost: Sendable {
         if let credential = credential {
             let credentialKey = "host:\(id):auth"
             try await secretStore.setSecret(credential, for: credentialKey)
+            #if DEBUG
+            print("[SaveHost] 📝 Stored credential for host \(id) with key: \(credentialKey)")
+            #endif
+        } else {
+            #if DEBUG
+            print("[SaveHost] ⚠️ No credential provided for host \(id)")
+            #endif
         }
 
         try await repository.save(host)
