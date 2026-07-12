@@ -5,6 +5,7 @@ import DesignSystem
 public struct ConnectingHostView: View {
     @State private var viewModel: ConnectingHostViewModel
     @Environment(AppRouter.self) private var router
+    @Environment(\.jacksshTheme) private var theme
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
 
@@ -14,7 +15,7 @@ public struct ConnectingHostView: View {
 
     public var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            theme.colors.background.ignoresSafeArea()
             VStack(spacing: DSSpacing.lg) {
                 if let host = viewModel.host {
                     Text("Connecting to \(host.name)")

@@ -11,8 +11,18 @@ public struct WelcomeView: View {
     }
 
     public var body: some View {
+        _WelcomeContent(onSignIn: onSignIn, onSignUp: onSignUp)
+    }
+}
+
+struct _WelcomeContent: View {
+    @Environment(\.jacksshTheme) var theme
+    let onSignIn: () -> Void
+    let onSignUp: () -> Void
+
+    var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            theme.colors.background.ignoresSafeArea()
 
             VStack(spacing: DSSpacing.lg) {
                 Spacer()

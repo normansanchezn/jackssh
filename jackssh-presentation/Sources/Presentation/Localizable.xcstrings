@@ -1,0 +1,50 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "welcome_create_account_btn_txt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create Account"
+          }
+        }
+      }
+    },
+    "welcome_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage your SSH hosts and VPS infrastructure from your iOS device"
+          }
+        }
+      }
+    },
+    "welcome_sign_in_btn_txt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign In"
+          }
+        }
+      }
+    },
+    "welcome_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to JackSSH"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.2"
+}

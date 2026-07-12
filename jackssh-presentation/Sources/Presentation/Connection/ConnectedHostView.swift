@@ -5,7 +5,6 @@ import DesignSystem
 public struct ConnectedHostView: View {
     let session: ConnectedHostSession
     let host: Domain.Host?
-    @Environment(AppRouter.self) private var router
 
     public init(session: ConnectedHostSession, host: Domain.Host? = nil) {
         self.session = session
@@ -13,8 +12,19 @@ public struct ConnectedHostView: View {
     }
 
     public var body: some View {
+        _ConnectedHostContent(session: session, host: host)
+    }
+}
+
+struct _ConnectedHostContent: View {
+    @Environment(AppRouter.self) private var router
+    @Environment(\.jacksshTheme) var theme
+    let session: ConnectedHostSession
+    let host: Domain.Host?
+
+    var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            theme.colors.background.ignoresSafeArea()
             VStack(spacing: DSSpacing.lg) {
                 VStack(alignment: .leading, spacing: DSSpacing.sm) {
                     Text(host?.name ?? session.hostname)
@@ -88,6 +98,7 @@ public struct ConnectedHostView: View {
 }
 
 private struct QuickActionButton: View {
+    @Environment(\.jacksshTheme) var theme
     let label: String
     let systemImage: String
     let action: () -> Void
@@ -108,7 +119,7 @@ private struct QuickActionButton: View {
         }
         .buttonStyle(.plain)
         .padding(DSSpacing.md)
-        .background(Color(.systemGray6))
+        .background(theme.colors.surfaceElevated)
         .cornerRadius(8)
     }
 }

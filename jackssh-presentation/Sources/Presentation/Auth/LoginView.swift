@@ -4,6 +4,7 @@ import Domain
 
 public struct LoginView: View {
     @State private var viewModel: AuthViewModel
+    @Environment(\.jacksshTheme) var theme
     let onSuccess: () -> Void
     let onSignUp: () -> Void
 
@@ -15,7 +16,7 @@ public struct LoginView: View {
 
     public var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            theme.colors.background.ignoresSafeArea()
 
             VStack(spacing: DSSpacing.lg) {
                 VStack(spacing: DSSpacing.md) {
@@ -30,14 +31,16 @@ public struct LoginView: View {
 
                 VStack(spacing: DSSpacing.md) {
                     TextField("Email", text: $viewModel.email)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.emailAddress)
-                        .textContentType(.emailAddress)
-                        .autocorrectionDisabled()
+                        .padding(DSSpacing.md)
+                        .background(theme.colors.surface)
+                        .cornerRadius(DSRadius.sm)
+                        .border(theme.colors.border)
 
                     SecureField("Password", text: $viewModel.password)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.password)
+                        .padding(DSSpacing.md)
+                        .background(theme.colors.surface)
+                        .cornerRadius(DSRadius.sm)
+                        .border(theme.colors.border)
                 }
                 .padding(DSSpacing.lg)
 

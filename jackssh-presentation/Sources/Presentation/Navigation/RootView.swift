@@ -23,7 +23,7 @@ public struct RootView: View {
     }
 
     public var body: some View {
-        Group {
+        ThemeContainer {
             switch authViewModel.authState {
             case .authenticated:
                 NavigationStack(path: $router.path) {

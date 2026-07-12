@@ -61,18 +61,28 @@ struct OpenClawDashboardContent: View {
     }
 }
 
+#if os(iOS)
 struct WebViewContainer: UIViewRepresentable {
     let url: URL
 
-    func makeUIView(context: Context) -> WKWebView {
+    func makeUIView(context: UIViewRepresentableContext<WebViewContainer>) -> WKWebView {
         let webView = WKWebView()
         let request = URLRequest(url: url)
         webView.load(request)
         return webView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {
+    func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebViewContainer>) {
         let request = URLRequest(url: url)
         uiView.load(request)
     }
 }
+#else
+struct WebViewContainer: View {
+    let url: URL
+
+    var body: some View {
+        Text("WebView not available on macOS")
+    }
+}
+#endif

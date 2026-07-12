@@ -5,8 +5,16 @@ public struct SplashView: View {
     public init() {}
 
     public var body: some View {
+        _SplashContent()
+    }
+}
+
+struct _SplashContent: View {
+    @Environment(\.jacksshTheme) var theme
+
+    var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
+            theme.colors.background.ignoresSafeArea()
             VStack(spacing: DSSpacing.lg) {
                 Spacer()
 
