@@ -1,0 +1,160 @@
+# ============================================================
+# Xcode
+# ============================================================
+
+.DS_Store
+
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+xcuserdata/
+*.xcuserdatad/
+
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Xcode workspace user settings
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# ============================================================
+# Swift Package Manager
+# ============================================================
+
+.build/
+.swiftpm/
+Package.resolved
+
+# Conserva Package.resolved si quieres builds reproducibles.
+# En ese caso, elimina la línea anterior.
+
+# ============================================================
+# CocoaPods / Carthage
+# ============================================================
+
+Pods/
+Carthage/Build/
+
+# ============================================================
+# Fastlane
+# ============================================================
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+fastlane/readme.md
+
+# ============================================================
+# Secrets and SSH credentials
+# ============================================================
+
+.env
+.env.*
+!.env.example
+
+Secrets.swift
+Secrets.xcconfig
+Local.xcconfig
+Development.xcconfig
+Production.xcconfig
+
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.mobileprovision
+
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+*.openssh
+*.ppk
+known_hosts
+authorized_keys
+
+# Local SSH configuration
+.ssh/
+ssh_config.local
+hosts.local.json
+servers.local.json
+credentials.local.json
+
+# ============================================================
+# App-specific local data
+# ============================================================
+
+JackSSH/Resources/Secrets.plist
+JackSSH/Resources/LocalConfig.plist
+JackSSH/Resources/Servers.json
+JackSSH/Resources/Credentials.json
+
+LocalData/
+MockPrivateData/
+UserData/
+
+# ============================================================
+# Logs and debugging
+# ============================================================
+
+*.log
+logs/
+debug-output/
+network-dumps/
+ssh-session-logs/
+
+*.trace
+*.har
+
+# ============================================================
+# Testing
+# ============================================================
+
+*.xcresult
+TestResults/
+coverage/
+*.profdata
+
+# ============================================================
+# Archives and exported builds
+# ============================================================
+
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcarchive
+Archives/
+Export/
+ExportOptions.plist
+
+# ============================================================
+# IDEs and editors
+# ============================================================
+
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ============================================================
+# Temporary files
+# ============================================================
+
+tmp/
+temp/
+.cache/
