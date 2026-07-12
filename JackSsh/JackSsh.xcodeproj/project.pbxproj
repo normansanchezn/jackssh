@@ -235,6 +235,7 @@
 				AA0000000000000000000003 /* XCLocalSwiftPackageReference "../jackssh-design-system" */,
 				AA0000000000000000000004 /* XCLocalSwiftPackageReference "../jackssh-presentation" */,
 				AA0000000000000000000005 /* XCLocalSwiftPackageReference "../jackssh-shared" */,
+				D2ABEF9930032A1A00DE9519 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D2703E973002DA4D00259E7A /* Products */;
@@ -682,6 +683,17 @@
 			relativePath = "../jackssh-shared";
 		};
 /* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D2ABEF9930032A1A00DE9519 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		BB0000000000000000000001 /* Domain */ = {
