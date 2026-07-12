@@ -64,7 +64,7 @@ public struct CitadelRemoteDirectoryRepository: RemoteDirectoryRepository, Remot
         guard host.authenticationMethod == .password else {
             throw DomainError.unknown
         }
-        let key = "host:\(host.id):auth"
+        let key = SecretKey.password(hostID: host.id)
         guard let data = try await secretStore.secret(for: key),
               let password = String(data: data, encoding: .utf8) else {
             throw DomainError.notFound

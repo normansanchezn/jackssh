@@ -44,7 +44,7 @@ public struct SaveHost: Sendable {
 
         // Store credential if provided
         if let credential = credential {
-            let credentialKey = "host:\(id):auth"
+            let credentialKey = SecretKey.password(hostID: id)
             try await secretStore.setSecret(credential, for: credentialKey)
             #if DEBUG
             print("[SaveHost] 📝 Stored credential for host \(id) with key: \(credentialKey)")

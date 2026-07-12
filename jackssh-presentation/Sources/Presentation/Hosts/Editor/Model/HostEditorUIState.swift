@@ -6,7 +6,7 @@ public struct HostEditorUIState: Equatable {
     public var hostname: String
     public var port: String
     public var username: String
-    public var showPasswordField: Bool = false
+    public var showPasswordField: Bool = true
     public var password: String = ""
     public var passwordConfirmation: String = ""
     public var authenticationMethod: SSHAuthMethod = .password
@@ -24,6 +24,13 @@ public struct HostEditorUIState: Equatable {
             self.hostname = host.hostname
             self.port = String(host.port)
             self.username = host.username
+            self.authenticationMethod = host.authenticationMethod
+            switch host.authenticationMethod {
+            case .password:
+                self.showPasswordField = true
+            case .publicKey:
+                self.showPasswordField = false
+            }
             if let openClaw = host.openClawConfiguration {
                 self.openClawHost = openClaw.host
                 self.openClawPort = String(openClaw.port)
@@ -38,6 +45,8 @@ public struct HostEditorUIState: Equatable {
             self.hostname = ""
             self.port = "22"
             self.username = ""
+            self.authenticationMethod = .password
+            self.showPasswordField = true
         }
     }
 }

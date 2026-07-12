@@ -45,7 +45,7 @@ public struct CitadelTerminalConnecting: TerminalConnecting {
     private func authentication(for host: Domain.Host) async throws -> SSHAuthenticationMethod {
         switch host.authenticationMethod {
         case .password:
-            let key = "host:\(host.id):auth"
+            let key = SecretKey.password(hostID: host.id)
             guard let data = try await secretStore.secret(for: key),
                   let password = String(data: data, encoding: .utf8) else {
                 throw DomainError.notFound

@@ -41,8 +41,11 @@ public struct HostEditorView: View {
                     Text("SSH Key").tag("key")
                 }
                 if viewModel.showPasswordField {
-                    field("Password", text: $viewModel.password, field: .authenticationMethod, kind: .plain)
-                    field("Confirm", text: $viewModel.passwordConfirmation, field: .authenticationMethod, kind: .plain)
+                    secureField("Password", text: $viewModel.password, field: .authenticationMethod)
+                    secureField("Confirm", text: $viewModel.passwordConfirmation, field: .authenticationMethod)
+                    Text("Stored only in this device Keychain. Hosts synced from Supabase need the password saved once per device.")
+                        .font(DSTypography.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             Section("OpenClaw Configuration") {
@@ -114,6 +117,26 @@ public struct HostEditorView: View {
         #else
         base
         #endif
+    }
+
+    private func secureField(
+        _ label: String,
+        text: Binding<String>,
+        field: ValidationIssue.Field
+    ) -> some View {
+        VStack(alignment: .leading, spacing: DSSpacing.xxs) {
+            SecureField(label, text: text)
+                #if os(iOS)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                #endif
+            if let message = viewModel.issue(for: field) {
+                Text(message)
+                    .font(DSTypography.caption)
+                    .foregroundStyle(.red)
+                    .accessibilityLabel("\(label) error: \(message)")
+            }
+        }
     }
 }
 

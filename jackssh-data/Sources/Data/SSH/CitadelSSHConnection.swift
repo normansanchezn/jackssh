@@ -21,7 +21,7 @@ public actor CitadelSSHConnector: SSHConnector {
             let credentialKey: String
             switch host.authenticationMethod {
             case .password:
-                credentialKey = "host:\(host.id):auth"
+                credentialKey = SecretKey.password(hostID: host.id)
                 #if DEBUG
                 print("[CitadelSSHConnector] 🔑 Looking for password with key: \(credentialKey)")
                 #endif
@@ -44,7 +44,7 @@ public actor CitadelSSHConnector: SSHConnector {
                 return .success
 
             case .publicKey:
-                credentialKey = "host:\(host.id):privateKey"
+                credentialKey = SecretKey.privateKey(hostID: host.id)
                 #if DEBUG
                 print("[CitadelSSHConnector] 🔑 Looking for private key with key: \(credentialKey)")
                 #endif

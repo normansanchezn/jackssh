@@ -118,8 +118,24 @@ public final class HostEditorViewModel {
 
         // Prepare credential data
         var credentialData: Data? = nil
-        if case .password = authenticationMethod, !password.isEmpty {
-            credentialData = password.data(using: .utf8)
+        if case .password = authenticationMethod {
+            if !isEditing && password.isEmpty {
+                uiState.issues = [
+                    ValidationIssue(field: .authenticationMethod, message: "Password is required for new password-based hosts.")
+                ]
+                effect = .showError("Password is required.")
+                return nil
+            }
+            if !password.isEmpty {
+                guard password == passwordConfirmation else {
+                    uiState.issues = [
+                        ValidationIssue(field: .authenticationMethod, message: "Passwords do not match.")
+                    ]
+                    effect = .showError("Passwords do not match.")
+                    return nil
+                }
+                credentialData = password.data(using: .utf8)
+            }
         }
 
         do {
