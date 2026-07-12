@@ -24,8 +24,16 @@ final class CompositionRoot {
         do {
             container = try JackSshStore.makeContainer(inMemory: inMemory)
         } catch {
-            // Persistence is required to run; fail fast during development.
+            // Schema mismatch on device: fall back to in-memory
+            #if DEBUG
+            do {
+                container = try JackSshStore.makeContainer(inMemory: true)
+            } catch {
+                fatalError("Failed to build ModelContainer (both persistent and in-memory): \(error)")
+            }
+            #else
             fatalError("Failed to build ModelContainer: \(error)")
+            #endif
         }
         modelContainer = container
         router = AppRouter()
