@@ -1,11 +1,29 @@
 import Foundation
 import os.log
 
-public enum LogLevel: String {
-    case debug = "🔵 DEBUG"
-    case info = "🟢 INFO"
-    case warning = "🟡 WARNING"
-    case error = "🔴 ERROR"
+public enum LogLevel: String, CaseIterable {
+    case debug = "DEBUG"
+    case info = "INFO"
+    case warning = "WARN"
+    case error = "ERROR"
+
+    var emoji: String {
+        switch self {
+        case .debug: return "🔵"
+        case .info: return "🟢"
+        case .warning: return "🟡"
+        case .error: return "🔴"
+        }
+    }
+
+    var osLogType: OSLogType {
+        switch self {
+        case .debug: return .debug
+        case .info: return .info
+        case .warning: return .default
+        case .error: return .error
+        }
+    }
 }
 
 public struct AppLogger {
@@ -20,24 +38,39 @@ public struct AppLogger {
     ) {
         #if DEBUG
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        let timestamp = ISO8601DateFormatter().string(from: Date())
-        let logMessage = "[\(timestamp)] [\(fileName):\(line)] \(function) - \(level.rawValue): \(message)"
+        let timestamp = ISO8601DateFormatter().string(from: Date()).suffix(12)
+        let logMessage = "\(level.emoji) [\(level.rawValue)] |\(timestamp)| \(fileName):\(line) → \(function)\n  → \(message)"
 
-        os_log("%{public}s", log: osLog, type: .debug, logMessage)
         print(logMessage)
+        os_log("%{public}s", log: osLog, type: level.osLogType, logMessage)
         #endif
     }
 
-    public static func logCredential(hostID: String, found: Bool) {
-        let status = found ? "✅ FOUND" : "❌ NOT FOUND"
-        log("Credential for host \(hostID): \(status)", level: .debug)
+    public static func logNetwork(
+        method: String,
+        url: String,
+        statusCode: Int? = nil,
+        error: Error? = nil,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        let level: LogLevel = error != nil ? .error : (statusCode ?? 200) >= 400 ? .warning : .info
+        let status = statusCode.map { "[\($0)]" } ?? "[pending]"
+        let errorMsg = error.map { " — \($0.localizedDescription)" } ?? ""
+        let message = "🌐 \(method) \(url) \(status)\(errorMsg)"
+
+        log(message, level: level, file: file, function: function, line: line)
     }
 
-    public static func logCredentialStore(hostID: String, action: String) {
-        log("Credential Store [\(action)]: host=\(hostID)", level: .debug)
+    public static func logAuth(action: String, email: String, success: Bool) {
+        let status = success ? "✅ SUCCESS" : "❌ FAILED"
+        let message = "🔐 AUTH [\(action)] \(email) — \(status)"
+        log(message, level: success ? .info : .error)
     }
 
-    public static func logConnection(host: String, step: String) {
-        log("Connection [\(host)]: \(step)", level: .debug)
+    public static func logSSH(host: String, action: String, status: String) {
+        let message = "🔌 SSH [\(host)] \(action) — \(status)"
+        log(message, level: status.contains("✅") ? .info : .warning)
     }
 }

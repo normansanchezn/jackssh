@@ -1,5 +1,6 @@
 import Foundation
 import Domain
+import Shared
 
 /// Supabase Auth implementation.
 public actor SupabaseAuthRepository: AuthRepository {
@@ -12,14 +13,12 @@ public actor SupabaseAuthRepository: AuthRepository {
     }
 
     public func signUp(email: String, password: String) async throws -> User {
-        #if DEBUG
-        print("[SupabaseAuth] 📝 Sign up attempt: \(email)")
-        #endif
-
         let endpoint = supabaseURL
             .appendingPathComponent("auth")
             .appendingPathComponent("v1")
             .appendingPathComponent("signup")
+
+        AppLogger.logAuth(action: "SignUp", email: email, success: false)
 
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -30,12 +29,13 @@ public actor SupabaseAuthRepository: AuthRepository {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+
+        AppLogger.logNetwork(method: "POST", url: endpoint.absoluteString, statusCode: statusCode)
 
         guard let httpResponse = response as? HTTPURLResponse, (200...201).contains(httpResponse.statusCode) else {
-            #if DEBUG
-            let errorStr = String(data: data, encoding: .utf8) ?? "unknown"
-            print("[SupabaseAuth] ❌ Sign up failed: \(errorStr)")
-            #endif
+            let errorStr = String(data: data, encoding: .utf8) ?? "unknown error"
+            AppLogger.logNetwork(method: "POST", url: endpoint.absoluteString, statusCode: statusCode, error: DomainError.unauthorized)
             throw DomainError.unauthorized
         }
 
@@ -43,10 +43,7 @@ public actor SupabaseAuthRepository: AuthRepository {
         decoder.dateDecodingStrategy = .iso8601
         let authResponse = try decoder.decode(AuthResponse.self, from: data)
 
-        #if DEBUG
-        print("[SupabaseAuth] ✅ Sign up successful: \(authResponse.user.id)")
-        #endif
-
+        AppLogger.logAuth(action: "SignUp", email: email, success: true)
         return User(id: authResponse.user.id, email: authResponse.user.email)
     }
 
