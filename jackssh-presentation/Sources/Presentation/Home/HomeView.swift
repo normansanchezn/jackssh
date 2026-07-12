@@ -10,7 +10,7 @@ public struct HomeView: View {
     @Environment(\.jacksshTheme) private var theme
     private let router: AppRouter
     private let onLogout: () async -> Void
-
+    
     public init(
         viewModel: HomeViewModel,
         router: AppRouter,
@@ -20,9 +20,9 @@ public struct HomeView: View {
         self.router = router
         self.onLogout = onLogout
     }
-
+    
     public var body: some View {
-        ScreenScaffold(title: "JackSsh") {
+        ScreenScaffold(title: "JackSSH") {
             switch viewModel.state {
             case .idle, .loading:
                 loadingView
@@ -52,7 +52,7 @@ public struct HomeView: View {
             }
         }
     }
-
+    
     private var loadingView: some View {
         DSCard {
             HStack(spacing: DSSpacing.md) {
@@ -63,65 +63,65 @@ public struct HomeView: View {
         }
         .accessibilityLabel("Checking status")
     }
-
+    
     private func loadedView(_ status: HomeStatus) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.lg) {
             statusSection(status)
             manageHostsCard(activeSession: viewModel.activeSession)
         }
     }
-
+    
     private func statusSection(_ status: HomeStatus) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.md) {
             Text("Status")
                 .font(DSTypography.sectionTitle)
                 .accessibilityAddTraits(.isHeader)
-
+            
             DSGlassSurface {
-                VStack(spacing: 0) {
+                VStack(spacing: 8) {
                     StatusRow(
-                    systemImage: "network",
-                    title: "Private network",
-                    tone: status.privateNetworkOnline ? .positive : .critical,
-                    statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
-                )
-                    Divider().padding(.leading, 40)
+                        systemImage: "network",
+                        title: "Private network",
+                        tone: status.privateNetworkOnline ? .positive : .critical,
+                        statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
+                    ).padding(.vertical, 6)
+                    Divider()
                     StatusRow(
-                    systemImage: "server.rack",
-                    title: "VPS",
-                    tone: status.vps.tone,
-                    statusLabel: status.vps.label
-                )
-                    Divider().padding(.leading, 40)
+                        systemImage: "server.rack",
+                        title: "VPS",
+                        tone: status.vps.tone,
+                        statusLabel: status.vps.label
+                    )
+                    Divider()
                     StatusRow(
-                    systemImage: "sparkles",
-                    title: "OpenClaw",
-                    tone: status.openClaw.tone,
-                    statusLabel: status.openClaw.label
-                )
-                    #if os(macOS)
-                    Divider().padding(.leading, 40)
+                        systemImage: "sparkles",
+                        title: "OpenClaw",
+                        tone: status.openClaw.tone,
+                        statusLabel: status.openClaw.label
+                    )
+#if os(macOS)
+                    Divider()
                     StatusRow(
-                    systemImage: "cpu",
-                    title: "Ollama",
-                    tone: status.ollama.tone,
-                    statusLabel: status.ollama.label
-                )
-                    #endif
+                        systemImage: "cpu",
+                        title: "Ollama",
+                        tone: status.ollama.tone,
+                        statusLabel: status.ollama.label
+                    )
+#endif
                 }
                 .padding(.horizontal, DSSpacing.lg)
                 .padding(.vertical, DSSpacing.sm)
             }
         }
     }
-
+    
     private func manageHostsCard(activeSession: ConnectedHostSession?) -> some View {
         Button {
             router.push(.hosts)
         } label: {
             HStack(spacing: DSSpacing.md) {
                 DSIconTile(symbol: "server.rack", tint: theme.colors.primary600, size: 44)
-
+                
                 VStack(alignment: .leading, spacing: DSSpacing.xs) {
                     Text("Manage hosts")
                         .font(DSTypography.sectionTitle)
@@ -130,7 +130,7 @@ public struct HomeView: View {
                         .font(DSTypography.caption)
                         .foregroundStyle(activeSession == nil ? theme.colors.textSecondary : theme.colors.statusConnected)
                 }
-
+                
                 Spacer(minLength: DSSpacing.sm)
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -144,7 +144,7 @@ public struct HomeView: View {
         .buttonStyle(.plain)
         .accessibilityHint("Opens your saved hosts")
     }
-
+    
     private func errorView(_ error: DomainError) -> some View {
         DSCard {
             VStack(alignment: .leading, spacing: DSSpacing.md) {

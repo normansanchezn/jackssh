@@ -4,7 +4,7 @@ import Domain
 
 /// SFTP-backed remote directory browser. Each listing uses an isolated SSH/SFTP
 /// channel, keeping it independent from the interactive terminal's PTY.
-public struct CitadelRemoteDirectoryRepository: RemoteDirectoryRepository {
+public struct CitadelRemoteDirectoryRepository: RemoteDirectoryRepository, RemoteFileRepository {
     private let host: Domain.Host
     private let secretStore: SecretStore
 
@@ -36,6 +36,24 @@ public struct CitadelRemoteDirectoryRepository: RemoteDirectoryRepository {
             }
             try await client.close()
             return files
+        } catch {
+            try? await client.close()
+            throw error
+        }
+    }
+
+    public func readFile(at path: String) async throws -> Data {
+        let client = try await connect()
+
+        do {
+            let data = try await client.withSFTP { sftp in
+                let buffer = try await sftp.withFile(filePath: path, flags: .read) { file in
+                    try await file.readAll()
+                }
+                return Data(buffer.readableBytesView)
+            }
+            try await client.close()
+            return data
         } catch {
             try? await client.close()
             throw error

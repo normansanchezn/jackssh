@@ -75,7 +75,8 @@ enum PreviewFixtures {
                     hostID: hostID,
                     initialPath: path,
                     loadHosts: LoadHosts(repository: PreviewHostRepository(hosts: [host, secondaryHost])),
-                    makeDirectoryRepository: { _ in PreviewDirectoryRepository() }
+                    makeDirectoryRepository: { _ in PreviewDirectoryRepository() },
+                    makeFileRepository: { _ in PreviewDirectoryRepository() }
                 )
             }
         )
@@ -138,13 +139,17 @@ private actor PreviewSessionStore: ConnectionSessionStore {
     func deactivate(hostID: UUID) async { if current?.hostID == hostID { current = nil } }
 }
 
-private struct PreviewDirectoryRepository: RemoteDirectoryRepository {
+private struct PreviewDirectoryRepository: RemoteDirectoryRepository, RemoteFileRepository {
     func listDirectory(at path: String) async throws -> [SFTPFileInfo] {
         [
             SFTPFileInfo(name: "releases", path: path + "/releases", isDirectory: true),
             SFTPFileInfo(name: "current", path: path + "/current", isDirectory: true),
             SFTPFileInfo(name: "README.md", path: path + "/README.md", isDirectory: false, size: 4_096),
         ]
+    }
+
+    func readFile(at path: String) async throws -> Data {
+        Data("import Foundation\n\nstruct Preview {\n    let path = \"\(path)\"\n}\n".utf8)
     }
 }
 

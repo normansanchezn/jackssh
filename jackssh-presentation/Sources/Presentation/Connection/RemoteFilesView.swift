@@ -37,6 +37,21 @@ public struct RemoteFilesView: View {
                 .accessibilityLabel(isTerminalVisible ? "Hide terminal" : "Show terminal")
             }
         }
+        .sheet(item: codeFileBinding) { codeFile in
+            NavigationStack {
+                CodeFileViewer(codeFile: codeFile)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { viewModel.dismissCodeFile() }
+                        }
+                    }
+            }
+        }
+        .alert("Couldn’t open file", isPresented: fileErrorBinding) {
+            Button("OK", role: .cancel) { viewModel.dismissCodeFile() }
+        } message: {
+            Text(viewModel.fileLoadError ?? "Unknown error")
+        }
         .task { await viewModel.load() }
     }
 
@@ -95,11 +110,25 @@ public struct RemoteFilesView: View {
                         RemoteFileRow(file: file)
                     }
                     .buttonStyle(.plain)
-                    .disabled(!file.isDirectory)
+                    .disabled(!file.isDirectory && CodeLanguage.detect(for: file.name) == .plainText)
                 }
                 .listStyle(.plain)
             }
         }
+    }
+
+    private var codeFileBinding: Binding<RemoteFilesViewModel.CodeFile?> {
+        Binding(
+            get: { viewModel.codeFile },
+            set: { if $0 == nil { viewModel.dismissCodeFile() } }
+        )
+    }
+
+    private var fileErrorBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.fileLoadError != nil },
+            set: { if !$0 { viewModel.dismissCodeFile() } }
+        )
     }
 }
 
@@ -124,6 +153,11 @@ private struct RemoteFileRow: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
+            if !file.isDirectory, CodeLanguage.detect(for: file.name) != .plainText {
+                Text(CodeLanguage.detect(for: file.name).rawValue)
+                    .font(DSTypography.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .contentShape(Rectangle())
     }
@@ -132,6 +166,53 @@ private struct RemoteFileRow: View {
         if file.isDirectory { return "Folder" }
         guard let size = file.size else { return "File" }
         return ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
+    }
+}
+
+private struct CodeFileViewer: View {
+    @Environment(\.jacksshTheme) private var theme
+    let codeFile: RemoteFilesViewModel.CodeFile
+
+    var body: some View {
+        ScrollView([.horizontal, .vertical]) {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(codeFile.content.split(separator: "\n", omittingEmptySubsequences: false).enumerated()), id: \.offset) { index, line in
+                    HStack(alignment: .firstTextBaseline, spacing: DSSpacing.md) {
+                        Text("\(index + 1)")
+                            .foregroundStyle(theme.colors.textTertiary)
+                            .frame(minWidth: 34, alignment: .trailing)
+                        Text(String(line))
+                            .foregroundStyle(theme.colors.textPrimary)
+                            .textSelection(.enabled)
+                    }
+                    .font(DSTypography.mono)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, DSSpacing.md)
+                    .padding(.vertical, 2)
+                }
+            }
+            .padding(.vertical, DSSpacing.sm)
+        }
+        .background(theme.colors.background)
+        .navigationTitle(codeFile.file.name)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .safeAreaInset(edge: .top) {
+            HStack {
+                Label(CodeLanguage.detect(for: codeFile.file.name).rawValue, systemImage: "chevron.left.forwardslash.chevron.right")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(theme.colors.textSecondary)
+                Spacer()
+                Text("Read only")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(theme.colors.textTertiary)
+            }
+            .padding(.horizontal, DSSpacing.lg)
+            .padding(.vertical, DSSpacing.sm)
+            .dsGlassSurface()
+            .padding(.horizontal, DSSpacing.sm)
+        }
     }
 }
 

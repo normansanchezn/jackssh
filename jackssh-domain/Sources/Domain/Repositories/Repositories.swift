@@ -77,6 +77,12 @@ public protocol RemoteDirectoryRepository: Sendable {
     func listDirectory(at path: String) async throws -> [SFTPFileInfo]
 }
 
+/// Reads an existing remote file. Mutating operations are intentionally not part
+/// of this contract because the mobile browser is read-only.
+public protocol RemoteFileRepository: Sendable {
+    func readFile(at path: String) async throws -> Data
+}
+
 /// SFTP file metadata.
 public struct SFTPFileInfo: Equatable, Sendable {
     public let name: String

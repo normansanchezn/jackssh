@@ -127,6 +127,9 @@ final class CompositionRoot {
                     loadHosts: LoadHosts(repository: hostRepository),
                     makeDirectoryRepository: { host in
                         CitadelRemoteDirectoryRepository(host: host, secretStore: secretStore)
+                    },
+                    makeFileRepository: { host in
+                        CitadelRemoteDirectoryRepository(host: host, secretStore: secretStore)
                     }
                 )
             }

@@ -13,11 +13,21 @@ public struct OpenClawDashboardView: View {
     }
 
     public var body: some View {
-        if let session = viewModel.session, let host = viewModel.host, let config = host.openClawConfiguration {
-            OpenClawDashboardContent(session: session, host: host, config: config)
-        } else {
-            ProgressView()
-                .task { await viewModel.load() }
+        Group {
+            if let session = viewModel.session, let host = viewModel.host, let config = host.openClawConfiguration {
+                OpenClawDashboardContent(session: session, host: host, config: config)
+            } else if let error = viewModel.loadError {
+                ContentUnavailableView(
+                    "Dashboard unavailable",
+                    systemImage: "rectangle.slash",
+                    description: Text(error)
+                )
+            } else {
+                ProgressView("Opening dashboard…")
+            }
+        }
+        .task {
+            await viewModel.load()
         }
     }
 }
@@ -47,8 +57,8 @@ struct OpenClawDashboardContent: View {
             Divider()
 
             WebViewContainer(url: dashboardURL)
-                .navigationTitle("Dashboard")
         }
+        .navigationTitle("Dashboard")
     }
 
     private var dashboardURL: URL {
@@ -73,8 +83,8 @@ struct WebViewContainer: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebViewContainer>) {
-        let request = URLRequest(url: url)
-        uiView.load(request)
+        guard uiView.url != url else { return }
+        uiView.load(URLRequest(url: url))
     }
 }
 #else
