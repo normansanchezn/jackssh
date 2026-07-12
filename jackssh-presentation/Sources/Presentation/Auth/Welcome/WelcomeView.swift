@@ -80,7 +80,7 @@ struct _WelcomeContent: View {
 
                 VStack(spacing: DSSpacing.md) {
                     DSButton(
-                        "Sign In",
+                        viewModel.uiState.signInButtonText,
                         icon: "arrow.right.circle.fill",
                         style: .filled,
                         fullWidth: true
@@ -90,7 +90,7 @@ struct _WelcomeContent: View {
                     .disabled(viewModel.uiState.isLoading)
 
                     DSButton(
-                        "Create Account",
+                        viewModel.uiState.signUpButtonText,
                         icon: "person.badge.plus",
                         style: .outline,
                         fullWidth: true

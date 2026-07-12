@@ -1,29 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "welcome_create_account_btn_txt" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create Account"
-          }
-        }
-      }
-    },
-    "welcome_description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manage your SSH hosts and VPS infrastructure from your iOS device"
-          }
-        }
-      }
-    },
-    "welcome_sign_in_btn_txt" : {
+    "welcome.signIn" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -31,16 +9,62 @@
             "state" : "translated",
             "value" : "Sign In"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar Sesión"
+          }
         }
       }
     },
-    "welcome_title" : {
+    "welcome.signUp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create Account"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear Cuenta"
+          }
+        }
+      }
+    },
+    "welcome.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage your SSH hosts and VPS infrastructure from your iOS device"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu cliente SSH moderno"
+          }
+        }
+      }
+    },
+    "welcome.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Welcome to JackSSH"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenido a JackSSH"
           }
         }
       }

@@ -1,7 +1,15 @@
 import SwiftUI
 
-/// Componente de botón del Design System con tres estilos: Filled, Outline, y Text.
-/// Diseñado específicamente para aplicaciones SSH/OpenClaw con estética técnica y Liquid Glass.
+/// Button component
+///
+/// - Parameters:
+///     - title: Texto del botón.
+///     - icon: Nombre del SF Symbol opcional que aparece antes del texto.
+///     - style: Estilo visual del botón. Valores posibles son .filled, .outline y .text.
+///     - size: Tamaño del botón. Valores posibles son .small, .medium y .large.
+///     - fullWidth: Determina si el botón debe ocupar todo el ancho disponible.
+///     - isLoading: Muestra un indicador de progreso en lugar del contenido mientras está cargando.
+///     - action: Acción a ejecutar al presionar el botón. Debe ser una función que no tenga
 public struct DSButton: View {
     @Environment(\.jacksshTheme) var theme
     @Environment(\.isEnabled) private var isEnabled
@@ -14,15 +22,6 @@ public struct DSButton: View {
     private let isLoading: Bool
     private let action: () -> Void
     
-    /// Crea un botón del Design System con efectos Liquid Glass
-    /// - Parameters:
-    ///   - title: Texto del botón
-    ///   - icon: Nombre del SF Symbol opcional (aparece antes del texto)
-    ///   - style: Estilo visual del botón (.filled, .outline, .text)
-    ///   - size: Tamaño del botón (.small, .medium, .large)
-    ///   - fullWidth: Si debe ocupar todo el ancho disponible
-    ///   - isLoading: Muestra un indicador de progreso en lugar del contenido
-    ///   - action: Acción a ejecutar al presionar el botón
     public init(
         _ title: String,
         icon: String? = nil,

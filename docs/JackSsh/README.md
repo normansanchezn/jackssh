@@ -1,5 +1,0 @@
-#  JackSSH App
----
-
-
-

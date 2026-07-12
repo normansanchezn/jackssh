@@ -24,6 +24,10 @@ let package = Package(
                 .product(name: "DesignSystem", package: "jackssh-design-system"),
                 .product(name: "Shared", package: "jackssh-shared"),
                 .product(name: "SwiftTerm", package: "SwiftTerm"),
+            ],
+            resources: [
+                .process("Localizable.xcstrings"),
+                .process("Media.xcassets"),
             ]
         ),
         .testTarget(
