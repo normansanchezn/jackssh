@@ -4,6 +4,8 @@ import UIKit
 
 /// Termius-inspired dark theme for the terminal emulator.
 /// A 16-entry ANSI palette plus background/foreground/cursor colors.
+///
+@MainActor
 enum TerminalTheme {
     /// SwiftTerm uses 16-bit channels (0...65535) per component.
     private static func c(_ r: UInt16, _ g: UInt16, _ b: UInt16) -> SwiftTerm.Color {

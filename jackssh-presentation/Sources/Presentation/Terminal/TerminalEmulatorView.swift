@@ -24,12 +24,9 @@ struct TerminalEmulatorView: UIViewRepresentable {
 
         view.terminalDelegate = context.coordinator
 
-        // Attach after the view is in the hierarchy so the initial PTY size is
-        // derived from a laid-out terminal.
-        DispatchQueue.main.async { [weak view] in
-            guard let view else { return }
-            session.attach(view)
-        }
+        // makeUIView is @MainActor; attach synchronously. The session defaults to
+        // an 80x24 PTY until SwiftTerm reports the real size via `sizeChanged`.
+        session.attach(view)
         return view
     }
 
@@ -39,8 +36,12 @@ struct TerminalEmulatorView: UIViewRepresentable {
         Coordinator(session: session)
     }
 
-    final class Coordinator: NSObject, TerminalViewDelegate {
-        private let session: TerminalSession
+    final class Coordinator: NSObject, TerminalViewDelegate, @unchecked Sendable {
+        // SwiftTerm's delegate callbacks all fire on the UIKit main thread, so
+        // `MainActor.assumeIsolated` below is sound at runtime. `nonisolated(unsafe)`
+        // stops the compiler treating each capture as a cross-isolation send of
+        // the non-Sendable session.
+        nonisolated(unsafe) private let session: TerminalSession
 
         init(session: TerminalSession) {
             self.session = session
