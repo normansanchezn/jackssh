@@ -9,6 +9,7 @@ public struct HostsListView: View {
     @State private var editorTarget: EditorTarget?
     @State private var pendingDeletion: Domain.Host?
     @Environment(\.jacksshTheme) private var theme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(AppRouter.self) private var router
     
     private let dependencies: HostsDependencies
@@ -85,29 +86,50 @@ public struct HostsListView: View {
             }
         case let .loaded(hosts):
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: DSSpacing.md) {
+                VStack(alignment: .leading, spacing: DSSpacing.md) {
                     Text("\(hosts.count) saved \(hosts.count == 1 ? "host" : "hosts")")
                         .font(DSTypography.caption)
                         .foregroundStyle(.secondary)
-                        .padding(.horizontal, DSSpacing.lg)
-                        .padding(.top, DSSpacing.lg)
-                    
-                    ForEach(hosts) { host in
-                        HostRowLabel(host: host)
-                            .overlay(alignment: .topTrailing) {
-                                optionButton(host: host)
-                            }
-                            .padding(.horizontal, DSSpacing.lg)
-                            .onTapGesture {
-                                print("🔵 DEBUG: Tapped host: \(host.name)")
-                                router.push(.connecting(hostID: host.id.uuidString))
-                            }
-                    }
+
+                    hostsCollection(hosts)
                     
                     Color.clear.frame(height: DSSpacing.xl)
                 }
+                .padding(DSSpacing.lg)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 1080 : .infinity, alignment: .leading)
             }
         }
+    }
+
+    @ViewBuilder
+    private func hostsCollection(_ hosts: [Domain.Host]) -> some View {
+        if horizontalSizeClass == .regular {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 320, maximum: 460), spacing: DSSpacing.md, alignment: .top)],
+                alignment: .leading,
+                spacing: DSSpacing.md
+            ) {
+                ForEach(hosts) { host in
+                    hostRow(host)
+                }
+            }
+        } else {
+            LazyVStack(alignment: .leading, spacing: DSSpacing.md) {
+                ForEach(hosts) { host in
+                    hostRow(host)
+                }
+            }
+        }
+    }
+
+    private func hostRow(_ host: Domain.Host) -> some View {
+        HostRowLabel(host: host)
+            .overlay(alignment: .topTrailing) {
+                optionButton(host: host)
+            }
+            .onTapGesture {
+                router.push(.connecting(hostID: host.id.uuidString))
+            }
     }
     
     private func optionButton(host: Domain.Host) -> some View {

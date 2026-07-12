@@ -8,6 +8,8 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Added
 
+- iPadOS adaptive app shell using `NavigationSplitView` with a persistent sidebar and detail navigation.
+- Regular-width host grid layout so iPad does not render the iPhone list as an oversized column.
 - Remote Supabase-backed host persistence through `SupabaseHostRepository`.
 - Local-to-remote host migration bridge through `SyncingHostRepository`.
 - Splash screen architecture with `SplashViewModel`, `SplashUIState`, and `SplashEffect`.
@@ -16,6 +18,7 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Changed
 
+- Home dashboard now adapts to regular-width layouts with constrained task panels.
 - `CompositionRoot` now wires hosts through a syncing repository instead of local-only SwiftData persistence.
 - Supabase auth repository now exposes a session context for remote data repositories.
 - The app startup path now shows the animated splash while bootstrapping authentication.

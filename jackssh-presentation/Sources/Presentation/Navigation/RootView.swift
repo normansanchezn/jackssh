@@ -8,6 +8,7 @@ public struct RootView: View {
     @State private var authViewModel: AuthViewModel
     @State private var router: AppRouter
     @State private var isBootstrapping = true
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let homeViewModel: HomeViewModel
     private let hostsDependencies: HostsDependencies
 
@@ -32,15 +33,26 @@ public struct RootView: View {
                 } else {
                     switch authViewModel.authState {
                     case .authenticated:
-                        NavigationStack(path: $router.path) {
-                            HomeView(viewModel: homeViewModel, router: router) {
+                        if horizontalSizeClass == .regular {
+                            IPadAppShell(
+                                router: router,
+                                homeViewModel: homeViewModel,
+                                hostsDependencies: hostsDependencies
+                            ) {
                                 await authViewModel.logout()
                             }
-                                .environment(router)
-                                .navigationDestination(for: AppRoute.self) { route in
-                                    destination(for: route)
-                                        .environment(router)
+                            .environment(router)
+                        } else {
+                            NavigationStack(path: $router.path) {
+                                HomeView(viewModel: homeViewModel, router: router) {
+                                    await authViewModel.logout()
                                 }
+                                    .environment(router)
+                                    .navigationDestination(for: AppRoute.self) { route in
+                                        RootDestinationView(route: route, hostsDependencies: hostsDependencies)
+                                            .environment(router)
+                                    }
+                            }
                         }
                     default:
                         AuthFlowView(authViewModel: authViewModel)
@@ -64,9 +76,96 @@ public struct RootView: View {
     private func sleepForSplash() async {
         try? await Task.sleep(for: .milliseconds(950))
     }
+}
+
+private enum IPadSidebarSelection: Hashable {
+    case dashboard
+    case hosts
+}
+
+private struct IPadAppShell: View {
+    @Environment(\.jacksshTheme) private var theme
+    @State private var selection: IPadSidebarSelection? = .dashboard
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+
+    @Bindable var router: AppRouter
+    let homeViewModel: HomeViewModel
+    let hostsDependencies: HostsDependencies
+    let onLogout: () async -> Void
+
+    var body: some View {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            List(selection: $selection) {
+                Section("Operations") {
+                    Label("Dashboard", systemImage: "gauge.with.dots.needle.67percent")
+                        .tag(IPadSidebarSelection.dashboard)
+                    Label("Hosts", systemImage: "server.rack")
+                        .tag(IPadSidebarSelection.hosts)
+                }
+            }
+            .navigationTitle("JackSSH")
+            .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button(role: .destructive) {
+                            Task { await onLogout() }
+                        } label: {
+                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } label: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                    .accessibilityLabel("Account options")
+                }
+            }
+        } detail: {
+            NavigationStack(path: $router.path) {
+                selectedRoot
+                    .environment(router)
+                    .navigationDestination(for: AppRoute.self) { route in
+                        RootDestinationView(route: route, hostsDependencies: hostsDependencies)
+                            .environment(router)
+                    }
+            }
+        }
+        .tint(theme.colors.primary600)
+        .onChange(of: selection) { _, _ in
+            router.popToRoot()
+        }
+        .onChange(of: router.path) { _, path in
+            if path.last == .hosts {
+                selection = .hosts
+            }
+        }
+    }
 
     @ViewBuilder
-    private func destination(for route: AppRoute) -> some View {
+    private var selectedRoot: some View {
+        switch selection ?? .dashboard {
+        case .dashboard:
+            HomeView(
+                viewModel: homeViewModel,
+                router: router,
+                showsAccountMenu: false,
+                onLogout: onLogout
+            )
+        case .hosts:
+            HostsListView(dependencies: hostsDependencies)
+        }
+    }
+}
+
+private struct RootDestinationView: View {
+    let route: AppRoute
+    let hostsDependencies: HostsDependencies
+
+    var body: some View {
+        destination
+    }
+
+    @ViewBuilder
+    private var destination: some View {
         switch route {
         case .hosts:
             HostsListView(dependencies: hostsDependencies)

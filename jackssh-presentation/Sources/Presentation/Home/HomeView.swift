@@ -8,16 +8,20 @@ public struct HomeView: View {
     @State private var viewModel: HomeViewModel
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.jacksshTheme) private var theme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let router: AppRouter
     private let onLogout: () async -> Void
+    private let showsAccountMenu: Bool
     
     public init(
         viewModel: HomeViewModel,
         router: AppRouter,
+        showsAccountMenu: Bool = true,
         onLogout: @escaping () async -> Void = {}
     ) {
         _viewModel = State(initialValue: viewModel)
         self.router = router
+        self.showsAccountMenu = showsAccountMenu
         self.onLogout = onLogout
     }
     
@@ -38,17 +42,19 @@ public struct HomeView: View {
             Task { await viewModel.load() }
         }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button(role: .destructive) {
-                        Task { await onLogout() }
+            if showsAccountMenu {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button(role: .destructive) {
+                            Task { await onLogout() }
+                        } label: {
+                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
                     } label: {
-                        Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                        Image(systemName: "ellipsis.circle")
                     }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
+                    .accessibilityLabel("Account options")
                 }
-                .accessibilityLabel("Account options")
             }
         }
     }
@@ -65,10 +71,27 @@ public struct HomeView: View {
     }
     
     private func loadedView(_ status: HomeStatus) -> some View {
-        VStack(alignment: .leading, spacing: DSSpacing.lg) {
-            manageHostsCard(activeSession: viewModel.activeSession)
-            statusSection(status)
+        Group {
+            if horizontalSizeClass == .regular {
+                HStack(alignment: .top, spacing: DSSpacing.xl) {
+                    VStack(alignment: .leading, spacing: DSSpacing.lg) {
+                        manageHostsCard(activeSession: viewModel.activeSession)
+                    }
+                    .frame(maxWidth: 380)
+
+                    statusSection(status)
+                        .frame(maxWidth: 520)
+
+                    Spacer(minLength: 0)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: DSSpacing.lg) {
+                    manageHostsCard(activeSession: viewModel.activeSession)
+                    statusSection(status)
+                }
+            }
         }
+        .frame(maxWidth: 980, alignment: .leading)
     }
     
     private func statusSection(_ status: HomeStatus) -> some View {
