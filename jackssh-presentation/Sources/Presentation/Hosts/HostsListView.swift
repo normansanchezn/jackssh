@@ -8,54 +8,61 @@ public struct HostsListView: View {
     @State private var viewModel: HostsViewModel
     @State private var editorTarget: EditorTarget?
     @State private var pendingDeletion: Domain.Host?
+    @Environment(\.jacksshTheme) private var theme
     @Environment(AppRouter.self) private var router
-
+    
     private let dependencies: HostsDependencies
-
+    
     public init(dependencies: HostsDependencies) {
         self.dependencies = dependencies
         _viewModel = State(initialValue: dependencies.makeListViewModel())
     }
-
+    
     public var body: some View {
-        content
-            .navigationTitle("Hosts")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        editorTarget = .new
-                    } label: {
-                        Label("Add Host", systemImage: "plus")
-                    }
+        Background(showGrid: true) {
+            content
+        }
+        .navigationTitle("Hosts")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    editorTarget = .new
+                } label: {
+                    Label("Add Host", systemImage: "plus")
                 }
             }
-            .task { await viewModel.load() }
-            .sheet(item: $editorTarget) { target in
-                NavigationStack {
-                    HostEditorView(
-                        viewModel: dependencies.makeEditorViewModel(target.host),
-                        onFinished: { saved in
-                            editorTarget = nil
-                            if saved { Task { await viewModel.load() } }
-                        }
-                    )
-                }
+        }
+        .task { await viewModel.load() }
+        .sheet(item: $editorTarget) { target in
+            createHost(host: target.host)
+        }
+        .confirmationDialog(
+            "Delete this host?",
+            isPresented: deletionBinding,
+            titleVisibility: .visible,
+            presenting: pendingDeletion
+        ) { host in
+            Button("Delete \(host.name)", role: .destructive) {
+                Task { await viewModel.delete(id: host.id) }
             }
-            .confirmationDialog(
-                "Delete this host?",
-                isPresented: deletionBinding,
-                titleVisibility: .visible,
-                presenting: pendingDeletion
-            ) { host in
-                Button("Delete \(host.name)", role: .destructive) {
-                    Task { await viewModel.delete(id: host.id) }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: { _ in
-                Text("This removes the host and its stored credentials. This cannot be undone.")
-            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("This removes the host and its stored credentials. This cannot be undone.")
+        }
     }
-
+    
+    private func createHost(host: Host?) -> some View {
+        NavigationStack {
+            HostEditorView(
+                viewModel: dependencies.makeEditorViewModel(host),
+                onFinished: { saved in
+                    editorTarget = nil
+                    if saved { Task { await viewModel.load() } }
+                }
+            )
+        }
+    }
+    
     @ViewBuilder
     private var content: some View {
         switch viewModel.state {
@@ -83,23 +90,46 @@ public struct HostsListView: View {
                         .font(DSTypography.caption)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, DSSpacing.lg)
-                        .padding(.top, DSSpacing.sm)
-
+                        .padding(.top, DSSpacing.lg)
+                    
                     ForEach(hosts) { host in
-                        HostRowLabel(
-                            host: host,
-                            onConnect: { router.push(.connecting(hostID: host.id.uuidString)) },
-                            onEdit: { editorTarget = .edit(host) },
-                            onDelete: { pendingDeletion = host }
-                        )
-                        .padding(.horizontal, DSSpacing.lg)
+                        HostRowLabel(host: host)
+                            .overlay(alignment: .topTrailing) {
+                                optionButton(host: host)
+                            }
+                            .padding(.horizontal, DSSpacing.lg)
+                            .onTapGesture {
+                                print("🔵 DEBUG: Tapped host: \(host.name)")
+                                router.push(.connecting(hostID: host.id.uuidString))
+                            }
                     }
+                    
+                    Color.clear.frame(height: DSSpacing.xl)
                 }
             }
-            .background(Color.clear)
         }
     }
-
+    
+    private func optionButton(host: Host) -> some View {
+        Menu {
+            Button("Edit", systemImage: "pencil", action: {
+                editorTarget = .edit(host)
+            })
+            Button("Delete", systemImage: "trash", role: .destructive, action: {
+                pendingDeletion = host
+            })
+        } label: {
+            Image(systemName: "ellipsis.circle.fill")
+                .font(.title3)
+                .foregroundStyle(theme.colors.textSecondary)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .padding([.top, .trailing], DSSpacing.md)
+        .accessibilityLabel("More options for \(host.name)")
+        .buttonStyle(.plain)
+    }
+    
     private var deletionBinding: Binding<Bool> {
         Binding(
             get: { pendingDeletion != nil },
@@ -112,14 +142,14 @@ public struct HostsListView: View {
 private enum EditorTarget: Identifiable {
     case new
     case edit(Domain.Host)
-
+    
     var id: String {
         switch self {
         case .new: return "new"
         case let .edit(host): return host.id.uuidString
         }
     }
-
+    
     var host: Domain.Host? {
         switch self {
         case .new: return nil
@@ -131,65 +161,38 @@ private enum EditorTarget: Identifiable {
 private struct HostRowLabel: View {
     @Environment(\.jacksshTheme) private var theme
     let host: Domain.Host
-    let onConnect: () -> Void
-    let onEdit: () -> Void
-    let onDelete: () -> Void
-
+    
     var body: some View {
         HStack(alignment: .top, spacing: DSSpacing.md) {
             DSIconTile(
                 symbol: host.isFavorite ? "star.fill" : "server.rack",
                 tint: host.isFavorite ? theme.colors.warning : theme.colors.primary600
             )
-
-            Button(action: onConnect) {
-                VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                    Text(host.name)
-                        .font(DSTypography.sectionTitle)
-                        .foregroundStyle(theme.colors.textPrimary)
-                        .lineLimit(1)
-                    Text("\(host.username)@\(host.hostname):\(host.port)")
-                        .font(DSTypography.mono)
-                        .foregroundStyle(theme.colors.textSecondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Text(lastConnectionLabel)
-                        .font(DSTypography.caption)
-                        .foregroundStyle(theme.colors.textTertiary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+            
+            VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                Text(host.name)
+                    .font(DSTypography.sectionTitle)
+                    .foregroundStyle(theme.colors.textPrimary)
+                    .lineLimit(1)
+                Text("\(host.username)@\(host.hostname):\(host.port)")
+                    .font(DSTypography.mono)
+                    .foregroundStyle(theme.colors.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(lastConnectionLabel)
+                    .font(DSTypography.caption)
+                    .foregroundStyle(theme.colors.textTertiary)
             }
-            .buttonStyle(.plain)
-
-            VStack(spacing: DSSpacing.xs) {
-                Button(action: onConnect) {
-                    Image(systemName: "arrow.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(theme.colors.textInverse)
-                        .frame(width: 32, height: 32)
-                        .background(theme.colors.primary600, in: Circle())
-                }
-                .accessibilityLabel("Connect to \(host.name)")
-
-                Menu {
-                    Button("Edit", systemImage: "pencil", action: onEdit)
-                    Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(theme.colors.textTertiary)
-                        .frame(width: 32, height: 24)
-                }
-                .accessibilityLabel("More options for \(host.name)")
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
         }
         .padding(DSSpacing.md)
         .dsGlassSurface()
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(host.name), \(host.username) at \(host.hostname) port \(host.port)")
+        .accessibilityLabel("Connect to \(host.name), \(host.username) at \(host.hostname) port \(host.port)")
+        .accessibilityHint("Tap to connect")
     }
-
+    
     private var lastConnectionLabel: String {
         guard let date = host.lastSuccessfulConnection else { return "Not connected yet" }
         return "Last connected \(date.formatted(date: .abbreviated, time: .shortened))"

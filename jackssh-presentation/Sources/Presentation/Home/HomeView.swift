@@ -66,8 +66,8 @@ public struct HomeView: View {
     
     private func loadedView(_ status: HomeStatus) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.lg) {
-            statusSection(status)
             manageHostsCard(activeSession: viewModel.activeSession)
+            statusSection(status)
         }
     }
     
@@ -91,14 +91,14 @@ public struct HomeView: View {
                         title: "VPS",
                         tone: status.vps.tone,
                         statusLabel: status.vps.label
-                    )
+                    ).padding(.vertical, 6)
                     Divider()
                     StatusRow(
                         systemImage: "sparkles",
                         title: "OpenClaw",
                         tone: status.openClaw.tone,
                         statusLabel: status.openClaw.label
-                    )
+                    ).padding(.vertical, 6)
 #if os(macOS)
                     Divider()
                     StatusRow(
@@ -106,7 +106,7 @@ public struct HomeView: View {
                         title: "Ollama",
                         tone: status.ollama.tone,
                         statusLabel: status.ollama.label
-                    )
+                    ).padding(.vertical, 6)
 #endif
                 }
                 .padding(.horizontal, DSSpacing.lg)
