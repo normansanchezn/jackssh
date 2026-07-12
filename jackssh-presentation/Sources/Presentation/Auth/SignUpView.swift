@@ -38,32 +38,9 @@ public struct SignUpView: View {
                 .padding(DSSpacing.lg)
 
                 VStack(spacing: DSSpacing.md) {
-                    TextField("Email", text: $viewModel.email)
-                        .padding(DSSpacing.md)
-                        .background(theme.colors.surfaceElevated.opacity(0.8))
-                        .cornerRadius(DSRadius.sm)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: DSRadius.sm)
-                                .stroke(theme.colors.border, lineWidth: 1)
-                        )
-
-                    SecureField("Password", text: $viewModel.password)
-                        .padding(DSSpacing.md)
-                        .background(theme.colors.surfaceElevated.opacity(0.8))
-                        .cornerRadius(DSRadius.sm)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: DSRadius.sm)
-                                .stroke(theme.colors.border, lineWidth: 1)
-                        )
-
-                    SecureField("Confirm Password", text: $viewModel.confirmPassword)
-                        .padding(DSSpacing.md)
-                        .background(theme.colors.surfaceElevated.opacity(0.8))
-                        .cornerRadius(DSRadius.sm)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: DSRadius.sm)
-                                .stroke(theme.colors.border, lineWidth: 1)
-                        )
+                    DSInput("Email", text: $viewModel.email)
+                    DSInput("Password", text: $viewModel.password, isSecure: true)
+                    DSInput("Confirm Password", text: $viewModel.confirmPassword, isSecure: true)
                 }
                 .padding(DSSpacing.lg)
 

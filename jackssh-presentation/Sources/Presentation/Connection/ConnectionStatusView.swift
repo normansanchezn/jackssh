@@ -10,23 +10,23 @@ public struct ConnectionStatusView: View {
     }
 
     public var body: some View {
-        HStack(spacing: DSSpacing.sm) {
-            statusIcon
-            VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                Text(statusLabel)
-                    .font(DSTypography.body)
-                    .foregroundStyle(.primary)
-                if let detail = statusDetail {
-                    Text(detail)
-                        .font(DSTypography.caption)
-                        .foregroundStyle(.secondary)
+        DSGlassSurface(tint: statusTint) {
+            HStack(spacing: DSSpacing.sm) {
+                statusIcon
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                    Text(statusLabel)
+                        .font(DSTypography.body)
+                        .foregroundStyle(.primary)
+                    if let detail = statusDetail {
+                        Text(detail)
+                            .font(DSTypography.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
+            .padding(DSSpacing.md)
         }
-        .padding(DSSpacing.md)
-        .background(statusBackground)
-        .cornerRadius(DSSpacing.sm)
     }
 
     @ViewBuilder
@@ -102,7 +102,7 @@ public struct ConnectionStatusView: View {
         }
     }
 
-    private var statusBackground: Color {
+    private var statusTint: Color {
         switch status.state {
         case .connected:
             return Color.green.opacity(0.1)

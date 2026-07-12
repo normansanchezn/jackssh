@@ -65,11 +65,7 @@ private struct _ConnectedHostContent: View {
 
     private var hostHeader: some View {
         HStack(alignment: .top, spacing: DSSpacing.md) {
-            Image(systemName: "server.rack")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(theme.colors.primary600)
-                .frame(width: 52, height: 52)
-                .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            DSIconTile(symbol: "server.rack", tint: theme.colors.primary600, size: 52)
 
             VStack(alignment: .leading, spacing: DSSpacing.xs) {
                 Text(host?.name ?? session.hostname)
@@ -94,23 +90,20 @@ private struct _ConnectedHostContent: View {
                 .font(DSTypography.sectionTitle)
                 .accessibilityAddTraits(.isHeader)
 
-            VStack(spacing: 0) {
-                SessionDetailRow(label: "User", value: session.username, icon: "person")
+            DSGlassSurface {
+                VStack(spacing: 0) {
+                    DSDetailRow(label: "User", value: session.username, symbol: "person")
                 Divider().padding(.leading, 34)
-                SessionDetailRow(label: "Host", value: "\(session.hostname):\(session.port)", icon: "network")
+                    DSDetailRow(label: "Host", value: "\(session.hostname):\(session.port)", symbol: "network")
                 Divider().padding(.leading, 34)
-                SessionDetailRow(
-                    label: "Connected",
-                    value: session.connectedAt.formatted(date: .abbreviated, time: .shortened),
-                    icon: "clock"
-                )
-            }
-            .padding(.horizontal, DSSpacing.lg)
-            .padding(.vertical, DSSpacing.xs)
-            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                    .stroke(theme.colors.border, lineWidth: 1)
+                    DSDetailRow(
+                        label: "Connected",
+                        value: session.connectedAt.formatted(date: .abbreviated, time: .shortened),
+                        symbol: "clock"
+                    )
+                }
+                .padding(.horizontal, DSSpacing.lg)
+                .padding(.vertical, DSSpacing.xs)
             }
         }
     }
@@ -148,31 +141,6 @@ private struct _ConnectedHostContent: View {
                 .padding(.vertical, DSSpacing.md)
         }
         .buttonStyle(.bordered)
-    }
-}
-
-private struct SessionDetailRow: View {
-    @Environment(\.jacksshTheme) private var theme
-    let label: String
-    let value: String
-    let icon: String
-
-    var body: some View {
-        HStack(spacing: DSSpacing.sm) {
-            Image(systemName: icon)
-                .foregroundStyle(theme.colors.textTertiary)
-                .frame(width: 18)
-            Text(label)
-                .font(DSTypography.caption)
-                .foregroundStyle(theme.colors.textSecondary)
-            Spacer(minLength: DSSpacing.sm)
-            Text(value)
-                .font(.system(.footnote, design: .monospaced))
-                .foregroundStyle(theme.colors.textPrimary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-        }
-        .padding(.vertical, DSSpacing.md)
     }
 }
 

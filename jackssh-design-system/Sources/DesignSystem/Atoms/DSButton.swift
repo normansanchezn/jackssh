@@ -82,67 +82,20 @@ public struct DSButton: View {
     private var backgroundView: some View {
         switch style {
         case .filled:
-            // Filled: Usa Liquid Glass con tinte y efecto interactivo
-            ZStack {
-                RoundedRectangle(cornerRadius: size.cornerRadius)
-                    .fill(theme.colors.primary600)
-                
-                // Overlay con efecto de vidrio para profundidad
-                RoundedRectangle(cornerRadius: size.cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(0.3),
-                                .clear,
-                                .black.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .blendMode(.overlay)
-            }
-            .shadow(color: theme.colors.primary600.opacity(0.3), radius: 8, x: 0, y: 4)
-            
+            RoundedRectangle(cornerRadius: size.cornerRadius)
+                .fill(theme.colors.primary600)
+                .overlay {
+                    RoundedRectangle(cornerRadius: size.cornerRadius)
+                        .fill(.thinMaterial.opacity(0.16))
+                }
         case .outline:
-            // Outline: Borde con efecto de vidrio translúcido
-            ZStack {
-                // Fondo con desenfoque sutil
-                RoundedRectangle(cornerRadius: size.cornerRadius)
-                    .fill(.ultraThinMaterial)
-                    .opacity(0.5)
-                
-                // Borde con gradiente
-                RoundedRectangle(cornerRadius: size.cornerRadius)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [
-                                theme.colors.primary600,
-                                theme.colors.primary500.opacity(0.6)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.5
-                    )
-                
-                // Brillo sutil en el borde superior
-                RoundedRectangle(cornerRadius: size.cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(0.2),
-                                .clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
-                    .blendMode(.overlay)
-            }
-            
+            RoundedRectangle(cornerRadius: size.cornerRadius)
+                .fill(.thinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: size.cornerRadius)
+                        .strokeBorder(theme.colors.primary600.opacity(0.8), lineWidth: 1)
+                }
         case .text:
-            // Text: Sin fondo, solo efecto hover sutil
             RoundedRectangle(cornerRadius: size.cornerRadius)
                 .fill(.clear)
         }

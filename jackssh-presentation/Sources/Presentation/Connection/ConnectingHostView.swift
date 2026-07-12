@@ -22,14 +22,16 @@ public struct ConnectingHostView: View {
                         .font(DSTypography.sectionTitle)
                 }
 
-                VStack(alignment: .leading, spacing: DSSpacing.md) {
-                    stateRow("Resolving host", state: viewModel.state, position: 0)
-                    stateRow("Verifying server identity", state: viewModel.state, position: 1)
-                    stateRow("Authenticating", state: viewModel.state, position: 2)
-                    stateRow("Opening session", state: viewModel.state, position: 3)
-                    stateRow("Preparing workspace", state: viewModel.state, position: 4)
+                DSGlassSurface {
+                    VStack(alignment: .leading, spacing: DSSpacing.md) {
+                        stateRow("Resolving host", state: viewModel.state, position: 0)
+                        stateRow("Verifying server identity", state: viewModel.state, position: 1)
+                        stateRow("Authenticating", state: viewModel.state, position: 2)
+                        stateRow("Opening session", state: viewModel.state, position: 3)
+                        stateRow("Preparing workspace", state: viewModel.state, position: 4)
+                    }
+                    .padding(DSSpacing.md)
                 }
-                .padding(DSSpacing.md)
 
                 Spacer()
 
@@ -79,6 +81,7 @@ public struct ConnectingHostView: View {
     private func stateRow(_ label: String, state: HostConnectionState, position: Int) -> some View {
         HStack(spacing: DSSpacing.sm) {
             image(for: state, position: position)
+                .foregroundStyle(indicatorColor(for: state, position: position))
                 .frame(width: 20)
             Text(label)
                 .font(DSTypography.body)
@@ -95,6 +98,17 @@ public struct ConnectingHostView: View {
         } else {
             return Image(systemName: "circle")
         }
+    }
+
+    private func indicatorColor(for state: HostConnectionState, position: Int) -> Color {
+        let currentPosition = connectionPosition(state)
+        if currentPosition > position {
+            return .green
+        }
+        if currentPosition == position {
+            return theme.colors.primary600
+        }
+        return theme.colors.textSecondary
     }
 
     private func connectionPosition(_ state: HostConnectionState) -> Int {

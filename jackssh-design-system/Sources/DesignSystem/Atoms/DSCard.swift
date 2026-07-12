@@ -24,9 +24,10 @@ public struct DSCard<Content: View>: View {
     }
 
     public var body: some View {
-        content
-            .padding(DSSpacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: DSRadius.md, style: .continuous))
+        DSGlassSurface {
+            content
+                .padding(DSSpacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }

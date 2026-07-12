@@ -77,43 +77,40 @@ public struct HomeView: View {
                 .font(DSTypography.sectionTitle)
                 .accessibilityAddTraits(.isHeader)
 
-            VStack(spacing: 0) {
-                StatusRow(
+            DSGlassSurface {
+                VStack(spacing: 0) {
+                    StatusRow(
                     systemImage: "network",
                     title: "Private network",
                     tone: status.privateNetworkOnline ? .positive : .critical,
                     statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
                 )
-                Divider().padding(.leading, 40)
-                StatusRow(
+                    Divider().padding(.leading, 40)
+                    StatusRow(
                     systemImage: "server.rack",
                     title: "VPS",
                     tone: status.vps.tone,
                     statusLabel: status.vps.label
                 )
-                Divider().padding(.leading, 40)
-                StatusRow(
+                    Divider().padding(.leading, 40)
+                    StatusRow(
                     systemImage: "sparkles",
                     title: "OpenClaw",
                     tone: status.openClaw.tone,
                     statusLabel: status.openClaw.label
                 )
-                #if os(macOS)
-                Divider().padding(.leading, 40)
-                StatusRow(
+                    #if os(macOS)
+                    Divider().padding(.leading, 40)
+                    StatusRow(
                     systemImage: "cpu",
                     title: "Ollama",
                     tone: status.ollama.tone,
                     statusLabel: status.ollama.label
                 )
-                #endif
-            }
-            .padding(.horizontal, DSSpacing.lg)
-            .padding(.vertical, DSSpacing.sm)
-            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                    .stroke(theme.colors.border, lineWidth: 1)
+                    #endif
+                }
+                .padding(.horizontal, DSSpacing.lg)
+                .padding(.vertical, DSSpacing.sm)
             }
         }
     }
@@ -123,11 +120,7 @@ public struct HomeView: View {
             router.push(.hosts)
         } label: {
             HStack(spacing: DSSpacing.md) {
-                Image(systemName: "server.rack")
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(theme.colors.primary600)
-                    .frame(width: 44, height: 44)
-                    .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+                DSIconTile(symbol: "server.rack", tint: theme.colors.primary600, size: 44)
 
                 VStack(alignment: .leading, spacing: DSSpacing.xs) {
                     Text("Manage hosts")
@@ -146,11 +139,7 @@ public struct HomeView: View {
             }
             .padding(DSSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                    .stroke(theme.colors.border, lineWidth: 1)
-            }
+            .dsGlassSurface()
         }
         .buttonStyle(.plain)
         .accessibilityHint("Opens your saved hosts")
@@ -170,6 +159,7 @@ public struct HomeView: View {
         }
     }
 }
+
 
 #Preview("Home") {
     let router = AppRouter()

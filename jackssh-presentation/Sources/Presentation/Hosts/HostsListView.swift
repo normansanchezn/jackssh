@@ -137,14 +137,10 @@ private struct HostRowLabel: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: DSSpacing.md) {
-            Image(systemName: host.isFavorite ? "star.fill" : "server.rack")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(host.isFavorite ? theme.colors.warning : theme.colors.primary600)
-                .frame(width: 42, height: 42)
-                .background(
-                    host.isFavorite ? theme.colors.warning.opacity(0.12) : theme.colors.primary100,
-                    in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                )
+            DSIconTile(
+                symbol: host.isFavorite ? "star.fill" : "server.rack",
+                tint: host.isFavorite ? theme.colors.warning : theme.colors.primary600
+            )
 
             Button(action: onConnect) {
                 VStack(alignment: .leading, spacing: DSSpacing.xs) {
@@ -189,11 +185,7 @@ private struct HostRowLabel: View {
             }
         }
         .padding(DSSpacing.md)
-        .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                .stroke(theme.colors.border, lineWidth: 1)
-        }
+        .dsGlassSurface()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(host.name), \(host.username) at \(host.hostname) port \(host.port)")
     }
@@ -203,6 +195,7 @@ private struct HostRowLabel: View {
         return "Last connected \(date.formatted(date: .abbreviated, time: .shortened))"
     }
 }
+
 
 #Preview("Hosts") {
     let router = AppRouter()
