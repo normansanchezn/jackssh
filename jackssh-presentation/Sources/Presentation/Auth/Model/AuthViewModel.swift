@@ -36,6 +36,7 @@ public final class AuthViewModel {
     private let loadBiometricLoginAvailability: LoadBiometricLoginAvailability?
     private let enableBiometricLogin: EnableBiometricLogin?
     private let loadBiometricLoginCredentials: LoadBiometricLoginCredentials?
+    private var pendingAuthenticatedUser: User?
 
     public init(
         signIn: SignIn,
@@ -87,9 +88,14 @@ public final class AuthViewModel {
 
         do {
             let user = try await signIn(email: email, password: password)
-            uiState.authState = .authenticated(user)
-            effect = .authenticated(user)
-            await prepareBiometricEnrollmentOffer()
+            if await shouldRequestBiometricEnrollment() {
+                pendingAuthenticatedUser = user
+                uiState.authState = .unauthenticated
+                uiState.shouldOfferBiometricEnrollment = true
+                effect = .requestBiometricEnrollment(uiState.biometricAvailability.biometryName)
+            } else {
+                completeAuthentication(with: user)
+            }
         } catch {
             uiState.authState = .error(error.localizedDescription)
             uiState.error = error.localizedDescription
@@ -132,15 +138,18 @@ public final class AuthViewModel {
             try await enableBiometricLogin(email: email, password: password)
             uiState.shouldOfferBiometricEnrollment = false
             await loadBiometricState()
+            completePendingAuthentication()
         } catch {
             uiState.shouldOfferBiometricEnrollment = false
             uiState.error = "Couldn’t enable biometric login"
             effect = .showError("Couldn’t enable biometric login")
+            completePendingAuthentication()
         }
     }
 
     public func dismissBiometricEnrollmentOffer() {
         uiState.shouldOfferBiometricEnrollment = false
+        completePendingAuthentication()
     }
 
     public func signup() async {
@@ -190,12 +199,21 @@ public final class AuthViewModel {
         effect = .none
     }
 
-    private func prepareBiometricEnrollmentOffer() async {
-        guard let loadBiometricLoginAvailability else { return }
+    private func shouldRequestBiometricEnrollment() async -> Bool {
+        guard let loadBiometricLoginAvailability else { return false }
         let availability = await loadBiometricLoginAvailability()
         uiState.biometricAvailability = availability
-        guard availability.isAvailable, !availability.isEnabled else { return }
-        uiState.shouldOfferBiometricEnrollment = true
-        effect = .requestBiometricEnrollment(availability.biometryName)
+        return availability.isAvailable && !availability.isEnabled
+    }
+
+    private func completePendingAuthentication() {
+        guard let pendingAuthenticatedUser else { return }
+        self.pendingAuthenticatedUser = nil
+        completeAuthentication(with: pendingAuthenticatedUser)
+    }
+
+    private func completeAuthentication(with user: User) {
+        uiState.authState = .authenticated(user)
+        effect = .authenticated(user)
     }
 }

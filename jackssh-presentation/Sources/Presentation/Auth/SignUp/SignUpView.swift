@@ -14,44 +14,33 @@ public struct SignUpView: View {
     }
 
     public var body: some View {
-        DSBackground(showGrid: true) {
-            VStack(spacing: DSSpacing.lg) {
-                HStack {
-                    DSButton(
-                        "",
-                        icon: "chevron.left",
-                        style: .text,
-                        size: .small
-                    ) {
-                        onBack()
-                    }
-                    
-                    Spacer()
-                    
-                    Text("Create Account")
-                        .font(DSTypography.sectionTitle)
-                    
-                    Spacer()
-                    
-                    Color.clear.frame(width: 44)
+        AuthAdaptiveLayout(
+            title: "Create Account",
+            subtitle: "Set up your JackSSH identity for host sync and private access.",
+            symbol: "person.badge.plus"
+        ) {
+            VStack(alignment: .leading, spacing: DSSpacing.lg) {
+                Button {
+                    onBack()
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
+                        .font(DSTypography.caption.weight(.semibold))
                 }
-                .padding(DSSpacing.lg)
+                .buttonStyle(.plain)
+                .foregroundStyle(theme.colors.primary600)
 
                 VStack(spacing: DSSpacing.md) {
                     DSInput("Email", text: $viewModel.email)
                     DSInput("Password", text: $viewModel.password, isSecure: true)
                     DSInput("Confirm Password", text: $viewModel.confirmPassword, isSecure: true)
                 }
-                .padding(DSSpacing.lg)
 
                 if let error = viewModel.error {
                     Text(error)
                         .font(DSTypography.caption)
                         .foregroundStyle(.red)
-                        .padding(DSSpacing.md)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                Spacer()
 
                 VStack(spacing: DSSpacing.md) {
                     DSButton(
@@ -69,8 +58,8 @@ public struct SignUpView: View {
                         }
                     }
                 }
-                .padding(DSSpacing.lg)
             }
+            .frame(maxWidth: .infinity)
         }
     }
 }

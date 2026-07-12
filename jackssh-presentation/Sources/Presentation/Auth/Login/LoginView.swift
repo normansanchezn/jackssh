@@ -16,7 +16,10 @@ public struct LoginView: View {
     }
 
     public var body: some View {
-        DSBackground(showGrid: true) {
+        AuthAdaptiveLayout(
+            title: "Sign In",
+            subtitle: "Access your private operations workspace."
+        ) {
             content()
         }
         .task {
@@ -44,16 +47,6 @@ public struct LoginView: View {
     private func content() -> some View {
         VStack(spacing: DSSpacing.lg) {
             VStack(spacing: DSSpacing.md) {
-                Image(systemName: "terminal.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.blue)
-
-                Text("Sign In")
-                    .font(DSTypography.sectionTitle)
-            }
-            .padding(DSSpacing.lg)
-
-            VStack(spacing: DSSpacing.md) {
                 TextField("Email", text: $viewModel.email)
                     .padding(DSSpacing.md)
                     .background(theme.colors.surfaceElevated.opacity(0.8))
@@ -72,16 +65,13 @@ public struct LoginView: View {
                             .stroke(theme.colors.border, lineWidth: 1)
                     )
             }
-            .padding(DSSpacing.lg)
 
             if let error = viewModel.error {
                 Text(error)
                     .font(DSTypography.caption)
                     .foregroundStyle(.red)
-                    .padding(DSSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            Spacer()
 
             VStack(spacing: DSSpacing.md) {
                 DSButton(
@@ -93,12 +83,10 @@ public struct LoginView: View {
                 ) {
                     Task {
                         await viewModel.login()
-                        if case .authenticated = viewModel.authState {
-                            if viewModel.shouldOfferBiometricEnrollment {
-                                isBiometricEnrollmentAlertPresented = true
-                            } else {
-                                onSuccess()
-                            }
+                        if viewModel.shouldOfferBiometricEnrollment {
+                            isBiometricEnrollmentAlertPresented = true
+                        } else if case .authenticated = viewModel.authState {
+                            onSuccess()
                         }
                     }
                 }
@@ -128,8 +116,8 @@ public struct LoginView: View {
                     onSignUp()
                 }
             }
-            .padding(DSSpacing.lg)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var biometricIcon: String {

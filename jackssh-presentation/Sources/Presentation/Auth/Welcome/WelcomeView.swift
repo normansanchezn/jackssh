@@ -56,28 +56,11 @@ struct _WelcomeContent: View {
     let onSignUp: () -> Void
 
     var body: some View {
-        DSBackground(showGrid: true) {
-            VStack(spacing: DSSpacing.lg) {
-                Spacer()
-
-                VStack(spacing: DSSpacing.md) {
-                    Image(systemName: "terminal.fill")
-                        .font(.system(size: 64))
-                        .foregroundStyle(.blue)
-
-                    Text(viewModel.uiState.title)
-                        .font(DSTypography.screenTitle)
-                        .multilineTextAlignment(.center)
-
-                    Text(viewModel.uiState.subtitle)
-                        .font(DSTypography.body)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(DSSpacing.lg)
-
-                Spacer()
-
+        AuthAdaptiveLayout(
+            title: viewModel.uiState.title,
+            subtitle: viewModel.uiState.subtitle
+        ) {
+            VStack(spacing: DSSpacing.md) {
                 VStack(spacing: DSSpacing.md) {
                     DSButton(
                         viewModel.uiState.signInButtonText,
@@ -99,8 +82,8 @@ struct _WelcomeContent: View {
                     }
                     .disabled(viewModel.uiState.isLoading)
                 }
-                .padding(DSSpacing.lg)
             }
+            .frame(maxWidth: .infinity)
             .overlay {
                 if viewModel.uiState.isLoading {
                     ProgressView()

@@ -8,6 +8,7 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Added
 
+- Adaptive iPadOS authentication layout shared by Welcome, Login, and Sign Up screens.
 - Biometric sign-in opt-in after password login, backed by Face ID/Touch ID protected Keychain credentials.
 - Login screen biometric sign-in action for devices with an enrolled biometric credential.
 - iPadOS adaptive app shell using `NavigationSplitView` with a persistent sidebar and detail navigation.
@@ -20,6 +21,8 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Changed
 
+- Welcome, Login, and Sign Up now use constrained form panels and a regular-width product sidebar instead of stretched iPhone layouts on iPad.
+- Host persistence is now local-first: SwiftData serves existing device data even when Supabase fails, then syncs remote opportunistically.
 - Auth composition now includes biometric login use cases while keeping LocalAuthentication inside the Data layer.
 - Home dashboard now adapts to regular-width layouts with constrained task panels.
 - `CompositionRoot` now wires hosts through a syncing repository instead of local-only SwiftData persistence.
@@ -28,6 +31,7 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Fixed
 
+- Hosts screen could show "Couldn’t load hosts" when remote Supabase sync failed, even though local hosts still existed.
 - Hosts created on one device were not available on another device using the same Supabase account.
 - Splash screen existed but was not shown during app bootstrap.
 

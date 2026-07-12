@@ -27,6 +27,7 @@ public actor BiometricKeychainLoginRepository: BiometricLoginRepository {
 
     public func save(email: String, password: String) async throws {
         guard canUseBiometrics() else { throw DomainError.unauthorized }
+        try await requestBiometricAuthorization(reason: "Enable biometric sign-in for JackSSH")
         let payload = StoredBiometricCredentials(email: email, password: password)
         let data = try JSONEncoder().encode(payload)
 
@@ -130,6 +131,24 @@ public actor BiometricKeychainLoginRepository: BiometricLoginRepository {
         return context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
         #else
         return false
+        #endif
+    }
+
+    private func requestBiometricAuthorization(reason: String) async throws {
+        #if canImport(LocalAuthentication)
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            throw DomainError.unauthorized
+        }
+
+        let allowed = try await context.evaluatePolicy(
+            .deviceOwnerAuthenticationWithBiometrics,
+            localizedReason: reason
+        )
+        guard allowed else { throw DomainError.unauthorized }
+        #else
+        throw DomainError.unauthorized
         #endif
     }
 
