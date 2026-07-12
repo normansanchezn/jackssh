@@ -14,7 +14,13 @@ public final class HostRecord {
     public var username: String
     public var privateAddress: String?
     public var tags: [String]
-    public var sshIdentityID: UUID?
+    public var authMethodType: String
+    public var sshKeyID: UUID?
+    public var openClawDashboardURL: String?
+    public var openClawBasePath: String?
+    public var favoriteRemotePath: String?
+    public var lastSuccessfulConnection: Date?
+    public var isFavorite: Bool
 
     public init(
         id: UUID,
@@ -24,7 +30,13 @@ public final class HostRecord {
         username: String,
         privateAddress: String?,
         tags: [String],
-        sshIdentityID: UUID?
+        authMethodType: String = "password",
+        sshKeyID: UUID? = nil,
+        openClawDashboardURL: String? = nil,
+        openClawBasePath: String? = nil,
+        favoriteRemotePath: String? = nil,
+        lastSuccessfulConnection: Date? = nil,
+        isFavorite: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -33,12 +45,29 @@ public final class HostRecord {
         self.username = username
         self.privateAddress = privateAddress
         self.tags = tags
-        self.sshIdentityID = sshIdentityID
+        self.authMethodType = authMethodType
+        self.sshKeyID = sshKeyID
+        self.openClawDashboardURL = openClawDashboardURL
+        self.openClawBasePath = openClawBasePath
+        self.favoriteRemotePath = favoriteRemotePath
+        self.lastSuccessfulConnection = lastSuccessfulConnection
+        self.isFavorite = isFavorite
     }
 }
 
 extension HostRecord {
     convenience init(_ host: Domain.Host) {
+        let authMethodType: String
+        var sshKeyID: UUID? = nil
+
+        switch host.authenticationMethod {
+        case .password:
+            authMethodType = "password"
+        case .publicKey(let keyID):
+            authMethodType = "publicKey"
+            sshKeyID = keyID
+        }
+
         self.init(
             id: host.id,
             name: host.name,
@@ -47,12 +76,32 @@ extension HostRecord {
             username: host.username,
             privateAddress: host.privateAddress,
             tags: host.tags,
-            sshIdentityID: host.sshIdentityID
+            authMethodType: authMethodType,
+            sshKeyID: sshKeyID,
+            openClawDashboardURL: host.openClawConfiguration?.dashboardURL.absoluteString,
+            openClawBasePath: host.openClawConfiguration?.basePath,
+            favoriteRemotePath: host.favoriteRemotePath,
+            lastSuccessfulConnection: host.lastSuccessfulConnection,
+            isFavorite: host.isFavorite
         )
     }
 
     var asDomain: Domain.Host {
-        Domain.Host(
+        let authMethod: Domain.SSHAuthMethod
+        if authMethodType == "publicKey", let keyID = sshKeyID {
+            authMethod = .publicKey(keyID: keyID)
+        } else {
+            authMethod = .password
+        }
+
+        let openClawConfig: Domain.OpenClawConfiguration?
+        if let urlStr = openClawDashboardURL, let url = URL(string: urlStr) {
+            openClawConfig = Domain.OpenClawConfiguration(dashboardURL: url, basePath: openClawBasePath)
+        } else {
+            openClawConfig = nil
+        }
+
+        return Domain.Host(
             id: id,
             name: name,
             hostname: hostname,
@@ -60,7 +109,11 @@ extension HostRecord {
             username: username,
             privateAddress: privateAddress,
             tags: tags,
-            sshIdentityID: sshIdentityID
+            authenticationMethod: authMethod,
+            openClawConfiguration: openClawConfig,
+            favoriteRemotePath: favoriteRemotePath,
+            lastSuccessfulConnection: lastSuccessfulConnection,
+            isFavorite: isFavorite
         )
     }
 }

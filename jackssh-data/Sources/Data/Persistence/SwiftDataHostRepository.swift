@@ -23,7 +23,16 @@ public actor SwiftDataHostRepository: HostRepository {
             existing.username = host.username
             existing.privateAddress = host.privateAddress
             existing.tags = host.tags
-            existing.sshIdentityID = host.sshIdentityID
+
+            let (authMethodType, sshKeyID) = authMethodParts(host.authenticationMethod)
+            existing.authMethodType = authMethodType
+            existing.sshKeyID = sshKeyID
+
+            existing.openClawDashboardURL = host.openClawConfiguration?.dashboardURL.absoluteString
+            existing.openClawBasePath = host.openClawConfiguration?.basePath
+            existing.favoriteRemotePath = host.favoriteRemotePath
+            existing.lastSuccessfulConnection = host.lastSuccessfulConnection
+            existing.isFavorite = host.isFavorite
         } else {
             modelContext.insert(HostRecord(host))
         }
@@ -39,5 +48,14 @@ public actor SwiftDataHostRepository: HostRepository {
     private func fetchRecord(id: UUID) throws -> HostRecord? {
         let descriptor = FetchDescriptor<HostRecord>(predicate: #Predicate { $0.id == id })
         return try modelContext.fetch(descriptor).first
+    }
+
+    private func authMethodParts(_ authMethod: Domain.SSHAuthMethod) -> (type: String, keyID: UUID?) {
+        switch authMethod {
+        case .password:
+            return ("password", nil)
+        case .publicKey(let keyID):
+            return ("publicKey", keyID)
+        }
     }
 }
