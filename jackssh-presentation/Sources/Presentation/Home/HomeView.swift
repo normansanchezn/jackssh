@@ -22,7 +22,7 @@ public struct HomeView: View {
     }
     
     public var body: some View {
-        ScreenScaffold(title: "JackSSH") {
+        DSScreenScaffold(title: "JackSSH") {
             switch viewModel.state {
             case .idle, .loading:
                 loadingView
@@ -79,21 +79,21 @@ public struct HomeView: View {
             
             DSGlassSurface {
                 VStack(spacing: 8) {
-                    StatusRow(
+                    DSStatusRow(
                         systemImage: "network",
                         title: "Private network",
                         tone: status.privateNetworkOnline ? .positive : .critical,
                         statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
                     ).padding(.vertical, 6)
                     Divider()
-                    StatusRow(
+                    DSStatusRow(
                         systemImage: "server.rack",
                         title: "VPS",
                         tone: status.vps.tone,
                         statusLabel: status.vps.label
                     ).padding(.vertical, 6)
                     Divider()
-                    StatusRow(
+                    DSStatusRow(
                         systemImage: "sparkles",
                         title: "OpenClaw",
                         tone: status.openClaw.tone,
@@ -101,7 +101,7 @@ public struct HomeView: View {
                     ).padding(.vertical, 6)
 #if os(macOS)
                     Divider()
-                    StatusRow(
+                    DSStatusRow(
                         systemImage: "cpu",
                         title: "Ollama",
                         tone: status.ollama.tone,

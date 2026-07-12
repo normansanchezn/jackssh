@@ -30,8 +30,8 @@ private struct _ConnectedHostContent: View {
     let session: ConnectedHostSession
     let host: Domain.Host?
     let onDisconnect: () async -> Void
-
-    var body: some View {
+    
+    private func content() -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DSSpacing.xl) {
                 hostHeader
@@ -42,7 +42,12 @@ private struct _ConnectedHostContent: View {
             .padding(DSSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(theme.colors.background)
+    }
+
+    var body: some View {
+        DSBackground {
+            content()
+        }
         .navigationTitle(host?.name ?? session.hostname)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -77,7 +82,7 @@ private struct _ConnectedHostContent: View {
                     .foregroundStyle(theme.colors.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                StatusBadge(tone: .positive, label: "Connected")
+                DSStatusBadge(tone: .positive, label: "Connected")
                     .padding(.top, DSSpacing.xs)
             }
             Spacer(minLength: 0)
@@ -168,7 +173,7 @@ private struct PrimaryWorkspaceAction: View {
                         .foregroundStyle(theme.colors.textSecondary)
                 }
                 Spacer()
-                Image(systemName: "arrow.right")
+                Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(theme.colors.primary600)
             }

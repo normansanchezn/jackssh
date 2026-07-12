@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Molecule: a labelled row with a leading SF Symbol and a trailing status badge.
 /// Used for the Home status list. Combines into one accessibility element.
-public struct StatusRow: View {
+public struct DSStatusRow: View {
     private let systemImage: String
     private let title: String
     private let tone: StatusTone
@@ -24,7 +24,7 @@ public struct StatusRow: View {
             Text(title)
                 .font(DSTypography.body)
             Spacer(minLength: DSSpacing.sm)
-            StatusBadge(tone: tone, label: statusLabel)
+            DSStatusBadge(tone: tone, label: statusLabel)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title): \(statusLabel)")

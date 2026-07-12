@@ -19,7 +19,7 @@ public struct HostsListView: View {
     }
     
     public var body: some View {
-        Background(showGrid: true) {
+        DSBackground(showGrid: true) {
             content
         }
         .navigationTitle("Hosts")
@@ -51,7 +51,7 @@ public struct HostsListView: View {
         }
     }
     
-    private func createHost(host: Host?) -> some View {
+    private func createHost(host: Domain.Host?) -> some View {
         NavigationStack {
             HostEditorView(
                 viewModel: dependencies.makeEditorViewModel(host),
@@ -110,7 +110,7 @@ public struct HostsListView: View {
         }
     }
     
-    private func optionButton(host: Host) -> some View {
+    private func optionButton(host: Domain.Host) -> some View {
         Menu {
             Button("Edit", systemImage: "pencil", action: {
                 editorTarget = .edit(host)

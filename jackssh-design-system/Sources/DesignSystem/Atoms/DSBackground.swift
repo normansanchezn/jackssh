@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Background principal con animaciones sutiles en tonos azules.
+/// DSBackground principal con animaciones sutiles en tonos azules.
 /// Diseñado para aplicaciones SSH/OpenClaw con estética técnica moderna.
-public struct Background<Content: View>: View {
+public struct DSBackground<Content: View>: View {
     @Environment(\.jacksshTheme) var theme
     @Environment(\.colorScheme) var colorScheme
     private let content: () -> Content
@@ -147,7 +147,7 @@ public struct Background<Content: View>: View {
     }
 }
 
-public struct BackgroundElevated<Content: View>: View {
+public struct DSBackgroundElevated<Content: View>: View {
     @Environment(\.jacksshTheme) var theme
     @Environment(\.colorScheme) var colorScheme
     private let content: () -> Content

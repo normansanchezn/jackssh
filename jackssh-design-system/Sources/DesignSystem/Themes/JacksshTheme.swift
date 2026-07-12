@@ -26,7 +26,7 @@ public extension EnvironmentValues {
     }
 }
 
-public struct ThemeContainer<Content: View>: View {
+public struct DSThemeContainer<Content: View>: View {
     @Environment(\.colorScheme) var colorScheme
     let content: Content
 

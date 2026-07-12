@@ -23,7 +23,7 @@ public struct RootView: View {
     }
 
     public var body: some View {
-        ThemeContainer {
+        DSThemeContainer {
             switch authViewModel.authState {
             case .authenticated:
                 NavigationStack(path: $router.path) {
@@ -118,7 +118,7 @@ struct ComingSoonView: View {
     let title: String
 
     var body: some View {
-        ScreenScaffold(title: title) {
+        DSScreenScaffold(title: title) {
             DSCard {
                 Label("Not available in this build", systemImage: "hammer.fill")
                     .font(DSTypography.body)

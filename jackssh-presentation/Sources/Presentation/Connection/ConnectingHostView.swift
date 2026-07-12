@@ -12,52 +12,55 @@ public struct ConnectingHostView: View {
     public init(viewModel: ConnectingHostViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
+    
+    private func content() -> some View {
+        VStack(spacing: DSSpacing.lg) {
+            if let host = viewModel.host {
+                Text("Connecting to \(host.name)")
+                    .font(DSTypography.sectionTitle)
+            }
 
-    public var body: some View {
-        ZStack {
-            theme.colors.background.ignoresSafeArea()
-            VStack(spacing: DSSpacing.lg) {
-                if let host = viewModel.host {
-                    Text("Connecting to \(host.name)")
-                        .font(DSTypography.sectionTitle)
-                }
-
-                DSGlassSurface {
-                    VStack(alignment: .leading, spacing: DSSpacing.md) {
-                        stateRow("Resolving host", state: viewModel.state, position: 0)
-                        stateRow("Verifying server identity", state: viewModel.state, position: 1)
-                        stateRow("Authenticating", state: viewModel.state, position: 2)
-                        stateRow("Opening session", state: viewModel.state, position: 3)
-                        stateRow("Preparing workspace", state: viewModel.state, position: 4)
-                    }
-                    .padding(DSSpacing.md)
-                }
-
-                Spacer()
-
-                HStack(spacing: DSSpacing.md) {
-                    Button(role: .cancel) {
-                        viewModel.cancel()
-                        router.popToRoot()
-                    } label: {
-                        Text("Cancel")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-
-                    if case let .failed(failure) = viewModel.state, failure.canRetry {
-                        Button {
-                            Task { await viewModel.retry() }
-                        } label: {
-                            Text("Retry")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
+            DSGlassSurface {
+                VStack(alignment: .leading, spacing: DSSpacing.md) {
+                    stateRow("Resolving host", state: viewModel.state, position: 0)
+                    stateRow("Verifying server identity", state: viewModel.state, position: 1)
+                    stateRow("Authenticating", state: viewModel.state, position: 2)
+                    stateRow("Opening session", state: viewModel.state, position: 3)
+                    stateRow("Preparing workspace", state: viewModel.state, position: 4)
                 }
                 .padding(DSSpacing.md)
             }
-            .padding(DSSpacing.lg)
+
+            Spacer()
+
+            HStack(spacing: DSSpacing.md) {
+                Button(role: .cancel) {
+                    viewModel.cancel()
+                    router.popToRoot()
+                } label: {
+                    Text("Cancel")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                if case let .failed(failure) = viewModel.state, failure.canRetry {
+                    Button {
+                        Task { await viewModel.retry() }
+                    } label: {
+                        Text("Retry")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+            .padding(DSSpacing.md)
+        }
+        .padding(DSSpacing.lg)
+    }
+
+    public var body: some View {
+        DSBackground {
+            content()
         }
         .alert("Connection Failed", isPresented: $showErrorAlert) {
             Button("Retry") { Task { await viewModel.retry() } }

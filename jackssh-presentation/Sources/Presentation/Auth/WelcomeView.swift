@@ -21,7 +21,7 @@ struct _WelcomeContent: View {
     let onSignUp: () -> Void
 
     var body: some View {
-        Background(showGrid: true) {
+        DSBackground(showGrid: true) {
             VStack(spacing: DSSpacing.lg) {
                 Spacer()
 

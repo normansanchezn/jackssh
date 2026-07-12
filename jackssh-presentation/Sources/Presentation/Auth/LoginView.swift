@@ -15,7 +15,7 @@ public struct LoginView: View {
     }
 
     public var body: some View {
-        Background(showGrid: true) {
+        DSBackground(showGrid: true) {
             content()
         }
     }
@@ -89,4 +89,3 @@ public struct LoginView: View {
         }
     }
 }
-

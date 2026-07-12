@@ -3,13 +3,13 @@ import SwiftUI
 /// Atom: a compact status pill — tone-colored SF Symbol plus label.
 /// VoiceOver reads a single combined label; the symbol is decorative.
 ///
-/// Overview: The StatusBadge struct creates a small, compact status indicator that combines an SF Symbol with a textual label. The badge has a tone-based color which automatically adjusts to light and dark mode.
+/// Overview: The DSStatusBadge struct creates a small, compact status indicator that combines an SF Symbol with a textual label. The badge has a tone-based color which automatically adjusts to light and dark mode.
 ///
 /// Parameters:
 ///   - tone: The tone of the badge, dictating its color.
 ///     - Values: `.success`, `.error`, `.warning`, etc.
 ///   - label: The text label displayed with the badge's symbol.
-public struct StatusBadge: View {
+public struct DSStatusBadge: View {
     private let tone: StatusTone
     private let label: String
 
@@ -37,7 +37,7 @@ public struct StatusBadge: View {
 #Preview {
     VStack(alignment: .leading, spacing: DSSpacing.sm) {
         ForEach(StatusTone.allCases, id: \.self) { tone in
-            StatusBadge(tone: tone, label: tone.rawValue.capitalized)
+            DSStatusBadge(tone: tone, label: tone.rawValue.capitalized)
         }
     }
     .padding()
