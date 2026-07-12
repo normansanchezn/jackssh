@@ -21,6 +21,35 @@ public struct HostEditorView: View {
                 field("Port", text: $viewModel.port, field: .port, kind: .number)
                 field("Username", text: $viewModel.username, field: .username, kind: .plain)
             }
+            Section("Authentication") {
+                Picker("Method", selection: Binding(
+                    get: {
+                        switch viewModel.authenticationMethod {
+                        case .password: return "password"
+                        case .publicKey: return "key"
+                        }
+                    },
+                    set: { value in
+                        if value == "password" {
+                            viewModel.setAuthMethod(.password)
+                        } else {
+                            viewModel.setAuthMethod(.publicKey(keyID: UUID()))
+                        }
+                    }
+                )) {
+                    Text("Password").tag("password")
+                    Text("SSH Key").tag("key")
+                }
+                if viewModel.showPasswordField {
+                    field("Password", text: $viewModel.password, field: .authenticationMethod, kind: .plain)
+                    field("Confirm", text: $viewModel.passwordConfirmation, field: .authenticationMethod, kind: .plain)
+                }
+            }
+            Section("Optional Configuration") {
+                field("OpenClaw Dashboard URL", text: $viewModel.openClawDashboardURL, field: .openClawDashboardURL, kind: .plain)
+                field("OpenClaw Base Path", text: $viewModel.openClawBasePath, field: .openClawDashboardURL, kind: .plain)
+                field("Favorite Remote Path", text: $viewModel.favoriteRemotePath, field: .favoriteRemotePath, kind: .plain)
+            }
         }
         .navigationTitle(viewModel.title)
         #if os(iOS)

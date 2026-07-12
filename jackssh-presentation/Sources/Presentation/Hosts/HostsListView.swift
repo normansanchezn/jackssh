@@ -127,13 +127,27 @@ private struct HostRowLabel: View {
     let host: Domain.Host
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSSpacing.xxs) {
-            Text(host.name)
-                .font(DSTypography.body)
-                .foregroundStyle(.primary)
-            Text("\(host.username)@\(host.hostname):\(host.port)")
-                .font(DSTypography.caption)
-                .foregroundStyle(.secondary)
+        HStack {
+            VStack(alignment: .leading, spacing: DSSpacing.xxs) {
+                HStack {
+                    Text(host.name)
+                        .font(DSTypography.body)
+                        .foregroundStyle(.primary)
+                    if host.isFavorite {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                    }
+                }
+                Text("\(host.username)@\(host.hostname):\(host.port)")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(.secondary)
+                if let lastConnection = host.lastSuccessfulConnection {
+                    Text("Last: \(lastConnection.formatted(date: .abbreviated, time: .shortened))")
+                        .font(DSTypography.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            Spacer()
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(host.name), \(host.username) at \(host.hostname) port \(host.port)")
