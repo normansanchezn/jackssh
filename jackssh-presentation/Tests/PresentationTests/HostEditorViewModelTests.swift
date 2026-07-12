@@ -12,12 +12,18 @@ private actor CapturingHostRepository: HostRepository {
     func savedCount() -> Int { saved.count }
 }
 
+private actor SecretStoreStub: SecretStore {
+    func secret(for key: String) async throws -> Data? { nil }
+    func setSecret(_ value: Data, for key: String) async throws {}
+    func removeSecret(for key: String) async throws {}
+}
+
 @MainActor
 @Suite("HostEditorViewModel")
 struct HostEditorViewModelTests {
     @Test func savesValidDraft() async {
         let repo = CapturingHostRepository()
-        let vm = HostEditorViewModel(saveHost: SaveHost(repository: repo))
+        let vm = HostEditorViewModel(saveHost: SaveHost(repository: repo, secretStore: SecretStoreStub()))
         vm.name = "VPS"
         vm.hostname = "vps.example"
         vm.port = "2222"
@@ -31,7 +37,7 @@ struct HostEditorViewModelTests {
 
     @Test func surfacesValidationIssuesAndDoesNotSave() async {
         let repo = CapturingHostRepository()
-        let vm = HostEditorViewModel(saveHost: SaveHost(repository: repo))
+        let vm = HostEditorViewModel(saveHost: SaveHost(repository: repo, secretStore: SecretStoreStub()))
         vm.name = ""
         vm.hostname = ""
         vm.port = "abc"
@@ -39,15 +45,18 @@ struct HostEditorViewModelTests {
 
         let saved = await vm.save()
         #expect(saved == nil)
-        #expect(vm.issue(for: .name) != nil)
-        #expect(vm.issue(for: .port) != nil)
+        #expect(vm.issue(for: ValidationIssue.Field.name) != nil)
+        #expect(vm.issue(for: ValidationIssue.Field.port) != nil)
         #expect(await repo.savedCount() == 0)
     }
 
     @Test func editingPreservesIdentity() async {
         let repo = CapturingHostRepository()
         let existing = Domain.Host(name: "Old", hostname: "old", port: 22, username: "u")
-        let vm = HostEditorViewModel(saveHost: SaveHost(repository: repo), host: existing)
+        let vm = HostEditorViewModel(
+            saveHost: SaveHost(repository: repo, secretStore: SecretStoreStub()),
+            host: existing
+        )
         #expect(vm.isEditing)
         vm.name = "New"
 

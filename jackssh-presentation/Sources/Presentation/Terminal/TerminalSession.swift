@@ -17,7 +17,7 @@ public final class TerminalSession {
     public private(set) var remoteTitle: String?
 
     private let host: Domain.Host
-    private let connecting: TerminalConnecting
+    private let openTerminal: OpenTerminal
 
     @ObservationIgnored private weak var terminalView: SwiftTerm.TerminalView?
     @ObservationIgnored private var channel: TerminalChannel?
@@ -28,9 +28,9 @@ public final class TerminalSession {
 
     private let maxReconnectAttempts = 5
 
-    public init(host: Domain.Host, connecting: TerminalConnecting) {
+    public init(host: Domain.Host, openTerminal: OpenTerminal) {
         self.host = host
-        self.connecting = connecting
+        self.openTerminal = openTerminal
     }
 
     /// Called by the representable once the SwiftTerm view exists. Kicks off the
@@ -89,7 +89,7 @@ public final class TerminalSession {
             phase = reconnectAttempt == 0 ? .connecting : .reconnecting(attempt: reconnectAttempt)
 
             do {
-                let ch = try await connecting.connect(to: host, cols: cols, rows: rows)
+                let ch = try await openTerminal(to: host, cols: cols, rows: rows)
                 guard !userClosed else { await ch.close(); return }
                 channel = ch
                 reconnectAttempt = 0

@@ -25,8 +25,9 @@ struct CredentialStorageTests {
 
         #expect(savedHost.id == hostID)
         #expect(savedHost.name == "Test Host")
-        #expect(mockSecretStore.storedSecrets.count == 1)
-        #expect(mockSecretStore.storedSecrets["host:\(hostID):auth"] == credentialData)
+        let storedSecrets = await mockSecretStore.storedSecrets
+        #expect(storedSecrets.count == 1)
+        #expect(storedSecrets["host:\(hostID):auth"] == credentialData)
     }
 
     @Test func saveHostDoesNotStoreNilCredential() async throws {
@@ -46,7 +47,7 @@ struct CredentialStorageTests {
         let savedHost = try await saveHost(draft, id: hostID, credential: nil)
 
         #expect(savedHost.id == hostID)
-        #expect(mockSecretStore.storedSecrets.isEmpty)
+        #expect(await mockSecretStore.storedSecrets.isEmpty)
     }
 
     @Test func credentialKeyMatchesRetrievalKey() async throws {
@@ -61,17 +62,17 @@ struct CredentialStorageTests {
 // MARK: - Mocks
 
 actor MockHostRepository: HostRepository {
-    var hosts: [Host] = []
+    var hosts: [Domain.Host] = []
 
-    func all() async throws -> [Host] {
+    func all() async throws -> [Domain.Host] {
         hosts
     }
 
-    func host(id: UUID) async throws -> Host? {
+    func host(id: UUID) async throws -> Domain.Host? {
         hosts.first { $0.id == id }
     }
 
-    func save(_ host: Host) async throws {
+    func save(_ host: Domain.Host) async throws {
         if let index = hosts.firstIndex(where: { $0.id == host.id }) {
             hosts[index] = host
         } else {
@@ -84,7 +85,7 @@ actor MockHostRepository: HostRepository {
     }
 }
 
-final class MockSecretStore: SecretStore, Sendable {
+actor MockSecretStore: SecretStore {
     private(set) var storedSecrets: [String: Data] = [:]
 
     func secret(for key: String) async throws -> Data? {

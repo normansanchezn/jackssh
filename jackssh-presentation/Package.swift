@@ -1,7 +1,9 @@
 // swift-tools-version: 6.3
 import PackageDescription
 
-// Presentation: SwiftUI views + @Observable view models. Depends on Domain and DesignSystem.
+// Presentation: SwiftUI views + @Observable view models. It depends only on
+// Domain contracts/use cases and on UI packages; concrete infrastructure is
+// assembled by the application target.
 let package = Package(
     name: "jackssh-presentation",
     platforms: [.iOS(.v17), .macOS(.v14)],

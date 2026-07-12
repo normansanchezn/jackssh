@@ -11,16 +11,16 @@ public final class ConnectingHostViewModel {
 
     private let hostID: UUID
     private let loadHost: LoadHosts
-    private let sshConnector: SSHConnector
+    private let connectToHost: ConnectToHost
 
     public init(
         hostID: UUID,
         loadHost: LoadHosts,
-        sshConnector: SSHConnector
+        connectToHost: ConnectToHost
     ) {
         self.hostID = hostID
         self.loadHost = loadHost
-        self.sshConnector = sshConnector
+        self.connectToHost = connectToHost
     }
 
     public func connect() async {
@@ -34,7 +34,7 @@ public final class ConnectingHostViewModel {
             self.host = host
 
             state = .authenticating
-            let result = await sshConnector.connect(to: host)
+            let result = await connectToHost(to: host)
 
             switch result {
             case .success:

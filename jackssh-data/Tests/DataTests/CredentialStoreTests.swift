@@ -2,11 +2,11 @@ import Testing
 import Foundation
 @testable import Data
 
-@Suite("KeychainCredentialStoreTests")
-struct KeychainCredentialStoreTests {
+@Suite("InMemoryCredentialStoreTests")
+struct InMemoryCredentialStoreTests {
     @Test("Store and retrieve password")
     func storeRetrievePassword() async throws {
-        let store = KeychainCredentialStore()
+        let store = InMemoryCredentialStore()
         let hostID = UUID()
         let password = "secret123"
 
@@ -18,7 +18,7 @@ struct KeychainCredentialStoreTests {
 
     @Test("Delete credentials removes stored value")
     func deleteCredentials() async throws {
-        let store = KeychainCredentialStore()
+        let store = InMemoryCredentialStore()
         let hostID = UUID()
 
         try await store.storePassword("secret", for: hostID)

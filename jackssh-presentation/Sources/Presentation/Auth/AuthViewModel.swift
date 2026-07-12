@@ -12,15 +12,26 @@ public final class AuthViewModel {
     public private(set) var isLoading = false
     public var error: String?
 
-    private let authRepository: AuthRepository
+    private let signIn: SignIn
+    private let signUp: SignUp
+    private let signOut: SignOut
+    private let loadCurrentUser: LoadCurrentUser
 
-    public init(authRepository: AuthRepository) {
-        self.authRepository = authRepository
+    public init(
+        signIn: SignIn,
+        signUp: SignUp,
+        signOut: SignOut,
+        loadCurrentUser: LoadCurrentUser
+    ) {
+        self.signIn = signIn
+        self.signUp = signUp
+        self.signOut = signOut
+        self.loadCurrentUser = loadCurrentUser
     }
 
     public func checkCurrentUser() async {
         do {
-            if let user = try await authRepository.getCurrentUser() {
+            if let user = try await loadCurrentUser() {
                 authState = .authenticated(user)
             } else {
                 authState = .unauthenticated
@@ -42,7 +53,7 @@ public final class AuthViewModel {
         defer { isLoading = false }
 
         do {
-            let user = try await authRepository.signIn(email: email, password: password)
+            let user = try await signIn(email: email, password: password)
             authState = .authenticated(user)
         } catch {
             authState = .error(error.localizedDescription)
@@ -66,7 +77,7 @@ public final class AuthViewModel {
         defer { isLoading = false }
 
         do {
-            let user = try await authRepository.signUp(email: email, password: password)
+            let user = try await signUp(email: email, password: password)
             authState = .authenticated(user)
         } catch {
             authState = .error(error.localizedDescription)
@@ -76,7 +87,7 @@ public final class AuthViewModel {
 
     public func logout() async {
         do {
-            try await authRepository.signOut()
+            try await signOut()
             authState = .unauthenticated
             email = ""
             password = ""

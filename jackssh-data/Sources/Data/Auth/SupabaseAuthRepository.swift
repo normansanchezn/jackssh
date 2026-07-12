@@ -1,50 +1,20 @@
 import Foundation
 import Domain
 import Shared
-
-/// Supabase Auth implementation.
+/// `AuthRepository` implementation backed by Supabase's remote data source.
 public actor SupabaseAuthRepository: AuthRepository {
-    private let supabaseURL: URL
-    private let supabaseKey: String
+    private let service: SupabaseAuthService
 
-    public init(supabaseURL: URL, supabaseKey: String) {
-        self.supabaseURL = supabaseURL
-        self.supabaseKey = supabaseKey
+    public init(service: SupabaseAuthService) {
+        self.service = service
     }
 
     public func signUp(email: String, password: String) async throws -> User {
-        let endpoint = supabaseURL
-            .appendingPathComponent("auth")
-            .appendingPathComponent("v1")
-            .appendingPathComponent("signup")
-
         AppLogger.logAuth(action: "SignUp", email: email, success: false)
-
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
-
-        let body = ["email": email, "password": password]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-
-        AppLogger.logNetwork(method: "POST", url: endpoint.absoluteString, statusCode: statusCode)
-
-        guard let httpResponse = response as? HTTPURLResponse, (200...201).contains(httpResponse.statusCode) else {
-            let errorStr = String(data: data, encoding: .utf8) ?? "unknown error"
-            AppLogger.logNetwork(method: "POST", url: endpoint.absoluteString, statusCode: statusCode, error: DomainError.unauthorized)
-            throw DomainError.unauthorized
-        }
-
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let authResponse = try decoder.decode(AuthResponse.self, from: data)
+        let user = try await service.signUp(email: email, password: password)
 
         AppLogger.logAuth(action: "SignUp", email: email, success: true)
-        return User(id: authResponse.user.id, email: authResponse.user.email)
+        return User(id: user.id, email: user.email)
     }
 
     public func signIn(email: String, password: String) async throws -> User {
@@ -52,39 +22,13 @@ public actor SupabaseAuthRepository: AuthRepository {
         print("[SupabaseAuth] 🔑 Sign in attempt: \(email)")
         #endif
 
-        let endpoint = supabaseURL
-            .appendingPathComponent("auth")
-            .appendingPathComponent("v1")
-            .appendingPathComponent("token")
-            .appendingQueryItem("grant_type", value: "password")
-
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
-
-        let body = ["email": email, "password": password]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            #if DEBUG
-            let errorStr = String(data: data, encoding: .utf8) ?? "unknown"
-            print("[SupabaseAuth] ❌ Sign in failed: \(errorStr)")
-            #endif
-            throw DomainError.unauthorized
-        }
-
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let tokenResponse = try decoder.decode(TokenResponse.self, from: data)
+        let user = try await service.signIn(email: email, password: password)
 
         #if DEBUG
         print("[SupabaseAuth] ✅ Sign in successful")
         #endif
 
-        return User(id: tokenResponse.user.id, email: tokenResponse.user.email)
+        return User(id: user.id, email: user.email)
     }
 
     public func signOut() async throws {
@@ -104,44 +48,5 @@ public actor SupabaseAuthRepository: AuthRepository {
         #if DEBUG
         print("[SupabaseAuth] 🔄 Reset password: \(email)")
         #endif
-    }
-}
-
-// MARK: - Response Models
-
-private struct AuthResponse: Codable {
-    struct UserData: Codable {
-        let id: UUID
-        let email: String
-    }
-
-    let user: UserData
-    let session: SessionData?
-}
-
-private struct TokenResponse: Codable {
-    struct UserData: Codable {
-        let id: UUID
-        let email: String
-    }
-
-    let user: UserData
-    let access_token: String
-}
-
-private struct SessionData: Codable {
-    let access_token: String
-    let refresh_token: String
-}
-
-// MARK: - URL Helper
-
-extension URL {
-    fileprivate func appendingQueryItem(_ name: String, value: String) -> URL {
-        var components = URLComponents(url: self, resolvingAgainstBaseURL: false)!
-        var queryItems = components.queryItems ?? []
-        queryItems.append(URLQueryItem(name: name, value: value))
-        components.queryItems = queryItems
-        return components.url!
     }
 }
