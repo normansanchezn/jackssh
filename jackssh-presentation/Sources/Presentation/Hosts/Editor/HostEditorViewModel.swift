@@ -116,6 +116,13 @@ public final class HostEditorViewModel {
             favoriteRemotePath: favoriteRemotePath.isEmpty ? nil : favoriteRemotePath
         )
 
+        let draftIssues = HostValidator.validate(draft)
+        guard draftIssues.isEmpty else {
+            uiState.issues = draftIssues
+            effect = .showError("Please fix the highlighted fields.")
+            return nil
+        }
+
         // Prepare credential data
         var credentialData: Data? = nil
         if case .password = authenticationMethod {

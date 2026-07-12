@@ -28,6 +28,8 @@ struct HostEditorViewModelTests {
         vm.hostname = "vps.example"
         vm.port = "2222"
         vm.username = "root"
+        vm.password = "secret"
+        vm.passwordConfirmation = "secret"
 
         let saved = await vm.save()
         #expect(saved?.port == 2222)
