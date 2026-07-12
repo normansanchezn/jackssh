@@ -2,60 +2,43 @@ import Foundation
 import Observation
 import Domain
 
+/// Screen-level state for the interactive terminal: resolves the host, then
+/// builds the `TerminalSession` that owns the live PTY. Holds no terminal
+/// buffer of its own — SwiftTerm owns the buffer, the session owns the channel.
 @MainActor
 @Observable
 public final class TerminalViewModel {
-    public var command: String = ""
-    public private(set) var output: [TerminalLine] = []
-    public private(set) var isExecuting = false
-    public private(set) var error: String?
+    public private(set) var host: Domain.Host?
+    public private(set) var session: TerminalSession?
+    public private(set) var loadError: String?
 
-    private let session: ConnectedHostSession
-    private let executeCommand: (String) async throws -> String
+    private let hostID: UUID
+    private let loadHosts: LoadHosts
+    private let connecting: TerminalConnecting
 
-    public init(
-        session: ConnectedHostSession,
-        executeCommand: @escaping (String) async throws -> String = { cmd in
-            try await Task.sleep(nanoseconds: 300_000_000)
-            return "$ \(cmd)\nCommand executed successfully"
-        }
-    ) {
-        self.session = session
-        self.executeCommand = executeCommand
-        output.append(TerminalLine(text: "Connected to \(session.username)@\(session.hostname):\(session.port)", isPrompt: true))
-        output.append(TerminalLine(text: "", isPrompt: false))
+    public init(hostID: UUID, loadHosts: LoadHosts, connecting: TerminalConnecting) {
+        self.hostID = hostID
+        self.loadHosts = loadHosts
+        self.connecting = connecting
     }
 
-    public func executeCommand() async {
-        guard !command.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+    /// Human-readable connection target, e.g. `root@108.174.154.104`.
+    public var connectionTitle: String {
+        guard let host else { return "Terminal" }
+        return "\(host.username)@\(host.hostname)"
+    }
 
-        let cmd = command.trimmingCharacters(in: .whitespaces)
-        output.append(TerminalLine(text: "\(cmd)", isPrompt: true))
-        command = ""
-        isExecuting = true
-        error = nil
-
+    public func load() async {
         do {
-            let result = try await self.executeCommand(cmd)
-            for line in result.split(separator: "\n", omittingEmptySubsequences: false).map(String.init) {
-                output.append(TerminalLine(text: line, isPrompt: false))
+            let hosts = try await loadHosts()
+            guard let match = hosts.first(where: { $0.id == hostID }) else {
+                loadError = "Host not found"
+                return
             }
-            output.append(TerminalLine(text: "", isPrompt: false))
+            host = match
+            session = TerminalSession(host: match, connecting: connecting)
         } catch {
-            self.error = error.localizedDescription
-            output.append(TerminalLine(text: "Error: \(error.localizedDescription)", isPrompt: false))
+            loadError = error.localizedDescription
         }
-
-        isExecuting = false
-    }
-}
-
-public struct TerminalLine: Identifiable, Equatable {
-    public let id: UUID = UUID()
-    public let text: String
-    public let isPrompt: Bool
-
-    public static func == (lhs: TerminalLine, rhs: TerminalLine) -> Bool {
-        lhs.id == rhs.id && lhs.text == rhs.text && lhs.isPrompt == rhs.isPrompt
     }
 }

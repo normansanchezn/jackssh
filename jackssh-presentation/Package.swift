@@ -12,6 +12,7 @@ let package = Package(
         .package(path: "../jackssh-domain"),
         .package(path: "../jackssh-design-system"),
         .package(path: "../jackssh-shared"),
+        .package(url: "https://github.com/migueldeicaza/SwiftTerm.git", from: "1.2.0"),
     ],
     targets: [
         .target(
@@ -20,6 +21,7 @@ let package = Package(
                 .product(name: "Domain", package: "jackssh-domain"),
                 .product(name: "DesignSystem", package: "jackssh-design-system"),
                 .product(name: "Shared", package: "jackssh-shared"),
+                .product(name: "SwiftTerm", package: "SwiftTerm"),
             ]
         ),
         .testTarget(

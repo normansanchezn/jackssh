@@ -75,6 +75,9 @@ final class CompositionRoot {
         let sshConnector: SSHConnector = CitadelSSHConnector(credentialStore: secretStore)
         let loadHosts = LoadHosts(repository: hostRepository)
 
+        // Interactive terminal transport: real Citadel SSH + PTY streaming.
+        let terminalConnecting: TerminalConnecting = CitadelTerminalConnecting(secretStore: secretStore)
+
         hostsDependencies = HostsDependencies(
             makeListViewModel: {
                 HostsViewModel(
@@ -98,6 +101,13 @@ final class CompositionRoot {
             },
             makeConnectedViewModel: { hostID in
                 ConnectedHostViewModel(hostID: hostID, loadHost: loadHosts)
+            },
+            makeTerminalViewModel: { hostID in
+                TerminalViewModel(
+                    hostID: hostID,
+                    loadHosts: loadHosts,
+                    connecting: terminalConnecting
+                )
             }
         )
     }
