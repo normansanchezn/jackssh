@@ -27,7 +27,9 @@ public struct RootView: View {
             switch authViewModel.authState {
             case .authenticated:
                 NavigationStack(path: $router.path) {
-                    HomeView(viewModel: homeViewModel, router: router)
+                    HomeView(viewModel: homeViewModel, router: router) {
+                        await authViewModel.logout()
+                    }
                         .environment(router)
                         .navigationDestination(for: AppRoute.self) { route in
                             destination(for: route)
@@ -74,7 +76,14 @@ public struct RootView: View {
         case let .terminal(hostID):
             TerminalView(hostID: hostID, dependencies: hostsDependencies)
         case let .files(hostID, path):
-            RemoteFilesView(hostID: hostID, path: path)
+            if let uuid = UUID(uuidString: hostID) {
+                RemoteFilesView(
+                    viewModel: hostsDependencies.makeRemoteFilesViewModel(uuid, path),
+                    terminalViewModel: hostsDependencies.makeTerminalViewModel(uuid)
+                )
+            } else {
+                ComingSoonView(title: "Invalid host ID")
+            }
         }
     }
 }

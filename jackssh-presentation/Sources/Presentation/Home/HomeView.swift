@@ -9,10 +9,16 @@ public struct HomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.jacksshTheme) private var theme
     private let router: AppRouter
+    private let onLogout: () async -> Void
 
-    public init(viewModel: HomeViewModel, router: AppRouter) {
+    public init(
+        viewModel: HomeViewModel,
+        router: AppRouter,
+        onLogout: @escaping () async -> Void = {}
+    ) {
         _viewModel = State(initialValue: viewModel)
         self.router = router
+        self.onLogout = onLogout
     }
 
     public var body: some View {
@@ -30,6 +36,20 @@ public struct HomeView: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             Task { await viewModel.load() }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button(role: .destructive) {
+                        Task { await onLogout() }
+                    } label: {
+                        Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+                .accessibilityLabel("Account options")
+            }
         }
     }
 

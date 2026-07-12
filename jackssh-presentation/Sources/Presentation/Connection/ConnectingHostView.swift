@@ -68,7 +68,7 @@ public struct ConnectingHostView: View {
         }
         .onChange(of: viewModel.state) { oldValue, newValue in
             if case let .connected(session) = newValue {
-                router.push(.connected(hostID: session.hostID.uuidString))
+                router.replaceTop(with: .connected(hostID: session.hostID.uuidString))
             } else if case let .failed(failure) = newValue {
                 errorMessage = failure.description
                 showErrorAlert = true

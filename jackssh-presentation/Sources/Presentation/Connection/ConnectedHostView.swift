@@ -22,114 +22,226 @@ public struct ConnectedHostView: View {
     }
 }
 
-struct _ConnectedHostContent: View {
+private struct _ConnectedHostContent: View {
     @Environment(AppRouter.self) private var router
-    @Environment(\.jacksshTheme) var theme
+    @Environment(\.jacksshTheme) private var theme
+    @State private var isDisconnectConfirmationVisible = false
+
     let session: ConnectedHostSession
     let host: Domain.Host?
     let onDisconnect: () async -> Void
 
     var body: some View {
-        ZStack {
-            theme.colors.background.ignoresSafeArea()
-            VStack(spacing: DSSpacing.lg) {
-                VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                    Text(host?.name ?? session.hostname)
-                        .font(DSTypography.sectionTitle)
-                    HStack(spacing: DSSpacing.sm) {
-                        Image(systemName: "circle.fill")
-                            .foregroundStyle(.green)
-                            .font(.caption)
-                        Text("Connected")
-                            .font(DSTypography.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(DSSpacing.md)
-
-                DSCard {
-                    VStack(alignment: .leading, spacing: DSSpacing.md) {
-                        row(label: "User", value: session.username)
-                        row(label: "Host", value: "\(session.hostname):\(session.port)")
-                        row(label: "Connected at", value: session.connectedAt.formatted(date: .abbreviated, time: .shortened))
-                    }
-                }
-
-                VStack(spacing: DSSpacing.sm) {
-                    Text("Quick Actions")
-                        .font(DSTypography.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    QuickActionButton(label: "Open Dashboard", systemImage: "globe") {
-                        router.push(.terminal(hostID: session.hostID.uuidString))
-                    }
-                    QuickActionButton(label: "Terminal", systemImage: "terminal") {
-                        router.push(.terminal(hostID: session.hostID.uuidString))
-                    }
-                    QuickActionButton(label: "Browse Files", systemImage: "folder") {
-                        router.push(.files(hostID: session.hostID.uuidString, path: "/"))
-                    }
-                    QuickActionButton(label: "Git Status", systemImage: "git") {
-                        router.push(.terminal(hostID: session.hostID.uuidString))
-                    }
-                }
-                .padding(DSSpacing.md)
-
-                Spacer()
-
-                Button(role: .destructive) {
-                    Task {
-                        await onDisconnect()
-                        router.popToRoot()
-                    }
-                } label: {
-                    Text("Disconnect")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .padding(DSSpacing.md)
+        ScrollView {
+            VStack(alignment: .leading, spacing: DSSpacing.xl) {
+                hostHeader
+                sessionDetails
+                workspaceActions
+                disconnectControl
             }
             .padding(DSSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .background(theme.colors.background)
+        .navigationTitle(host?.name ?? session.hostname)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .confirmationDialog(
+            "Disconnect from \(host?.name ?? session.hostname)?",
+            isPresented: $isDisconnectConfirmationVisible,
+            titleVisibility: .visible
+        ) {
+            Button("Disconnect", role: .destructive) {
+                Task {
+                    await onDisconnect()
+                    router.popToRoot()
+                }
+            }
+        } message: {
+            Text("The active SSH session will be closed.")
         }
     }
 
-    private func row(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(DSTypography.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(value)
-                .font(DSTypography.mono)
-                .foregroundStyle(.primary)
+    private var hostHeader: some View {
+        HStack(alignment: .top, spacing: DSSpacing.md) {
+            Image(systemName: "server.rack")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(theme.colors.primary600)
+                .frame(width: 52, height: 52)
+                .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+
+            VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                Text(host?.name ?? session.hostname)
+                    .font(.system(.title2, design: .rounded, weight: .bold))
+                    .foregroundStyle(theme.colors.textPrimary)
+                    .lineLimit(1)
+                Text("\(session.username)@\(session.hostname)")
+                    .font(DSTypography.mono)
+                    .foregroundStyle(theme.colors.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                StatusBadge(tone: .positive, label: "Connected")
+                    .padding(.top, DSSpacing.xs)
+            }
+            Spacer(minLength: 0)
         }
+    }
+
+    private var sessionDetails: some View {
+        VStack(alignment: .leading, spacing: DSSpacing.md) {
+            Text("Session")
+                .font(DSTypography.sectionTitle)
+                .accessibilityAddTraits(.isHeader)
+
+            VStack(spacing: 0) {
+                SessionDetailRow(label: "User", value: session.username, icon: "person")
+                Divider().padding(.leading, 34)
+                SessionDetailRow(label: "Host", value: "\(session.hostname):\(session.port)", icon: "network")
+                Divider().padding(.leading, 34)
+                SessionDetailRow(
+                    label: "Connected",
+                    value: session.connectedAt.formatted(date: .abbreviated, time: .shortened),
+                    icon: "clock"
+                )
+            }
+            .padding(.horizontal, DSSpacing.lg)
+            .padding(.vertical, DSSpacing.xs)
+            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                    .stroke(theme.colors.border, lineWidth: 1)
+            }
+        }
+    }
+
+    private var workspaceActions: some View {
+        VStack(alignment: .leading, spacing: DSSpacing.md) {
+            Text("Workspace")
+                .font(DSTypography.sectionTitle)
+                .accessibilityAddTraits(.isHeader)
+
+            PrimaryWorkspaceAction(title: "Terminal", subtitle: "Open an interactive shell", icon: "terminal") {
+                router.push(.terminal(hostID: session.hostID.uuidString))
+            }
+
+            HStack(spacing: DSSpacing.sm) {
+                WorkspaceAction(title: "Files", icon: "folder") {
+                    router.push(.files(hostID: session.hostID.uuidString, path: host?.favoriteRemotePath ?? "/"))
+                }
+                if host?.openClawConfiguration != nil {
+                    WorkspaceAction(title: "Dashboard", icon: "rectangle.3.group") {
+                        router.push(.openClawSession(id: session.hostID.uuidString))
+                    }
+                }
+            }
+        }
+    }
+
+    private var disconnectControl: some View {
+        Button(role: .destructive) {
+            isDisconnectConfirmationVisible = true
+        } label: {
+            Label("Disconnect", systemImage: "xmark.circle")
+                .font(DSTypography.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, DSSpacing.md)
+        }
+        .buttonStyle(.bordered)
     }
 }
 
-private struct QuickActionButton: View {
-    @Environment(\.jacksshTheme) var theme
+private struct SessionDetailRow: View {
+    @Environment(\.jacksshTheme) private var theme
     let label: String
-    let systemImage: String
+    let value: String
+    let icon: String
+
+    var body: some View {
+        HStack(spacing: DSSpacing.sm) {
+            Image(systemName: icon)
+                .foregroundStyle(theme.colors.textTertiary)
+                .frame(width: 18)
+            Text(label)
+                .font(DSTypography.caption)
+                .foregroundStyle(theme.colors.textSecondary)
+            Spacer(minLength: DSSpacing.sm)
+            Text(value)
+                .font(.system(.footnote, design: .monospaced))
+                .foregroundStyle(theme.colors.textPrimary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding(.vertical, DSSpacing.md)
+    }
+}
+
+private struct PrimaryWorkspaceAction: View {
+    @Environment(\.jacksshTheme) private var theme
+    let title: String
+    let subtitle: String
+    let icon: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: DSSpacing.sm) {
-                Image(systemName: systemImage)
-                    .frame(width: 24)
-                Text(label)
+            HStack(spacing: DSSpacing.md) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 42, height: 42)
+                    .foregroundStyle(theme.colors.textInverse)
+                    .background(theme.colors.primary600, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+                VStack(alignment: .leading, spacing: DSSpacing.xxs) {
+                    Text(title)
+                        .font(DSTypography.sectionTitle)
+                        .foregroundStyle(theme.colors.textPrimary)
+                    Text(subtitle)
+                        .font(DSTypography.caption)
+                        .foregroundStyle(theme.colors.textSecondary)
+                }
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Image(systemName: "arrow.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.colors.primary600)
             }
+            .padding(DSSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
+            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                    .stroke(theme.colors.primary300, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
-        .padding(DSSpacing.md)
-        .background(theme.colors.surfaceElevated)
-        .cornerRadius(8)
+    }
+}
+
+private struct WorkspaceAction: View {
+    @Environment(\.jacksshTheme) private var theme
+    let title: String
+    let icon: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: DSSpacing.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(theme.colors.primary600)
+                    .frame(width: 36, height: 36)
+                    .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+                Text(title)
+                    .font(DSTypography.body.weight(.semibold))
+                    .foregroundStyle(theme.colors.textPrimary)
+            }
+            .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
+            .padding(DSSpacing.md)
+            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                    .stroke(theme.colors.border, lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }

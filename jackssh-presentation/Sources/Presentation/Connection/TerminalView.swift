@@ -22,9 +22,11 @@ public struct TerminalView: View {
 
 struct TerminalScreen: View {
     @State private var viewModel: TerminalViewModel
+    private let embedded: Bool
 
-    init(viewModel: TerminalViewModel) {
+    init(viewModel: TerminalViewModel, embedded: Bool = false) {
         _viewModel = State(initialValue: viewModel)
+        self.embedded = embedded
     }
 
     var body: some View {
@@ -55,11 +57,24 @@ struct TerminalScreen: View {
                     .task { await viewModel.load() }
             }
         }
-        .navigationTitle("Terminal")
+        .modifier(TerminalNavigationModifier(isEmbedded: embedded))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         #endif
+    }
+}
+
+private struct TerminalNavigationModifier: ViewModifier {
+    let isEmbedded: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isEmbedded {
+            content
+        } else {
+            content.navigationTitle("Terminal")
+        }
     }
 }
 

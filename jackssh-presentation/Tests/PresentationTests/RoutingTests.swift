@@ -5,6 +5,16 @@ import Domain
 
 @Suite("Deep link routing")
 struct RoutingTests {
+
+    @MainActor
+    @Test func replacingTransientRouteKeepsHomeAsBackDestination() {
+        let router = AppRouter(path: [.connecting(hostID: "host-1")])
+
+        router.replaceTop(with: .connected(hostID: "host-1"))
+
+        #expect(router.path == [.connected(hostID: "host-1")])
+    }
+
     @Test func mapsEachDeepLinkToRoute() {
         #expect(AppRoute(deepLink: .host(id: "1")) == .host(id: "1"))
         #expect(AppRoute(deepLink: .terminal(hostID: "v")) == .terminal(hostID: "v"))

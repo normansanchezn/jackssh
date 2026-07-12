@@ -15,16 +15,34 @@ public struct SupabaseAuthService: Sendable {
         self.session = session
     }
 
-    func signUp(email: String, password: String) async throws -> SupabaseUserDTO {
+    func signUp(email: String, password: String) async throws -> SupabaseAuthSessionDTO? {
         let endpoint = endpoint(path: "signup")
         let data = try await post(endpoint: endpoint, body: ["email": email, "password": password], successCodes: 200...201)
-        return try JSONDecoder().decode(SupabaseSignUpResponseDTO.self, from: data).user
+        return try JSONDecoder().decode(SupabaseSignUpResponseDTO.self, from: data).session
     }
 
-    func signIn(email: String, password: String) async throws -> SupabaseUserDTO {
+    func signIn(email: String, password: String) async throws -> SupabaseAuthSessionDTO {
         let endpoint = endpoint(path: "token", queryItems: [URLQueryItem(name: "grant_type", value: "password")])
         let data = try await post(endpoint: endpoint, body: ["email": email, "password": password], successCodes: 200...200)
-        return try JSONDecoder().decode(SupabaseTokenResponseDTO.self, from: data).user
+        return try JSONDecoder().decode(SupabaseTokenResponseDTO.self, from: data)
+    }
+
+    func refreshSession(refreshToken: String) async throws -> SupabaseAuthSessionDTO {
+        let endpoint = endpoint(path: "token", queryItems: [URLQueryItem(name: "grant_type", value: "refresh_token")])
+        let data = try await post(endpoint: endpoint, body: ["refresh_token": refreshToken], successCodes: 200...200)
+        return try JSONDecoder().decode(SupabaseTokenResponseDTO.self, from: data)
+    }
+
+    func signOut(accessToken: String) async throws {
+        let endpoint = endpoint(path: "logout")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (_, response) = try await session.data(for: request)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200...299).contains(statusCode) else { throw DomainError.unauthorized }
     }
 
     private func endpoint(path: String, queryItems: [URLQueryItem] = []) -> URL {
@@ -61,10 +79,22 @@ struct SupabaseUserDTO: Decodable, Sendable {
     let email: String
 }
 
-private struct SupabaseSignUpResponseDTO: Decodable {
+struct SupabaseAuthSessionDTO: Decodable, Sendable {
+    let accessToken: String
+    let refreshToken: String
+    let expiresIn: Int
     let user: SupabaseUserDTO
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case refreshToken = "refresh_token"
+        case expiresIn = "expires_in"
+        case user
+    }
 }
 
-private struct SupabaseTokenResponseDTO: Decodable {
-    let user: SupabaseUserDTO
+private struct SupabaseSignUpResponseDTO: Decodable {
+    let session: SupabaseAuthSessionDTO?
 }
+
+private typealias SupabaseTokenResponseDTO = SupabaseAuthSessionDTO

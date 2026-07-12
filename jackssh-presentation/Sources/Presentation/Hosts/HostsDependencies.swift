@@ -10,18 +10,21 @@ public struct HostsDependencies {
     public let makeConnectingViewModel: (UUID) -> ConnectingHostViewModel
     public let makeConnectedViewModel: (UUID) -> ConnectedHostViewModel
     public let makeTerminalViewModel: (UUID) -> TerminalViewModel
+    public let makeRemoteFilesViewModel: (UUID, String) -> RemoteFilesViewModel
 
     public init(
         makeListViewModel: @escaping () -> HostsViewModel,
         makeEditorViewModel: @escaping (Domain.Host?) -> HostEditorViewModel,
         makeConnectingViewModel: @escaping (UUID) -> ConnectingHostViewModel,
         makeConnectedViewModel: @escaping (UUID) -> ConnectedHostViewModel,
-        makeTerminalViewModel: @escaping (UUID) -> TerminalViewModel
+        makeTerminalViewModel: @escaping (UUID) -> TerminalViewModel,
+        makeRemoteFilesViewModel: @escaping (UUID, String) -> RemoteFilesViewModel
     ) {
         self.makeListViewModel = makeListViewModel
         self.makeEditorViewModel = makeEditorViewModel
         self.makeConnectingViewModel = makeConnectingViewModel
         self.makeConnectedViewModel = makeConnectedViewModel
         self.makeTerminalViewModel = makeTerminalViewModel
+        self.makeRemoteFilesViewModel = makeRemoteFilesViewModel
     }
 }

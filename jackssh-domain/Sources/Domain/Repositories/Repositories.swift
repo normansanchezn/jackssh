@@ -72,6 +72,11 @@ public protocol SFTPClient: Sendable {
     func rename(_ from: String, to: String) async throws
 }
 
+/// Lists a remote directory for one configured host. Implemented in Data over SFTP.
+public protocol RemoteDirectoryRepository: Sendable {
+    func listDirectory(at path: String) async throws -> [SFTPFileInfo]
+}
+
 /// SFTP file metadata.
 public struct SFTPFileInfo: Equatable, Sendable {
     public let name: String

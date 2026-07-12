@@ -66,9 +66,9 @@ final class CompositionRoot {
             supabaseURL: EnvironmentConfig.supabaseURL,
             supabaseKey: EnvironmentConfig.supabaseKey
         )
-        authRepository = SupabaseAuthRepository(service: supabaseService)
-        hostRepository = SwiftDataHostRepository(modelContainer: modelContainer)
         secretStore = KeychainSecretStore()
+        authRepository = SupabaseAuthRepository(service: supabaseService, secureStore: secretStore)
+        hostRepository = SwiftDataHostRepository(modelContainer: modelContainer)
         homeStatusRepository = HealthProbingHomeStatusRepository(
             configuration: .unconfigured,
             http: URLSessionHealthProbe(),
@@ -118,6 +118,16 @@ final class CompositionRoot {
                     openTerminal: OpenTerminal(connecting: terminalConnecting),
                     activateSession: ActivateConnectionSession(store: sessionStore),
                     endSession: EndConnectionSession(store: sessionStore)
+                )
+            },
+            makeRemoteFilesViewModel: { [self] hostID, path in
+                RemoteFilesViewModel(
+                    hostID: hostID,
+                    initialPath: path,
+                    loadHosts: LoadHosts(repository: hostRepository),
+                    makeDirectoryRepository: { host in
+                        CitadelRemoteDirectoryRepository(host: host, secretStore: secretStore)
+                    }
                 )
             }
         )

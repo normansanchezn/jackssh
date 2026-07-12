@@ -17,6 +17,16 @@ public final class AppRouter {
         path.append(route)
     }
 
+    /// Replaces the current transient destination without adding a second back
+    /// step. Used when an in-progress screen resolves into its final screen.
+    public func replaceTop(with route: AppRoute) {
+        guard !path.isEmpty else {
+            path.append(route)
+            return
+        }
+        path[path.index(before: path.endIndex)] = route
+    }
+
     public func popToRoot() {
         path.removeAll()
     }
