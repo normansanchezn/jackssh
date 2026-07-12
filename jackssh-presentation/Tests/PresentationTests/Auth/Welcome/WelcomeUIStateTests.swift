@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+@testable import Presentation
 
 @MainActor
 @Suite("WelcomeUIState Tests")
