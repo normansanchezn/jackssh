@@ -22,10 +22,11 @@ public struct RootView: View {
     public var body: some View {
         NavigationStack(path: $router.path) {
             HomeView(viewModel: homeViewModel, router: router)
+                .environment(router)
                 .navigationDestination(for: AppRoute.self) { route in
                     destination(for: route)
+                        .environment(router)
                 }
-                .environment(router)
         }
     }
 
