@@ -21,9 +21,7 @@ struct _WelcomeContent: View {
     let onSignUp: () -> Void
 
     var body: some View {
-        ZStack {
-            theme.colors.background.ignoresSafeArea()
-
+        Background(showGrid: true) {
             VStack(spacing: DSSpacing.lg) {
                 Spacer()
 

@@ -14,7 +14,7 @@ public struct SignUpView: View {
     }
 
     public var body: some View {
-        Background {
+        Background(showGrid: true) {
             VStack(spacing: DSSpacing.lg) {
                 HStack {
                     DSButton(

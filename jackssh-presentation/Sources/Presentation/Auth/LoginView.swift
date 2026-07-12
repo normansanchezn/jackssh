@@ -15,7 +15,7 @@ public struct LoginView: View {
     }
 
     public var body: some View {
-        Background {
+        Background(showGrid: true) {
             content()
         }
     }
@@ -33,8 +33,23 @@ public struct LoginView: View {
             .padding(DSSpacing.lg)
 
             VStack(spacing: DSSpacing.md) {
-                DSInput("Email", text: $viewModel.email)
-                DSInput("Password", text: $viewModel.password, isSecure: true)
+                TextField("Email", text: $viewModel.email)
+                    .padding(DSSpacing.md)
+                    .background(theme.colors.surfaceElevated.opacity(0.8))
+                    .cornerRadius(DSRadius.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DSRadius.sm)
+                            .stroke(theme.colors.border, lineWidth: 1)
+                    )
+
+                SecureField("Password", text: $viewModel.password)
+                    .padding(DSSpacing.md)
+                    .background(theme.colors.surfaceElevated.opacity(0.8))
+                    .cornerRadius(DSRadius.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DSRadius.sm)
+                            .stroke(theme.colors.border, lineWidth: 1)
+                    )
             }
             .padding(DSSpacing.lg)
 
@@ -75,7 +90,6 @@ public struct LoginView: View {
     }
 }
 
-#Preview("Login") {
-    LoginView(viewModel: PreviewFixtures.authViewModel(), onSuccess: {}, onSignUp: {})
-        .withJacksshThemeAutomatic()
+#Preview {
+    LoginView(viewModel: AuthViewModel(authRepository: AuthRepository), onSuccess: {}, onSignUp: {})
 }
