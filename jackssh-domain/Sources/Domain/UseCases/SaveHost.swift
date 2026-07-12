@@ -4,12 +4,18 @@ import Foundation
 /// Throws `DomainError.validation` when the draft is invalid — no partial writes.
 public struct SaveHost: Sendable {
     private let repository: HostRepository
+    private let secretStore: SecretStore
 
-    public init(repository: HostRepository) {
+    public init(repository: HostRepository, secretStore: SecretStore) {
         self.repository = repository
+        self.secretStore = secretStore
     }
 
-    public func callAsFunction(_ draft: HostDraft, id: UUID = UUID()) async throws -> Host {
+    public func callAsFunction(
+        _ draft: HostDraft,
+        id: UUID = UUID(),
+        credential: Data? = nil
+    ) async throws -> Host {
         let issues = HostValidator.validate(draft)
         guard issues.isEmpty else { throw DomainError.validation(issues) }
 
@@ -35,6 +41,13 @@ public struct SaveHost: Sendable {
             openClawConfiguration: openClawConfig,
             favoriteRemotePath: draft.favoriteRemotePath
         )
+
+        // Store credential if provided
+        if let credential = credential {
+            let credentialKey = "host:\(id):auth"
+            try await secretStore.setSecret(credential, for: credentialKey)
+        }
+
         try await repository.save(host)
         return host
     }

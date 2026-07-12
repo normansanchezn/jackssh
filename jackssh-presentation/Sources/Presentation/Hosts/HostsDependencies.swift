@@ -8,14 +8,17 @@ public struct HostsDependencies {
     public let makeListViewModel: () -> HostsViewModel
     public let makeEditorViewModel: (Domain.Host?) -> HostEditorViewModel
     public let makeConnectingViewModel: (UUID) -> ConnectingHostViewModel
+    public let makeConnectedViewModel: (UUID) -> ConnectedHostViewModel
 
     public init(
         makeListViewModel: @escaping () -> HostsViewModel,
         makeEditorViewModel: @escaping (Domain.Host?) -> HostEditorViewModel,
-        makeConnectingViewModel: @escaping (UUID) -> ConnectingHostViewModel
+        makeConnectingViewModel: @escaping (UUID) -> ConnectingHostViewModel,
+        makeConnectedViewModel: @escaping (UUID) -> ConnectedHostViewModel
     ) {
         self.makeListViewModel = makeListViewModel
         self.makeEditorViewModel = makeEditorViewModel
         self.makeConnectingViewModel = makeConnectingViewModel
+        self.makeConnectedViewModel = makeConnectedViewModel
     }
 }

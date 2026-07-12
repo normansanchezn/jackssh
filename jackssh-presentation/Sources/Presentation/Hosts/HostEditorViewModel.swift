@@ -95,8 +95,19 @@ public final class HostEditorViewModel {
             openClawBasePath: openClawHost.isEmpty ? nil : openClawBasePath,
             favoriteRemotePath: favoriteRemotePath.isEmpty ? nil : favoriteRemotePath
         )
+
+        // Prepare credential data
+        var credentialData: Data? = nil
+        if case .password = authenticationMethod, !password.isEmpty {
+            credentialData = password.data(using: .utf8)
+        }
+
         do {
-            return try await saveHost(draft, id: editingID ?? UUID())
+            return try await saveHost(
+                draft,
+                id: editingID ?? UUID(),
+                credential: credentialData
+            )
         } catch let DomainError.validation(validationIssues) {
             issues = validationIssues
             return nil

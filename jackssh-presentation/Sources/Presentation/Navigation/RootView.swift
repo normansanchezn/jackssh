@@ -41,7 +41,12 @@ public struct RootView: View {
                 ComingSoonView(title: "Invalid host ID")
             }
         case let .connected(hostID):
-            ComingSoonView(title: "Connected \(hostID)")
+            if let uuid = UUID(uuidString: hostID) {
+                let vm = hostsDependencies.makeConnectedViewModel(uuid)
+                ConnectedHostViewContainer(viewModel: vm)
+            } else {
+                ComingSoonView(title: "Invalid host ID")
+            }
         case let .host(id):
             ComingSoonView(title: "Host \(id)")
         case let .openClawSession(id):
@@ -52,6 +57,23 @@ public struct RootView: View {
             ComingSoonView(title: "Terminal \(hostID)")
         case let .files(hostID, path):
             ComingSoonView(title: "Files \(hostID):\(path)")
+        }
+    }
+}
+
+struct ConnectedHostViewContainer: View {
+    @State private var viewModel: ConnectedHostViewModel
+
+    init(viewModel: ConnectedHostViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
+
+    var body: some View {
+        if let session = viewModel.session, let host = viewModel.host {
+            ConnectedHostView(session: session, host: host)
+        } else {
+            ProgressView()
+                .task { await viewModel.load() }
         }
     }
 }

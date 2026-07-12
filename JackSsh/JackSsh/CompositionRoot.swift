@@ -61,7 +61,7 @@ final class CompositionRoot {
                 )
             },
             makeEditorViewModel: { existing in
-                let saveHost = SaveHost(repository: hostRepository)
+                let saveHost = SaveHost(repository: hostRepository, secretStore: secretStore)
                 if let existing {
                     return HostEditorViewModel(saveHost: saveHost, host: existing)
                 }
@@ -73,6 +73,9 @@ final class CompositionRoot {
                     loadHost: loadHosts,
                     sshConnector: sshConnector
                 )
+            },
+            makeConnectedViewModel: { hostID in
+                ConnectedHostViewModel(hostID: hostID, loadHost: loadHosts)
             }
         )
     }
