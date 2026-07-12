@@ -54,9 +54,9 @@ public struct RootView: View {
         case let .serviceLogs(serviceID):
             ComingSoonView(title: "\(serviceID) Logs")
         case let .terminal(hostID):
-            ComingSoonView(title: "Terminal \(hostID)")
+            TerminalView(hostID: hostID)
         case let .files(hostID, path):
-            ComingSoonView(title: "Files \(hostID):\(path)")
+            RemoteFilesView(hostID: hostID, path: path)
         }
     }
 }
