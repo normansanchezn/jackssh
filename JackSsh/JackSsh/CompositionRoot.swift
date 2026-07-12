@@ -25,6 +25,7 @@ final class CompositionRoot {
     private let homeStatusRepository: HomeStatusRepository
     private let sshConnector: SSHConnector
     private let terminalConnecting: TerminalConnecting
+    private let sessionStore: ConnectionSessionStore
 
     private(set) lazy var authViewModel: AuthViewModel = {
         AuthViewModel(
@@ -36,7 +37,10 @@ final class CompositionRoot {
     }()
 
     private(set) lazy var homeViewModel: HomeViewModel = {
-        HomeViewModel(loadHomeStatus: LoadHomeStatus(repository: homeStatusRepository))
+        HomeViewModel(
+            loadHomeStatus: LoadHomeStatus(repository: homeStatusRepository),
+            loadActiveSession: LoadActiveConnectionSession(store: sessionStore)
+        )
     }()
 
     private(set) lazy var hostsDependencies: HostsDependencies = {
@@ -72,6 +76,7 @@ final class CompositionRoot {
         )
         sshConnector = CitadelSSHConnector(credentialStore: secretStore)
         terminalConnecting = CitadelTerminalConnecting(secretStore: secretStore)
+        sessionStore = InMemoryConnectionSessionStore()
         router = AppRouter()
     }
 
@@ -94,17 +99,25 @@ final class CompositionRoot {
                 ConnectingHostViewModel(
                     hostID: hostID,
                     loadHost: LoadHosts(repository: hostRepository),
-                    connectToHost: ConnectToHost(connector: sshConnector)
+                    connectToHost: ConnectToHost(connector: sshConnector),
+                    activateSession: ActivateConnectionSession(store: sessionStore)
                 )
             },
             makeConnectedViewModel: { [self] hostID in
-                ConnectedHostViewModel(hostID: hostID, loadHost: LoadHosts(repository: hostRepository))
+                ConnectedHostViewModel(
+                    hostID: hostID,
+                    loadHost: LoadHosts(repository: hostRepository),
+                    loadActiveSession: LoadActiveConnectionSession(store: sessionStore),
+                    endSession: EndConnectionSession(store: sessionStore)
+                )
             },
             makeTerminalViewModel: { [self] hostID in
                 TerminalViewModel(
                     hostID: hostID,
                     loadHosts: LoadHosts(repository: hostRepository),
-                    openTerminal: OpenTerminal(connecting: terminalConnecting)
+                    openTerminal: OpenTerminal(connecting: terminalConnecting),
+                    activateSession: ActivateConnectionSession(store: sessionStore),
+                    endSession: EndConnectionSession(store: sessionStore)
                 )
             }
         )

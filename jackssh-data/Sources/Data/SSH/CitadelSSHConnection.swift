@@ -1,7 +1,8 @@
 import Foundation
+import Citadel
 import Domain
 
-/// SSH connection stub (real implementation via Citadel to be completed).
+/// Verifies a password-based SSH connection through Citadel.
 public actor CitadelSSHConnector: SSHConnector {
     private let secretStore: SecretStore
 
@@ -24,15 +25,23 @@ public actor CitadelSSHConnector: SSHConnector {
                 #if DEBUG
                 print("[CitadelSSHConnector] 🔑 Looking for password with key: \(credentialKey)")
                 #endif
-                guard let credential = try await secretStore.secret(for: credentialKey) else {
+                guard let credential = try await secretStore.secret(for: credentialKey),
+                      let password = String(data: credential, encoding: .utf8) else {
                     #if DEBUG
                     print("[CitadelSSHConnector] ❌ Password NOT found in Keychain for key: \(credentialKey)")
                     #endif
                     return .authenticationFailed("Password not found in Keychain")
                 }
-                #if DEBUG
-                print("[CitadelSSHConnector] ✅ Password found (\(credential.count) bytes)")
-                #endif
+                let client = try await SSHClient.connect(
+                    host: host.hostname,
+                    port: host.port,
+                    authenticationMethod: .passwordBased(username: host.username, password: password),
+                    hostKeyValidator: .acceptAnything(),
+                    reconnect: .never,
+                    connectTimeout: .seconds(15)
+                )
+                try await client.close()
+                return .success
 
             case .publicKey:
                 credentialKey = "host:\(host.id):privateKey"
@@ -45,21 +54,8 @@ public actor CitadelSSHConnector: SSHConnector {
                     #endif
                     return .authenticationFailed("SSH key not found in Keychain")
                 }
-                #if DEBUG
-                print("[CitadelSSHConnector] ✅ Private key found")
-                #endif
+                return .failed("Public-key verification is not implemented yet")
             }
-
-            #if DEBUG
-            print("[CitadelSSHConnector] ⏳ Simulating connection delay (0.5s stub)...")
-            #endif
-            // Stub: simulate successful connection after brief delay
-            try await Task.sleep(nanoseconds: 500_000_000) // 0.5s
-
-            #if DEBUG
-            print("[CitadelSSHConnector] ✅ Connection successful (stub)")
-            #endif
-            return .success
         } catch {
             #if DEBUG
             print("[CitadelSSHConnector] 💥 Connection error: \(error.localizedDescription)")

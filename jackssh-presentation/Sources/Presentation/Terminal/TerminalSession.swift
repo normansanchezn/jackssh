@@ -18,6 +18,8 @@ public final class TerminalSession {
 
     private let host: Domain.Host
     private let openTerminal: OpenTerminal
+    private let activateSession: ActivateConnectionSession
+    private let endSession: EndConnectionSession
 
     @ObservationIgnored private weak var terminalView: SwiftTerm.TerminalView?
     @ObservationIgnored private var channel: TerminalChannel?
@@ -28,9 +30,16 @@ public final class TerminalSession {
 
     private let maxReconnectAttempts = 5
 
-    public init(host: Domain.Host, openTerminal: OpenTerminal) {
+    public init(
+        host: Domain.Host,
+        openTerminal: OpenTerminal,
+        activateSession: ActivateConnectionSession,
+        endSession: EndConnectionSession
+    ) {
         self.host = host
         self.openTerminal = openTerminal
+        self.activateSession = activateSession
+        self.endSession = endSession
     }
 
     /// Called by the representable once the SwiftTerm view exists. Kicks off the
@@ -71,7 +80,10 @@ public final class TerminalSession {
         lifecycleTask?.cancel()
         let ch = channel
         channel = nil
-        Task { await ch?.close() }
+        Task {
+            await endSession(for: host.id)
+            await ch?.close()
+        }
     }
 
     // MARK: - Connection loop
@@ -93,6 +105,14 @@ public final class TerminalSession {
                 guard !userClosed else { await ch.close(); return }
                 channel = ch
                 reconnectAttempt = 0
+                await activateSession(
+                    ConnectedHostSession(
+                        hostID: host.id,
+                        hostname: host.hostname,
+                        username: host.username,
+                        port: host.port
+                    )
+                )
                 phase = .connected
 
                 // Pump remote bytes until the stream ends (connection closed).
@@ -110,6 +130,7 @@ public final class TerminalSession {
             reconnectAttempt += 1
             if reconnectAttempt > maxReconnectAttempts {
                 phase = .disconnected(reason: "Connection lost")
+                await endSession(for: host.id)
                 return
             }
             phase = .reconnecting(attempt: reconnectAttempt)

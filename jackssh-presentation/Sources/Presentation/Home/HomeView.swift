@@ -6,6 +6,8 @@ import DesignSystem
 /// renders state and forwards navigation intents to the router.
 public struct HomeView: View {
     @State private var viewModel: HomeViewModel
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.jacksshTheme) private var theme
     private let router: AppRouter
 
     public init(viewModel: HomeViewModel, router: AppRouter) {
@@ -25,6 +27,10 @@ public struct HomeView: View {
             }
         }
         .task { await viewModel.load() }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await viewModel.load() }
+        }
     }
 
     private var loadingView: some View {
@@ -40,65 +46,94 @@ public struct HomeView: View {
 
     private func loadedView(_ status: HomeStatus) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.lg) {
-            DSCard {
-                VStack(alignment: .leading, spacing: DSSpacing.md) {
-                    Text("Status")
+            statusSection(status)
+            manageHostsCard(activeSession: viewModel.activeSession)
+        }
+    }
+
+    private func statusSection(_ status: HomeStatus) -> some View {
+        VStack(alignment: .leading, spacing: DSSpacing.md) {
+            Text("Status")
+                .font(DSTypography.sectionTitle)
+                .accessibilityAddTraits(.isHeader)
+
+            VStack(spacing: 0) {
+                StatusRow(
+                    systemImage: "network",
+                    title: "Private network",
+                    tone: status.privateNetworkOnline ? .positive : .critical,
+                    statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
+                )
+                Divider().padding(.leading, 40)
+                StatusRow(
+                    systemImage: "server.rack",
+                    title: "VPS",
+                    tone: status.vps.tone,
+                    statusLabel: status.vps.label
+                )
+                Divider().padding(.leading, 40)
+                StatusRow(
+                    systemImage: "sparkles",
+                    title: "OpenClaw",
+                    tone: status.openClaw.tone,
+                    statusLabel: status.openClaw.label
+                )
+                #if os(macOS)
+                Divider().padding(.leading, 40)
+                StatusRow(
+                    systemImage: "cpu",
+                    title: "Ollama",
+                    tone: status.ollama.tone,
+                    statusLabel: status.ollama.label
+                )
+                #endif
+            }
+            .padding(.horizontal, DSSpacing.lg)
+            .padding(.vertical, DSSpacing.sm)
+            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                    .stroke(theme.colors.border, lineWidth: 1)
+            }
+        }
+    }
+
+    private func manageHostsCard(activeSession: ConnectedHostSession?) -> some View {
+        Button {
+            router.push(.hosts)
+        } label: {
+            HStack(spacing: DSSpacing.md) {
+                Image(systemName: "server.rack")
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(theme.colors.primary600)
+                    .frame(width: 44, height: 44)
+                    .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                    Text("Manage hosts")
                         .font(DSTypography.sectionTitle)
-                    StatusRow(
-                        systemImage: "network",
-                        title: "Private network",
-                        tone: status.privateNetworkOnline ? .positive : .critical,
-                        statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
-                    )
-                    StatusRow(systemImage: "server.rack", title: "VPS",
-                              tone: status.vps.tone, statusLabel: status.vps.label)
-                    StatusRow(systemImage: "sparkles", title: "OpenClaw",
-                              tone: status.openClaw.tone, statusLabel: status.openClaw.label)
-                    StatusRow(systemImage: "cpu", title: "Ollama",
-                              tone: status.ollama.tone, statusLabel: status.ollama.label)
+                        .foregroundStyle(theme.colors.textPrimary)
+                    Text(activeSession.map { "Connected to \($0.username)@\($0.hostname)" } ?? "Configure and connect to your servers")
+                        .font(DSTypography.caption)
+                        .foregroundStyle(activeSession == nil ? theme.colors.textSecondary : theme.colors.statusConnected)
                 }
-            }
-            quickActions
-            recentActivity(status.recentActivity)
-        }
-    }
 
-    private var quickActions: some View {
-        DSCard {
-            VStack(alignment: .leading, spacing: DSSpacing.md) {
-                Text("Quick actions")
-                    .font(DSTypography.sectionTitle)
-                Button {
-                    router.push(.hosts)
-                } label: {
-                    Label("Manage hosts", systemImage: "server.rack")
-                }
-                .buttonStyle(.bordered)
+                Spacer(minLength: DSSpacing.sm)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.colors.textTertiary)
+                    .accessibilityHidden(true)
+            }
+            .padding(DSSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                    .stroke(theme.colors.border, lineWidth: 1)
             }
         }
-    }
-
-    private func recentActivity(_ events: [ActivityEvent]) -> some View {
-        DSCard {
-            VStack(alignment: .leading, spacing: DSSpacing.md) {
-                Text("Recent activity")
-                    .font(DSTypography.sectionTitle)
-                if events.isEmpty {
-                    Text("No recent activity")
-                        .font(DSTypography.body)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(events) { event in
-                        StatusRow(
-                            systemImage: "clock",
-                            title: event.title,
-                            tone: event.state.tone,
-                            statusLabel: event.state.label
-                        )
-                    }
-                }
-            }
-        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens your saved hosts")
     }
 
     private func errorView(_ error: DomainError) -> some View {

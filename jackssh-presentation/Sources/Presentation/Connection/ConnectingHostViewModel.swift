@@ -12,15 +12,18 @@ public final class ConnectingHostViewModel {
     private let hostID: UUID
     private let loadHost: LoadHosts
     private let connectToHost: ConnectToHost
+    private let activateSession: ActivateConnectionSession
 
     public init(
         hostID: UUID,
         loadHost: LoadHosts,
-        connectToHost: ConnectToHost
+        connectToHost: ConnectToHost,
+        activateSession: ActivateConnectionSession
     ) {
         self.hostID = hostID
         self.loadHost = loadHost
         self.connectToHost = connectToHost
+        self.activateSession = activateSession
     }
 
     public func connect() async {
@@ -44,6 +47,7 @@ public final class ConnectingHostViewModel {
                     username: host.username,
                     port: host.port
                 )
+                await activateSession(session)
                 state = .connected(session)
             case let .authenticationFailed(msg):
                 state = .failed(HostConnectionFailure(kind: .authenticationFailed(msg)))

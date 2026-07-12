@@ -15,11 +15,21 @@ public final class TerminalViewModel {
     private let hostID: UUID
     private let loadHosts: LoadHosts
     private let openTerminal: OpenTerminal
+    private let activateSession: ActivateConnectionSession
+    private let endSession: EndConnectionSession
 
-    public init(hostID: UUID, loadHosts: LoadHosts, openTerminal: OpenTerminal) {
+    public init(
+        hostID: UUID,
+        loadHosts: LoadHosts,
+        openTerminal: OpenTerminal,
+        activateSession: ActivateConnectionSession,
+        endSession: EndConnectionSession
+    ) {
         self.hostID = hostID
         self.loadHosts = loadHosts
         self.openTerminal = openTerminal
+        self.activateSession = activateSession
+        self.endSession = endSession
     }
 
     /// Human-readable connection target, e.g. `root@108.174.154.104`.
@@ -36,7 +46,12 @@ public final class TerminalViewModel {
                 return
             }
             host = match
-            session = TerminalSession(host: match, openTerminal: openTerminal)
+            session = TerminalSession(
+                host: match,
+                openTerminal: openTerminal,
+                activateSession: activateSession,
+                endSession: endSession
+            )
         } catch {
             loadError = error.localizedDescription
         }

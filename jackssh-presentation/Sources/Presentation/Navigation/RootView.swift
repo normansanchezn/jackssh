@@ -88,7 +88,15 @@ struct ConnectedHostViewContainer: View {
 
     var body: some View {
         if let session = viewModel.session, let host = viewModel.host {
-            ConnectedHostView(session: session, host: host)
+            ConnectedHostView(session: session, host: host) {
+                await viewModel.disconnect()
+            }
+        } else if let error = viewModel.loadError {
+            ContentUnavailableView(
+                "Connection unavailable",
+                systemImage: "bolt.slash",
+                description: Text(error)
+            )
         } else {
             ProgressView()
                 .task { await viewModel.load() }

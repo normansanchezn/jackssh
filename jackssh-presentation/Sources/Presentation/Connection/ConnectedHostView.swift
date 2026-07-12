@@ -5,14 +5,20 @@ import DesignSystem
 public struct ConnectedHostView: View {
     let session: ConnectedHostSession
     let host: Domain.Host?
+    let onDisconnect: () async -> Void
 
-    public init(session: ConnectedHostSession, host: Domain.Host? = nil) {
+    public init(
+        session: ConnectedHostSession,
+        host: Domain.Host? = nil,
+        onDisconnect: @escaping () async -> Void = {}
+    ) {
         self.session = session
         self.host = host
+        self.onDisconnect = onDisconnect
     }
 
     public var body: some View {
-        _ConnectedHostContent(session: session, host: host)
+        _ConnectedHostContent(session: session, host: host, onDisconnect: onDisconnect)
     }
 }
 
@@ -21,6 +27,7 @@ struct _ConnectedHostContent: View {
     @Environment(\.jacksshTheme) var theme
     let session: ConnectedHostSession
     let host: Domain.Host?
+    let onDisconnect: () async -> Void
 
     var body: some View {
         ZStack {
@@ -72,7 +79,10 @@ struct _ConnectedHostContent: View {
                 Spacer()
 
                 Button(role: .destructive) {
-                    router.popToRoot()
+                    Task {
+                        await onDisconnect()
+                        router.popToRoot()
+                    }
                 } label: {
                     Text("Disconnect")
                         .frame(maxWidth: .infinity)

@@ -28,6 +28,16 @@ public protocol ConnectionStatusRepository: Sendable {
     func clearStatus(for hostID: UUID) async throws
 }
 
+/// Tracks live SSH sessions owned by this app process. Implemented in Data.
+/// Session metadata is deliberately ephemeral: credentials and SSH transports
+/// never leave their respective secure/infrastructure layers.
+public protocol ConnectionSessionStore: Sendable {
+    func activeSession(for hostID: UUID) async -> ConnectedHostSession?
+    func mostRecentActiveSession() async -> ConnectedHostSession?
+    func activate(_ session: ConnectedHostSession) async
+    func deactivate(hostID: UUID) async
+}
+
 /// Stores/retrieves SSH credentials (passwords, key material). Implemented in Data.
 public protocol CredentialStore: Sendable {
     func storePassword(_ password: String, for hostID: UUID) async throws
