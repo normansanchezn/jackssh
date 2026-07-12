@@ -7,12 +7,15 @@ import Domain
 public struct HostsDependencies {
     public let makeListViewModel: () -> HostsViewModel
     public let makeEditorViewModel: (Domain.Host?) -> HostEditorViewModel
+    public let makeConnectingViewModel: (UUID) -> ConnectingHostViewModel
 
     public init(
         makeListViewModel: @escaping () -> HostsViewModel,
-        makeEditorViewModel: @escaping (Domain.Host?) -> HostEditorViewModel
+        makeEditorViewModel: @escaping (Domain.Host?) -> HostEditorViewModel,
+        makeConnectingViewModel: @escaping (UUID) -> ConnectingHostViewModel
     ) {
         self.makeListViewModel = makeListViewModel
         self.makeEditorViewModel = makeEditorViewModel
+        self.makeConnectingViewModel = makeConnectingViewModel
     }
 }

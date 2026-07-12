@@ -16,8 +16,10 @@ public final class HostRecord {
     public var tags: [String]
     public var authMethodType: String
     public var sshKeyID: UUID?
-    public var openClawDashboardURL: String?
-    public var openClawBasePath: String?
+    public var openClawHost: String?
+    public var openClawPort: Int
+    public var openClawScheme: String
+    public var openClawBasePath: String
     public var favoriteRemotePath: String?
     public var lastSuccessfulConnection: Date?
     public var isFavorite: Bool
@@ -32,8 +34,10 @@ public final class HostRecord {
         tags: [String],
         authMethodType: String = "password",
         sshKeyID: UUID? = nil,
-        openClawDashboardURL: String? = nil,
-        openClawBasePath: String? = nil,
+        openClawHost: String? = nil,
+        openClawPort: Int = 18789,
+        openClawScheme: String = "http",
+        openClawBasePath: String = "/",
         favoriteRemotePath: String? = nil,
         lastSuccessfulConnection: Date? = nil,
         isFavorite: Bool = false
@@ -47,7 +51,9 @@ public final class HostRecord {
         self.tags = tags
         self.authMethodType = authMethodType
         self.sshKeyID = sshKeyID
-        self.openClawDashboardURL = openClawDashboardURL
+        self.openClawHost = openClawHost
+        self.openClawPort = openClawPort
+        self.openClawScheme = openClawScheme
         self.openClawBasePath = openClawBasePath
         self.favoriteRemotePath = favoriteRemotePath
         self.lastSuccessfulConnection = lastSuccessfulConnection
@@ -68,6 +74,11 @@ extension HostRecord {
             sshKeyID = keyID
         }
 
+        let openClawHost = host.openClawConfiguration?.host
+        let openClawPort = host.openClawConfiguration?.port ?? 18789
+        let openClawScheme = host.openClawConfiguration?.scheme ?? "http"
+        let openClawBasePath = host.openClawConfiguration?.basePath ?? "/"
+
         self.init(
             id: host.id,
             name: host.name,
@@ -78,8 +89,10 @@ extension HostRecord {
             tags: host.tags,
             authMethodType: authMethodType,
             sshKeyID: sshKeyID,
-            openClawDashboardURL: host.openClawConfiguration?.dashboardURL.absoluteString,
-            openClawBasePath: host.openClawConfiguration?.basePath,
+            openClawHost: openClawHost,
+            openClawPort: openClawPort,
+            openClawScheme: openClawScheme,
+            openClawBasePath: openClawBasePath,
             favoriteRemotePath: host.favoriteRemotePath,
             lastSuccessfulConnection: host.lastSuccessfulConnection,
             isFavorite: host.isFavorite
@@ -95,8 +108,13 @@ extension HostRecord {
         }
 
         let openClawConfig: Domain.OpenClawConfiguration?
-        if let urlStr = openClawDashboardURL, let url = URL(string: urlStr) {
-            openClawConfig = Domain.OpenClawConfiguration(dashboardURL: url, basePath: openClawBasePath)
+        if let host = openClawHost {
+            openClawConfig = Domain.OpenClawConfiguration(
+                host: host,
+                port: openClawPort,
+                scheme: openClawScheme,
+                basePath: openClawBasePath
+            )
         } else {
             openClawConfig = nil
         }

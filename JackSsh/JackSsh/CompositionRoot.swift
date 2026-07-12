@@ -50,10 +50,13 @@ final class CompositionRoot {
         homeViewModel = HomeViewModel(loadHomeStatus: LoadHomeStatus(repository: homeRepository))
 
         // Hosts slice: factories so views never touch Data or build use cases.
+        let sshConnector: SSHConnector = CitadelSSHConnector(credentialStore: secretStore)
+        let loadHosts = LoadHosts(repository: hostRepository)
+
         hostsDependencies = HostsDependencies(
             makeListViewModel: {
                 HostsViewModel(
-                    loadHosts: LoadHosts(repository: hostRepository),
+                    loadHosts: loadHosts,
                     deleteHost: DeleteHost(repository: hostRepository, secrets: secretStore)
                 )
             },
@@ -63,6 +66,13 @@ final class CompositionRoot {
                     return HostEditorViewModel(saveHost: saveHost, host: existing)
                 }
                 return HostEditorViewModel(saveHost: saveHost)
+            },
+            makeConnectingViewModel: { hostID in
+                ConnectingHostViewModel(
+                    hostID: hostID,
+                    loadHost: loadHosts,
+                    sshConnector: sshConnector
+                )
             }
         )
     }

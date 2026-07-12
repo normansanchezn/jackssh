@@ -2,12 +2,13 @@ import SwiftUI
 import Domain
 import DesignSystem
 
-/// Hosts list: create, edit, delete (with confirmation). Declarative — all
-/// behavior lives in `HostsViewModel` / `HostEditorViewModel`.
+/// Hosts list: create, edit, delete (with confirmation). Tapping a host
+/// navigates to the connection flow. Swiping opens edit.
 public struct HostsListView: View {
     @State private var viewModel: HostsViewModel
     @State private var editorTarget: EditorTarget?
     @State private var pendingDeletion: Domain.Host?
+    @Environment(AppRouter.self) private var router
 
     private let dependencies: HostsDependencies
 
@@ -79,11 +80,17 @@ public struct HostsListView: View {
             List {
                 ForEach(hosts) { host in
                     Button {
-                        editorTarget = .edit(host)
+                        router.push(.connecting(hostID: host.id.uuidString))
                     } label: {
                         HostRowLabel(host: host)
                     }
                     .swipeActions(edge: .trailing) {
+                        Button {
+                            editorTarget = .edit(host)
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.blue)
                         Button(role: .destructive) {
                             pendingDeletion = host
                         } label: {
@@ -138,7 +145,7 @@ private struct HostRowLabel: View {
                             .foregroundStyle(.yellow)
                     }
                 }
-                Text("\(host.username)@\(host.hostname):\(host.port)")
+                Text("\(host.username)@\(host.hostname):" + String(host.port))
                     .font(DSTypography.caption)
                     .foregroundStyle(.secondary)
                 if let lastConnection = host.lastSuccessfulConnection {

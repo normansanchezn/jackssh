@@ -25,6 +25,7 @@ public struct RootView: View {
                 .navigationDestination(for: AppRoute.self) { route in
                     destination(for: route)
                 }
+                .environment(router)
         }
     }
 
@@ -33,6 +34,14 @@ public struct RootView: View {
         switch route {
         case .hosts:
             HostsListView(dependencies: hostsDependencies)
+        case let .connecting(hostID):
+            if let uuid = UUID(uuidString: hostID) {
+                ConnectingHostView(viewModel: hostsDependencies.makeConnectingViewModel(uuid))
+            } else {
+                ComingSoonView(title: "Invalid host ID")
+            }
+        case let .connected(hostID):
+            ComingSoonView(title: "Connected \(hostID)")
         case let .host(id):
             ComingSoonView(title: "Host \(id)")
         case let .openClawSession(id):

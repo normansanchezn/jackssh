@@ -36,3 +36,96 @@ public protocol CredentialStore: Sendable {
     func privateKey(for hostID: UUID) async throws -> Data?
     func deleteCredentials(for hostID: UUID) async throws
 }
+
+/// SSH connection management. Implemented in Data using Citadel.
+public protocol SSHConnectionManager: Sendable {
+    func connect(to host: Host, credential: SSHCredential) async throws -> ConnectedHostSession
+    func execute(command: String, on session: ConnectedHostSession) async throws -> String
+    func openShell(on session: ConnectedHostSession) async throws -> ShellSession
+    func disconnect(session: ConnectedHostSession) async throws
+}
+
+/// Interactive shell session through SSH.
+public protocol ShellSession: Sendable {
+    func write(_ input: String) async throws
+    func read() async throws -> String?
+    func close() async throws
+}
+
+/// SFTP file operations. Implemented in Data using Citadel.
+public protocol SFTPClient: Sendable {
+    func listDirectory(_ path: String) async throws -> [SFTPFileInfo]
+    func readFile(_ path: String) async throws -> Data
+    func writeFile(_ path: String, data: Data) async throws
+    func deleteFile(_ path: String) async throws
+    func deleteDirectory(_ path: String) async throws
+    func rename(_ from: String, to: String) async throws
+}
+
+/// SFTP file metadata.
+public struct SFTPFileInfo: Equatable, Sendable {
+    public let name: String
+    public let path: String
+    public let isDirectory: Bool
+    public let size: Int?
+    public let modifiedDate: Date?
+
+    public init(
+        name: String,
+        path: String,
+        isDirectory: Bool,
+        size: Int? = nil,
+        modifiedDate: Date? = nil
+    ) {
+        self.name = name
+        self.path = path
+        self.isDirectory = isDirectory
+        self.size = size
+        self.modifiedDate = modifiedDate
+    }
+}
+
+/// SSH credential with type and data.
+public struct SSHCredential: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        case password(String)
+        case privateKey(Data, passphrase: String?)
+    }
+
+    public let kind: Kind
+
+    public init(_ kind: Kind) {
+        self.kind = kind
+    }
+}
+
+/// Git repository operations. Implemented in Data.
+public protocol GitRepositoryClient: Sendable {
+    func status(at path: String) async throws -> GitRepositoryStatus
+}
+
+/// Dashboard tunnel via SSH local port forwarding. Implemented in Data.
+public protocol DashboardTunnelManager: Sendable {
+    func createTunnel(
+        to configuration: OpenClawConfiguration,
+        through session: ConnectedHostSession
+    ) async throws -> DashboardTunnel
+    func removeTunnel(_ tunnel: DashboardTunnel) async throws
+}
+
+/// Local tunnel endpoint for dashboard access.
+public struct DashboardTunnel: Equatable, Sendable {
+    public let localPort: Int
+    public let remoteHost: String
+    public let remotePort: Int
+
+    public var url: URL? {
+        URL(string: "http://127.0.0.1:\(localPort)/")
+    }
+
+    public init(localPort: Int, remoteHost: String, remotePort: Int) {
+        self.localPort = localPort
+        self.remoteHost = remoteHost
+        self.remotePort = remotePort
+    }
+}

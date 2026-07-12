@@ -28,8 +28,10 @@ public actor SwiftDataHostRepository: HostRepository {
             existing.authMethodType = authMethodType
             existing.sshKeyID = sshKeyID
 
-            existing.openClawDashboardURL = host.openClawConfiguration?.dashboardURL.absoluteString
-            existing.openClawBasePath = host.openClawConfiguration?.basePath
+            existing.openClawHost = host.openClawConfiguration?.host
+            existing.openClawPort = host.openClawConfiguration?.port ?? 18789
+            existing.openClawScheme = host.openClawConfiguration?.scheme ?? "http"
+            existing.openClawBasePath = host.openClawConfiguration?.basePath ?? "/"
             existing.favoriteRemotePath = host.favoriteRemotePath
             existing.lastSuccessfulConnection = host.lastSuccessfulConnection
             existing.isFavorite = host.isFavorite

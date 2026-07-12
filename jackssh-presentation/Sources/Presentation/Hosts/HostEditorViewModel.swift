@@ -15,8 +15,10 @@ public final class HostEditorViewModel {
     public var password: String = ""
     public var passwordConfirmation: String = ""
     public var authenticationMethod: SSHAuthMethod = .password
-    public var openClawDashboardURL: String = ""
-    public var openClawBasePath: String = ""
+    public var openClawHost: String = ""
+    public var openClawPort: String = "18789"
+    public var openClawScheme: String = "http"
+    public var openClawBasePath: String = "/"
     public var favoriteRemotePath: String = ""
 
     public private(set) var issues: [ValidationIssue] = []
@@ -46,6 +48,15 @@ public final class HostEditorViewModel {
         self.hostname = host.hostname
         self.port = String(host.port)
         self.username = host.username
+        if let openClaw = host.openClawConfiguration {
+            self.openClawHost = openClaw.host
+            self.openClawPort = String(openClaw.port)
+            self.openClawScheme = openClaw.scheme
+            self.openClawBasePath = openClaw.basePath
+        }
+        if let favPath = host.favoriteRemotePath {
+            self.favoriteRemotePath = favPath
+        }
     }
 
     public func issue(for field: ValidationIssue.Field) -> String? {
@@ -70,14 +81,18 @@ public final class HostEditorViewModel {
         isSaving = true
         defer { isSaving = false }
 
+        let openClawPort: Int? = openClawHost.isEmpty ? nil : (Int(openClawPort) ?? nil)
+
         let draft = HostDraft(
             name: name,
             hostname: hostname,
             port: Int(port) ?? -1,
             username: username,
             authenticationMethod: authenticationMethod,
-            openClawDashboardURL: openClawDashboardURL.isEmpty ? nil : openClawDashboardURL,
-            openClawBasePath: openClawBasePath.isEmpty ? nil : openClawBasePath,
+            openClawHost: openClawHost.isEmpty ? nil : openClawHost,
+            openClawPort: openClawPort,
+            openClawScheme: openClawHost.isEmpty ? nil : openClawScheme,
+            openClawBasePath: openClawHost.isEmpty ? nil : openClawBasePath,
             favoriteRemotePath: favoriteRemotePath.isEmpty ? nil : favoriteRemotePath
         )
         do {

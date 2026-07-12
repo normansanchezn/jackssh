@@ -4,7 +4,9 @@ import Foundation
 public struct ValidationIssue: Equatable, Sendable {
     public enum Field: String, Sendable {
         case name, hostname, port, username
-        case authenticationMethod, openClawDashboardURL, favoriteRemotePath
+        case authenticationMethod
+        case openClawHost, openClawPort, openClawScheme, openClawBasePath
+        case favoriteRemotePath
     }
     public let field: Field
     public let message: String
@@ -22,7 +24,9 @@ public struct HostDraft: Equatable, Sendable {
     public var port: Int
     public var username: String
     public var authenticationMethod: SSHAuthMethod
-    public var openClawDashboardURL: String?
+    public var openClawHost: String?
+    public var openClawPort: Int?
+    public var openClawScheme: String?
     public var openClawBasePath: String?
     public var favoriteRemotePath: String?
 
@@ -32,7 +36,9 @@ public struct HostDraft: Equatable, Sendable {
         port: Int,
         username: String,
         authenticationMethod: SSHAuthMethod = .password,
-        openClawDashboardURL: String? = nil,
+        openClawHost: String? = nil,
+        openClawPort: Int? = nil,
+        openClawScheme: String? = nil,
         openClawBasePath: String? = nil,
         favoriteRemotePath: String? = nil
     ) {
@@ -41,7 +47,9 @@ public struct HostDraft: Equatable, Sendable {
         self.port = port
         self.username = username
         self.authenticationMethod = authenticationMethod
-        self.openClawDashboardURL = openClawDashboardURL
+        self.openClawHost = openClawHost
+        self.openClawPort = openClawPort
+        self.openClawScheme = openClawScheme
         self.openClawBasePath = openClawBasePath
         self.favoriteRemotePath = favoriteRemotePath
     }
@@ -69,11 +77,16 @@ public enum HostValidator {
         if username.isEmpty {
             issues.append(.init(field: .username, message: "Username is required."))
         }
-        if let urlStr = draft.openClawDashboardURL, !urlStr.isEmpty {
-            if URL(string: urlStr) == nil {
-                issues.append(.init(field: .openClawDashboardURL, message: "Invalid URL format."))
+
+        if let openClawHost = draft.openClawHost, !openClawHost.isEmpty {
+            if let port = draft.openClawPort, !(1...65535).contains(port) {
+                issues.append(.init(field: .openClawPort, message: "OpenClaw port must be between 1 and 65535."))
+            }
+            if let scheme = draft.openClawScheme, !["http", "https"].contains(scheme) {
+                issues.append(.init(field: .openClawScheme, message: "Scheme must be http or https."))
             }
         }
+
         return issues
     }
 }

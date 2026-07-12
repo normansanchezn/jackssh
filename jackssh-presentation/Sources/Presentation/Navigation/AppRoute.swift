@@ -5,6 +5,8 @@ import Domain
 /// String identifiers keep this layer aligned with incoming deep links.
 public enum AppRoute: Hashable, Sendable {
     case hosts
+    case connecting(hostID: String)
+    case connected(hostID: String)
     case host(id: String)
     case openClawSession(id: String)
     case serviceLogs(serviceID: String)

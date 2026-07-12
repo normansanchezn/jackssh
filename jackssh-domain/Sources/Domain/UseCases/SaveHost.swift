@@ -12,12 +12,28 @@ public struct SaveHost: Sendable {
     public func callAsFunction(_ draft: HostDraft, id: UUID = UUID()) async throws -> Host {
         let issues = HostValidator.validate(draft)
         guard issues.isEmpty else { throw DomainError.validation(issues) }
+
+        let openClawConfig: OpenClawConfiguration?
+        if let host = draft.openClawHost, !host.isEmpty {
+            openClawConfig = OpenClawConfiguration(
+                host: host,
+                port: draft.openClawPort ?? 18789,
+                scheme: draft.openClawScheme ?? "http",
+                basePath: draft.openClawBasePath ?? "/"
+            )
+        } else {
+            openClawConfig = nil
+        }
+
         let host = Host(
             id: id,
             name: draft.name.trimmingCharacters(in: .whitespacesAndNewlines),
             hostname: draft.hostname.trimmingCharacters(in: .whitespacesAndNewlines),
             port: draft.port,
-            username: draft.username.trimmingCharacters(in: .whitespacesAndNewlines)
+            username: draft.username.trimmingCharacters(in: .whitespacesAndNewlines),
+            authenticationMethod: draft.authenticationMethod,
+            openClawConfiguration: openClawConfig,
+            favoriteRemotePath: draft.favoriteRemotePath
         )
         try await repository.save(host)
         return host

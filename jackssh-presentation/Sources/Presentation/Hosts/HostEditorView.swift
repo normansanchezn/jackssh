@@ -45,9 +45,16 @@ public struct HostEditorView: View {
                     field("Confirm", text: $viewModel.passwordConfirmation, field: .authenticationMethod, kind: .plain)
                 }
             }
-            Section("Optional Configuration") {
-                field("OpenClaw Dashboard URL", text: $viewModel.openClawDashboardURL, field: .openClawDashboardURL, kind: .plain)
-                field("OpenClaw Base Path", text: $viewModel.openClawBasePath, field: .openClawDashboardURL, kind: .plain)
+            Section("OpenClaw Configuration") {
+                field("Host", text: $viewModel.openClawHost, field: .openClawHost, kind: .plain)
+                field("Port", text: $viewModel.openClawPort, field: .openClawPort, kind: .number)
+                Picker("Scheme", selection: $viewModel.openClawScheme) {
+                    Text("HTTP").tag("http")
+                    Text("HTTPS").tag("https")
+                }
+                field("Base Path", text: $viewModel.openClawBasePath, field: .openClawBasePath, kind: .plain)
+            }
+            Section("Project Settings") {
                 field("Favorite Remote Path", text: $viewModel.favoriteRemotePath, field: .favoriteRemotePath, kind: .plain)
             }
         }
