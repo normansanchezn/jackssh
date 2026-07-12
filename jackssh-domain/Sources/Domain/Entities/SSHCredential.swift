@@ -1,7 +1,7 @@
 import Foundation
 
 /// Authentication method for SSH connection.
-public enum SSHAuthenticationMethod: Equatable, Sendable {
+public enum SSHAuthMethod: Equatable, Sendable {
     case password(String)
     case publicKey(keyID: UUID)
 }

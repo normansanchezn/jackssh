@@ -11,7 +11,7 @@ public struct Host: Identifiable, Sendable {
     public var privateAddress: String?
     public var tags: [String]
     /// SSH authentication method (password stored in Keychain, key ID here).
-    public var authenticationMethod: SSHAuthenticationMethod
+    public var authenticationMethod: SSHAuthMethod
     /// Optional OpenClaw dashboard configuration.
     public var openClawConfiguration: OpenClawConfiguration?
     /// Optional favorite remote directory to open on connection.
@@ -29,7 +29,7 @@ public struct Host: Identifiable, Sendable {
         username: String,
         privateAddress: String? = nil,
         tags: [String] = [],
-        authenticationMethod: SSHAuthenticationMethod = .password(""),
+        authenticationMethod: SSHAuthMethod = .password(""),
         openClawConfiguration: OpenClawConfiguration? = nil,
         favoriteRemotePath: String? = nil,
         lastSuccessfulConnection: Date? = nil,
