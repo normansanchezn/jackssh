@@ -20,3 +20,10 @@ public protocol SecretStore: Sendable {
     func setSecret(_ value: Data, for key: String) async throws
     func removeSecret(for key: String) async throws
 }
+
+/// Tracks ephemeral SSH connection state (not persisted). Implemented in Data.
+public protocol ConnectionStatusRepository: Sendable {
+    func status(for hostID: UUID) async throws -> ConnectionStatus?
+    func setStatus(_ status: ConnectionStatus) async throws
+    func clearStatus(for hostID: UUID) async throws
+}
