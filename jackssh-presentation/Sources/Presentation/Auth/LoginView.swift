@@ -90,6 +90,3 @@ public struct LoginView: View {
     }
 }
 
-#Preview {
-    LoginView(viewModel: AuthViewModel(authRepository: AuthRepository), onSuccess: {}, onSignUp: {})
-}
