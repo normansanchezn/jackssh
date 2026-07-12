@@ -46,21 +46,23 @@ struct _WelcomeContent: View {
                 Spacer()
 
                 VStack(spacing: DSSpacing.md) {
-                    Button {
+                    DSButton(
+                        "Sign In",
+                        icon: "arrow.right.circle.fill",
+                        style: .filled,
+                        fullWidth: true
+                    ) {
                         onSignIn()
-                    } label: {
-                        Text("Sign In")
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
 
-                    Button {
+                    DSButton(
+                        "Create Account",
+                        icon: "person.badge.plus",
+                        style: .outline,
+                        fullWidth: true
+                    ) {
                         onSignUp()
-                    } label: {
-                        Text("Create Account")
-                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
                 }
                 .padding(DSSpacing.lg)
             }

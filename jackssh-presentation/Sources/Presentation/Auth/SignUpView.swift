@@ -14,20 +14,25 @@ public struct SignUpView: View {
     }
 
     public var body: some View {
-        ZStack {
-            theme.colors.background.ignoresSafeArea()
-
+        Background {
             VStack(spacing: DSSpacing.lg) {
                 HStack {
-                    Button {
+                    DSButton(
+                        "",
+                        icon: "chevron.left",
+                        style: .text,
+                        size: .small
+                    ) {
                         onBack()
-                    } label: {
-                        Image(systemName: "chevron.left")
                     }
+                    
                     Spacer()
+                    
                     Text("Create Account")
                         .font(DSTypography.sectionTitle)
+                    
                     Spacer()
+                    
                     Color.clear.frame(width: 44)
                 }
                 .padding(DSSpacing.lg)
@@ -35,21 +40,30 @@ public struct SignUpView: View {
                 VStack(spacing: DSSpacing.md) {
                     TextField("Email", text: $viewModel.email)
                         .padding(DSSpacing.md)
-                        .background(theme.colors.surface)
+                        .background(theme.colors.surfaceElevated.opacity(0.8))
                         .cornerRadius(DSRadius.sm)
-                        .border(theme.colors.border)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DSRadius.sm)
+                                .stroke(theme.colors.border, lineWidth: 1)
+                        )
 
                     SecureField("Password", text: $viewModel.password)
                         .padding(DSSpacing.md)
-                        .background(theme.colors.surface)
+                        .background(theme.colors.surfaceElevated.opacity(0.8))
                         .cornerRadius(DSRadius.sm)
-                        .border(theme.colors.border)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DSRadius.sm)
+                                .stroke(theme.colors.border, lineWidth: 1)
+                        )
 
                     SecureField("Confirm Password", text: $viewModel.confirmPassword)
                         .padding(DSSpacing.md)
-                        .background(theme.colors.surface)
+                        .background(theme.colors.surfaceElevated.opacity(0.8))
                         .cornerRadius(DSRadius.sm)
-                        .border(theme.colors.border)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DSRadius.sm)
+                                .stroke(theme.colors.border, lineWidth: 1)
+                        )
                 }
                 .padding(DSSpacing.lg)
 
@@ -63,24 +77,20 @@ public struct SignUpView: View {
                 Spacer()
 
                 VStack(spacing: DSSpacing.md) {
-                    Button {
+                    DSButton(
+                        "Create Account",
+                        icon: "person.badge.plus.fill",
+                        style: .filled,
+                        fullWidth: true,
+                        isLoading: viewModel.isLoading
+                    ) {
                         Task {
                             await viewModel.signup()
                             if case .authenticated = viewModel.authState {
                                 onSuccess()
                             }
                         }
-                    } label: {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("Sign Up")
-                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.isLoading)
                 }
                 .padding(DSSpacing.lg)
             }

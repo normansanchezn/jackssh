@@ -15,74 +15,77 @@ public struct LoginView: View {
     }
 
     public var body: some View {
-        ZStack {
-            theme.colors.background.ignoresSafeArea()
+        Background {
+            content()
+        }
+    }
+    
+    private func content() -> some View {
+        VStack(spacing: DSSpacing.lg) {
+            VStack(spacing: DSSpacing.md) {
+                Image(systemName: "terminal.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.blue)
 
-            VStack(spacing: DSSpacing.lg) {
-                VStack(spacing: DSSpacing.md) {
-                    Image(systemName: "terminal.fill")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.blue)
-
-                    Text("Sign In")
-                        .font(DSTypography.sectionTitle)
-                }
-                .padding(DSSpacing.lg)
-
-                VStack(spacing: DSSpacing.md) {
-                    TextField("Email", text: $viewModel.email)
-                        .padding(DSSpacing.md)
-                        .background(theme.colors.surface)
-                        .cornerRadius(DSRadius.sm)
-                        .border(theme.colors.border)
-
-                    SecureField("Password", text: $viewModel.password)
-                        .padding(DSSpacing.md)
-                        .background(theme.colors.surface)
-                        .cornerRadius(DSRadius.sm)
-                        .border(theme.colors.border)
-                }
-                .padding(DSSpacing.lg)
-
-                if let error = viewModel.error {
-                    Text(error)
-                        .font(DSTypography.caption)
-                        .foregroundStyle(.red)
-                        .padding(DSSpacing.md)
-                }
-
-                Spacer()
-
-                VStack(spacing: DSSpacing.md) {
-                    Button {
-                        Task {
-                            await viewModel.login()
-                            if case .authenticated = viewModel.authState {
-                                onSuccess()
-                            }
-                        }
-                    } label: {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("Sign In")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.isLoading)
-
-                    Button {
-                        onSignUp()
-                    } label: {
-                        Text("Don't have an account? Sign Up")
-                            .font(DSTypography.caption)
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(DSSpacing.lg)
+                Text("Sign In")
+                    .font(DSTypography.sectionTitle)
             }
+            .padding(DSSpacing.lg)
+
+            VStack(spacing: DSSpacing.md) {
+                TextField("Email", text: $viewModel.email)
+                    .padding(DSSpacing.md)
+                    .background(theme.colors.surfaceElevated.opacity(0.8))
+                    .cornerRadius(DSRadius.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DSRadius.sm)
+                            .stroke(theme.colors.border, lineWidth: 1)
+                    )
+
+                SecureField("Password", text: $viewModel.password)
+                    .padding(DSSpacing.md)
+                    .background(theme.colors.surfaceElevated.opacity(0.8))
+                    .cornerRadius(DSRadius.sm)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DSRadius.sm)
+                            .stroke(theme.colors.border, lineWidth: 1)
+                    )
+            }
+            .padding(DSSpacing.lg)
+
+            if let error = viewModel.error {
+                Text(error)
+                    .font(DSTypography.caption)
+                    .foregroundStyle(.red)
+                    .padding(DSSpacing.md)
+            }
+
+            Spacer()
+
+            VStack(spacing: DSSpacing.md) {
+                DSButton(
+                    "Sign In",
+                    icon: "arrow.right.circle.fill",
+                    style: .filled,
+                    fullWidth: true,
+                    isLoading: viewModel.isLoading
+                ) {
+                    Task {
+                        await viewModel.login()
+                        if case .authenticated = viewModel.authState {
+                            onSuccess()
+                        }
+                    }
+                }
+
+                DSButton(
+                    "Don't have an account? Sign Up",
+                    style: .text
+                ) {
+                    onSignUp()
+                }
+            }
+            .padding(DSSpacing.lg)
         }
     }
 }
