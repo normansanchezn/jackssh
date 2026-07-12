@@ -17,6 +17,7 @@ import Presentation
 final class CompositionRoot {
     let modelContainer: ModelContainer
     let router: AppRouter
+    let authViewModel: AuthViewModel
     let homeViewModel: HomeViewModel
     let hostsDependencies: HostsDependencies
 
@@ -66,12 +67,12 @@ final class CompositionRoot {
         )
         homeViewModel = HomeViewModel(loadHomeStatus: LoadHomeStatus(repository: homeRepository))
 
+        // Auth ViewModel
+        authViewModel = AuthViewModel(authRepository: authRepository)
+
         // Hosts slice: factories so views never touch Data or build use cases.
         let sshConnector: SSHConnector = CitadelSSHConnector(credentialStore: secretStore)
         let loadHosts = LoadHosts(repository: hostRepository)
-
-        // Auth ViewModel factory
-        let authViewModelFactory = { AuthViewModel(authRepository: authRepository) }
 
         hostsDependencies = HostsDependencies(
             makeListViewModel: {

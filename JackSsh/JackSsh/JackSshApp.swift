@@ -16,6 +16,7 @@ struct JackSshApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(
+                authViewModel: composition.authViewModel,
                 router: composition.router,
                 homeViewModel: composition.homeViewModel,
                 hostsDependencies: composition.hostsDependencies

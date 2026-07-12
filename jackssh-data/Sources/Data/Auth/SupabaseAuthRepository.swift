@@ -31,9 +31,10 @@ public actor SupabaseAuthRepository: AuthRepository {
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse, (200...201).contains(httpResponse.statusCode) else {
             #if DEBUG
-            print("[SupabaseAuth] ❌ Sign up failed")
+            let errorStr = String(data: data, encoding: .utf8) ?? "unknown"
+            print("[SupabaseAuth] ❌ Sign up failed: \(errorStr)")
             #endif
             throw DomainError.unauthorized
         }

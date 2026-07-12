@@ -5,28 +5,41 @@ import DesignSystem
 /// Feature screens that aren't in this build resolve to a placeholder — the
 /// architecture and navigation are wired end to end before the feature exists.
 public struct RootView: View {
+    @State private var authViewModel: AuthViewModel
     @State private var router: AppRouter
     private let homeViewModel: HomeViewModel
     private let hostsDependencies: HostsDependencies
 
     public init(
+        authViewModel: AuthViewModel,
         router: AppRouter,
         homeViewModel: HomeViewModel,
         hostsDependencies: HostsDependencies
     ) {
+        _authViewModel = State(initialValue: authViewModel)
         _router = State(initialValue: router)
         self.homeViewModel = homeViewModel
         self.hostsDependencies = hostsDependencies
     }
 
     public var body: some View {
-        NavigationStack(path: $router.path) {
-            HomeView(viewModel: homeViewModel, router: router)
-                .environment(router)
-                .navigationDestination(for: AppRoute.self) { route in
-                    destination(for: route)
+        Group {
+            switch authViewModel.authState {
+            case .authenticated:
+                NavigationStack(path: $router.path) {
+                    HomeView(viewModel: homeViewModel, router: router)
                         .environment(router)
+                        .navigationDestination(for: AppRoute.self) { route in
+                            destination(for: route)
+                                .environment(router)
+                        }
                 }
+            default:
+                AuthFlowView(authViewModel: authViewModel)
+            }
+        }
+        .task {
+            await authViewModel.checkCurrentUser()
         }
     }
 
@@ -51,11 +64,15 @@ public struct RootView: View {
         case let .host(id):
             ComingSoonView(title: "Host \(id)")
         case let .openClawSession(id):
-            ComingSoonView(title: "OpenClaw Session \(id)")
+            if let uuid = UUID(uuidString: id) {
+                OpenClawDashboardView(hostID: uuid, dependencies: hostsDependencies)
+            } else {
+                ComingSoonView(title: "Invalid host ID")
+            }
         case let .serviceLogs(serviceID):
             ComingSoonView(title: "\(serviceID) Logs")
         case let .terminal(hostID):
-            TerminalView(hostID: hostID)
+            TerminalView(hostID: hostID, dependencies: hostsDependencies)
         case let .files(hostID, path):
             RemoteFilesView(hostID: hostID, path: path)
         }
