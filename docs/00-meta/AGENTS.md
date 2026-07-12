@@ -33,6 +33,8 @@ If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is 
 7. Do not introduce duplicate localization files in feature folders. `Presentation` owns `Sources/Presentation/Localizable.xcstrings`.
 8. Do not move Supabase, SSH, Keychain, SwiftData, or transport logic into `Presentation`.
 9. Do not make generated docs inside `Sources`; put documentation in this vault.
+10. Keep Presentation screens organized like Welcome: screen folder, optional `Model/` folder, `ScreenView.swift`, and `ScreenViewModel.swift` when the screen owns behavior.
+11. Never place Swift Testing files under `Sources`; package tests belong under `Tests`.
 
 ## Required Workflow
 

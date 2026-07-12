@@ -19,4 +19,7 @@
    <FileRef
       location = "group:JackSsh/JackSsh.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:JackSsh.xctestplan">
+   </FileRef>
 </Workspace>

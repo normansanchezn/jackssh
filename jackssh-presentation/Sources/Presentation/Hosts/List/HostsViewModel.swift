@@ -7,14 +7,11 @@ import Domain
 @MainActor
 @Observable
 public final class HostsViewModel {
-    public enum ViewState: Equatable {
-        case idle
-        case loading
-        case loaded([Domain.Host])
-        case failed(DomainError)
-    }
+    public typealias ViewState = HostsUIState.ViewState
 
-    public private(set) var state: ViewState = .idle
+    public private(set) var uiState = HostsUIState()
+    public private(set) var effect: HostsEffect = .none
+    public var state: ViewState { uiState.state }
 
     private let loadHosts: LoadHosts
     private let deleteHost: DeleteHost
@@ -25,29 +22,37 @@ public final class HostsViewModel {
     }
 
     public var hosts: [Domain.Host] {
-        if case let .loaded(hosts) = state { return hosts }
-        return []
+        uiState.hosts
     }
 
     public func load() async {
-        state = .loading
+        uiState.state = .loading
         do {
-            state = .loaded(try await loadHosts())
+            uiState.state = .loaded(try await loadHosts())
         } catch let error as DomainError {
-            state = .failed(error)
+            uiState.state = .failed(error)
+            effect = .showError(error.localizedDescription)
         } catch {
-            state = .failed(.unknown)
+            uiState.state = .failed(.unknown)
+            effect = .showError(DomainError.unknown.localizedDescription)
         }
     }
 
     public func delete(id: UUID) async {
         do {
             try await deleteHost(id: id)
+            effect = .hostDeleted(id)
             await load()
         } catch let error as DomainError {
-            state = .failed(error)
+            uiState.state = .failed(error)
+            effect = .showError(error.localizedDescription)
         } catch {
-            state = .failed(.unknown)
+            uiState.state = .failed(.unknown)
+            effect = .showError(DomainError.unknown.localizedDescription)
         }
+    }
+
+    public func clearEffect() {
+        effect = .none
     }
 }

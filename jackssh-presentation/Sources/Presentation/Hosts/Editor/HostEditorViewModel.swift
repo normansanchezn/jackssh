@@ -7,22 +7,57 @@ import Domain
 @MainActor
 @Observable
 public final class HostEditorViewModel {
-    public var name: String
-    public var hostname: String
-    public var port: String
-    public var username: String
-    public var showPasswordField: Bool = false
-    public var password: String = ""
-    public var passwordConfirmation: String = ""
-    public var authenticationMethod: SSHAuthMethod = .password
-    public var openClawHost: String = ""
-    public var openClawPort: String = "18789"
-    public var openClawScheme: String = "http"
-    public var openClawBasePath: String = "/"
-    public var favoriteRemotePath: String = ""
+    public private(set) var uiState: HostEditorUIState
+    public private(set) var effect: HostEditorEffect = .none
 
-    public private(set) var issues: [ValidationIssue] = []
-    public private(set) var isSaving = false
+    public var name: String {
+        get { uiState.name }
+        set { uiState.name = newValue }
+    }
+    public var hostname: String {
+        get { uiState.hostname }
+        set { uiState.hostname = newValue }
+    }
+    public var port: String {
+        get { uiState.port }
+        set { uiState.port = newValue }
+    }
+    public var username: String {
+        get { uiState.username }
+        set { uiState.username = newValue }
+    }
+    public var showPasswordField: Bool { uiState.showPasswordField }
+    public var password: String {
+        get { uiState.password }
+        set { uiState.password = newValue }
+    }
+    public var passwordConfirmation: String {
+        get { uiState.passwordConfirmation }
+        set { uiState.passwordConfirmation = newValue }
+    }
+    public var authenticationMethod: SSHAuthMethod { uiState.authenticationMethod }
+    public var openClawHost: String {
+        get { uiState.openClawHost }
+        set { uiState.openClawHost = newValue }
+    }
+    public var openClawPort: String {
+        get { uiState.openClawPort }
+        set { uiState.openClawPort = newValue }
+    }
+    public var openClawScheme: String {
+        get { uiState.openClawScheme }
+        set { uiState.openClawScheme = newValue }
+    }
+    public var openClawBasePath: String {
+        get { uiState.openClawBasePath }
+        set { uiState.openClawBasePath = newValue }
+    }
+    public var favoriteRemotePath: String {
+        get { uiState.favoriteRemotePath }
+        set { uiState.favoriteRemotePath = newValue }
+    }
+    public var issues: [ValidationIssue] { uiState.issues }
+    public var isSaving: Bool { uiState.isSaving }
 
     private let saveHost: SaveHost
     private let editingID: UUID?
@@ -34,42 +69,27 @@ public final class HostEditorViewModel {
     public init(saveHost: SaveHost) {
         self.saveHost = saveHost
         self.editingID = nil
-        self.name = ""
-        self.hostname = ""
-        self.port = "22"
-        self.username = ""
+        self.uiState = HostEditorUIState()
     }
 
     /// Edit existing host.
     public init(saveHost: SaveHost, host: Domain.Host) {
         self.saveHost = saveHost
         self.editingID = host.id
-        self.name = host.name
-        self.hostname = host.hostname
-        self.port = String(host.port)
-        self.username = host.username
-        if let openClaw = host.openClawConfiguration {
-            self.openClawHost = openClaw.host
-            self.openClawPort = String(openClaw.port)
-            self.openClawScheme = openClaw.scheme
-            self.openClawBasePath = openClaw.basePath
-        }
-        if let favPath = host.favoriteRemotePath {
-            self.favoriteRemotePath = favPath
-        }
+        self.uiState = HostEditorUIState(host: host)
     }
 
     public func issue(for field: ValidationIssue.Field) -> String? {
-        issues.first { $0.field == field }?.message
+        uiState.issues.first { $0.field == field }?.message
     }
 
     public func setAuthMethod(_ method: SSHAuthMethod) {
-        authenticationMethod = method
+        uiState.authenticationMethod = method
         switch method {
         case .password:
-            showPasswordField = true
+            uiState.showPasswordField = true
         case .publicKey:
-            showPasswordField = false
+            uiState.showPasswordField = false
         }
     }
 
@@ -77,9 +97,9 @@ public final class HostEditorViewModel {
     /// draft is invalid (issues populated) or a save error occurs.
     @discardableResult
     public func save() async -> Domain.Host? {
-        issues = []
-        isSaving = true
-        defer { isSaving = false }
+        uiState.issues = []
+        uiState.isSaving = true
+        defer { uiState.isSaving = false }
 
         let openClawPort: Int? = openClawHost.isEmpty ? nil : (Int(openClawPort) ?? nil)
 
@@ -103,17 +123,25 @@ public final class HostEditorViewModel {
         }
 
         do {
-            return try await saveHost(
+            let host = try await saveHost(
                 draft,
                 id: editingID ?? UUID(),
                 credential: credentialData
             )
+            effect = .saved(host)
+            return host
         } catch let DomainError.validation(validationIssues) {
-            issues = validationIssues
+            uiState.issues = validationIssues
+            effect = .showError("Please fix the highlighted fields.")
             return nil
         } catch {
-            issues = [ValidationIssue(field: .name, message: "Couldn’t save. Try again.")]
+            uiState.issues = [ValidationIssue(field: .name, message: "Couldn’t save. Try again.")]
+            effect = .showError("Couldn’t save. Try again.")
             return nil
         }
+    }
+
+    public func clearEffect() {
+        effect = .none
     }
 }

@@ -42,6 +42,7 @@ JackSSH is a native iOS app organized as Swift Package modules plus a thin app t
 6. `Localizable.xcstrings` lives at `jackssh-presentation/Sources/Presentation/Localizable.xcstrings`.
 7. `LocalizationManager` defaults to `Bundle.module`; do not create per-feature `Localizable.strings` files.
 8. Documentation belongs in `docs` as Obsidian notes, not inside `Sources`.
+9. Presentation screens follow the Welcome file tree: a feature/screen folder contains `ScreenView.swift`, `ScreenViewModel.swift` when needed, and a `Model/` folder for UI state, effects, and presentation-only models.
 
 ## Mandatory Workflow
 
@@ -52,6 +53,22 @@ JackSSH is a native iOS app organized as Swift Package modules plus a thin app t
 5. Never claim success without command output.
 6. Do not invent APIs, services, migrations, or infrastructure.
 7. Update docs when architecture changes.
+
+## Presentation File Tree
+
+Use this structure for new or reorganized screens:
+
+```text
+Feature/
+└── Screen/
+    ├── Model/
+    │   ├── ScreenUIState.swift
+    │   └── ScreenEffect.swift
+    ├── ScreenView.swift
+    └── ScreenViewModel.swift
+```
+
+Do not put Swift Testing files under `Sources`. Tests belong under the package `Tests` tree.
 
 ## Current Architecture Notes
 

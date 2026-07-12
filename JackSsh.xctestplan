@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "E9D6A0FA-67CE-4D8E-AEF5-D7E440693343",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:JackSsh.xcodeproj",
+      "identifier" : "D2703E953002DA4D00259E7A",
+      "name" : "JackSsh"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:JackSsh.xcodeproj",
+        "identifier" : "D2703EA63002DA4E00259E7A",
+        "name" : "JackSshTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:JackSsh.xcodeproj",
+        "identifier" : "D2703EB03002DA4E00259E7A",
+        "name" : "JackSshUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

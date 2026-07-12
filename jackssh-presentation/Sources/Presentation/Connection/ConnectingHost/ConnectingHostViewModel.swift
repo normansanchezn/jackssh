@@ -5,9 +5,11 @@ import Domain
 @MainActor
 @Observable
 public final class ConnectingHostViewModel {
-    public private(set) var state: HostConnectionState = .idle
-    public private(set) var host: Domain.Host?
-    public private(set) var error: String?
+    public private(set) var uiState = ConnectingHostUIState()
+    public private(set) var effect: ConnectingHostEffect = .none
+    public var state: HostConnectionState { uiState.state }
+    public var host: Domain.Host? { uiState.host }
+    public var error: String? { uiState.error }
 
     private let hostID: UUID
     private let loadHost: LoadHosts
@@ -28,15 +30,18 @@ public final class ConnectingHostViewModel {
 
     public func connect() async {
         do {
-            state = .resolving
+            uiState.state = .resolving
             let hosts = try await loadHost()
             guard let host = hosts.first(where: { $0.id == hostID }) else {
-                state = .failed(HostConnectionFailure(kind: .invalidConfiguration("Host not found")))
+                let failure = HostConnectionFailure(kind: .invalidConfiguration("Host not found"))
+                uiState.state = .failed(failure)
+                uiState.error = failure.description
+                effect = .showError(failure.description)
                 return
             }
-            self.host = host
+            uiState.host = host
 
-            state = .authenticating
+            uiState.state = .authenticating
             let result = await connectToHost(to: host)
 
             switch result {
@@ -48,31 +53,44 @@ public final class ConnectingHostViewModel {
                     port: host.port
                 )
                 await activateSession(session)
-                state = .connected(session)
+                uiState.state = .connected(session)
+                effect = .connected(session)
             case let .authenticationFailed(msg):
-                state = .failed(HostConnectionFailure(kind: .authenticationFailed(msg)))
+                fail(HostConnectionFailure(kind: .authenticationFailed(msg)))
             case let .hostUnreachable(msg):
-                state = .failed(HostConnectionFailure(kind: .hostUnreachable(msg), canRetry: true))
+                fail(HostConnectionFailure(kind: .hostUnreachable(msg), canRetry: true))
             case .timeout:
-                state = .failed(HostConnectionFailure(kind: .other("Connection timed out"), canRetry: true))
+                fail(HostConnectionFailure(kind: .other("Connection timed out"), canRetry: true))
             case let .hostKeyVerificationRequired(key):
-                state = .verifyingHostKey(fingerprint: key)
+                uiState.state = .verifyingHostKey(fingerprint: key)
             case let .hostKeyChanged(msg):
-                state = .failed(HostConnectionFailure(kind: .hostKeyChanged(msg), canRetry: false))
+                fail(HostConnectionFailure(kind: .hostKeyChanged(msg), canRetry: false))
             case let .failed(msg):
-                state = .failed(HostConnectionFailure(kind: .other(msg)))
+                fail(HostConnectionFailure(kind: .other(msg)))
             }
         } catch {
-            state = .failed(HostConnectionFailure(kind: .other("Connection failed: \(error.localizedDescription)")))
+            fail(HostConnectionFailure(kind: .other("Connection failed: \(error.localizedDescription)")))
         }
     }
 
     public func cancel() {
-        state = .cancelled
+        uiState.state = .cancelled
+        effect = .cancelled
     }
 
     public func retry() async {
-        state = .idle
+        uiState.state = .idle
+        uiState.error = nil
         await connect()
+    }
+
+    public func clearEffect() {
+        effect = .none
+    }
+
+    private func fail(_ failure: HostConnectionFailure) {
+        uiState.state = .failed(failure)
+        uiState.error = failure.description
+        effect = .showError(failure.description)
     }
 }

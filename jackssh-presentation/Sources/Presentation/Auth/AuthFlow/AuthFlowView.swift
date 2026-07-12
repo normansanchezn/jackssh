@@ -3,36 +3,30 @@ import DesignSystem
 
 public struct AuthFlowView: View {
     @State private var authViewModel: AuthViewModel
-    @State private var currentStep: AuthStep = .welcome
-
-    enum AuthStep {
-        case welcome
-        case signIn
-        case signUp
-    }
+    @State private var viewModel = AuthFlowViewModel()
 
     public init(authViewModel: AuthViewModel) {
         _authViewModel = State(initialValue: authViewModel)
     }
 
     public var body: some View {
-        switch currentStep {
+        switch viewModel.uiState.currentStep {
         case .welcome:
             WelcomeView(
-                onSignIn: { currentStep = .signIn },
-                onSignUp: { currentStep = .signUp }
+                onSignIn: { viewModel.showSignIn() },
+                onSignUp: { viewModel.showSignUp() }
             )
         case .signIn:
             LoginView(
                 viewModel: authViewModel,
-                onSuccess: { currentStep = .welcome },
-                onSignUp: { currentStep = .signUp }
+                onSuccess: { viewModel.showWelcome() },
+                onSignUp: { viewModel.showSignUp() }
             )
         case .signUp:
             SignUpView(
                 viewModel: authViewModel,
-                onSuccess: { currentStep = .welcome },
-                onBack: { currentStep = .welcome }
+                onSuccess: { viewModel.showWelcome() },
+                onBack: { viewModel.showWelcome() }
             )
         }
     }

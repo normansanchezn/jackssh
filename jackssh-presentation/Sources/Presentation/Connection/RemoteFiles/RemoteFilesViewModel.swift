@@ -5,25 +5,16 @@ import Domain
 @MainActor
 @Observable
 public final class RemoteFilesViewModel {
-    public struct CodeFile: Identifiable, Equatable {
-        public let file: SFTPFileInfo
-        public let content: String
+    public typealias CodeFile = RemoteFilesUIState.CodeFile
+    public typealias ViewState = RemoteFilesUIState.ViewState
 
-        public var id: String { file.path }
-    }
-
-    public enum ViewState: Equatable {
-        case idle
-        case loading
-        case loaded([SFTPFileInfo])
-        case failed(String)
-    }
-
-    public private(set) var path: String
-    public private(set) var state: ViewState = .idle
-    public private(set) var codeFile: CodeFile?
-    public private(set) var fileLoadError: String?
-    public private(set) var isLoadingFile = false
+    public private(set) var uiState: RemoteFilesUIState
+    public private(set) var effect: RemoteFilesEffect = .none
+    public var path: String { uiState.path }
+    public var state: ViewState { uiState.state }
+    public var codeFile: CodeFile? { uiState.codeFile }
+    public var fileLoadError: String? { uiState.fileLoadError }
+    public var isLoadingFile: Bool { uiState.isLoadingFile }
 
     private let hostID: UUID
     private let loadHosts: LoadHosts
@@ -38,30 +29,32 @@ public final class RemoteFilesViewModel {
         makeFileRepository: @escaping @Sendable (Domain.Host) -> RemoteFileRepository
     ) {
         self.hostID = hostID
-        self.path = initialPath
+        self.uiState = RemoteFilesUIState(path: initialPath)
         self.loadHosts = loadHosts
         self.makeDirectoryRepository = makeDirectoryRepository
         self.makeFileRepository = makeFileRepository
     }
 
     public func load() async {
-        state = .loading
+        uiState.state = .loading
         do {
             let hosts = try await loadHosts()
             guard let host = hosts.first(where: { $0.id == hostID }) else {
-                state = .failed("Host not found")
+                uiState.state = .failed("Host not found")
+                effect = .showError("Host not found")
                 return
             }
             let files = try await ListRemoteDirectory(repository: makeDirectoryRepository(host))(at: path)
-            state = .loaded(files)
+            uiState.state = .loaded(files)
         } catch {
-            state = .failed(error.localizedDescription)
+            uiState.state = .failed(error.localizedDescription)
+            effect = .showError(error.localizedDescription)
         }
     }
 
     public func open(_ file: SFTPFileInfo) async {
         if file.isDirectory {
-            path = file.path
+            uiState.path = file.path
             await load()
         } else {
             await openCodeFile(file)
@@ -70,49 +63,60 @@ public final class RemoteFilesViewModel {
 
     public func goUp() async {
         guard path != "/" else { return }
-        path = URL(fileURLWithPath: path).deletingLastPathComponent().path
-        if path.isEmpty { path = "/" }
+        uiState.path = URL(fileURLWithPath: path).deletingLastPathComponent().path
+        if uiState.path.isEmpty { uiState.path = "/" }
         await load()
     }
 
     public func dismissCodeFile() {
-        codeFile = nil
-        fileLoadError = nil
+        uiState.codeFile = nil
+        uiState.fileLoadError = nil
     }
 
     private func openCodeFile(_ file: SFTPFileInfo) async {
         guard CodeLanguage.detect(for: file.name) != .plainText else {
-            fileLoadError = "Only source and configuration files can be previewed."
+            uiState.fileLoadError = "Only source and configuration files can be previewed."
+            effect = .showError("Only source and configuration files can be previewed.")
             return
         }
         guard file.size.map({ $0 <= Self.maximumPreviewSize }) ?? true else {
-            fileLoadError = "This file is too large to preview on this device."
+            uiState.fileLoadError = "This file is too large to preview on this device."
+            effect = .showError("This file is too large to preview on this device.")
             return
         }
 
-        isLoadingFile = true
-        fileLoadError = nil
-        defer { isLoadingFile = false }
+        uiState.isLoadingFile = true
+        uiState.fileLoadError = nil
+        defer { uiState.isLoadingFile = false }
 
         do {
             let hosts = try await loadHosts()
             guard let host = hosts.first(where: { $0.id == hostID }) else {
-                fileLoadError = "Host not found"
+                uiState.fileLoadError = "Host not found"
+                effect = .showError("Host not found")
                 return
             }
             let data = try await ReadRemoteFile(repository: makeFileRepository(host))(at: file.path)
             guard data.count <= Self.maximumPreviewSize else {
-                fileLoadError = "This file is too large to preview on this device."
+                uiState.fileLoadError = "This file is too large to preview on this device."
+                effect = .showError("This file is too large to preview on this device.")
                 return
             }
             guard let content = String(data: data, encoding: .utf8) else {
-                fileLoadError = "This file is not UTF-8 text and cannot be previewed."
+                uiState.fileLoadError = "This file is not UTF-8 text and cannot be previewed."
+                effect = .showError("This file is not UTF-8 text and cannot be previewed.")
                 return
             }
-            codeFile = CodeFile(file: file, content: content)
+            uiState.codeFile = CodeFile(file: file, content: content)
+            effect = .openedPreview
         } catch {
-            fileLoadError = error.localizedDescription
+            uiState.fileLoadError = error.localizedDescription
+            effect = .showError(error.localizedDescription)
         }
+    }
+
+    public func clearEffect() {
+        effect = .none
     }
 
     private static let maximumPreviewSize = 1_000_000

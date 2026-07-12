@@ -7,15 +7,12 @@ import Domain
 @MainActor
 @Observable
 public final class HomeViewModel {
-    public enum ViewState: Equatable {
-        case idle
-        case loading
-        case loaded(HomeStatus)
-        case failed(DomainError)
-    }
+    public typealias ViewState = HomeUIState.ViewState
 
-    public private(set) var state: ViewState = .idle
-    public private(set) var activeSession: ConnectedHostSession?
+    public private(set) var uiState = HomeUIState()
+    public private(set) var effect: HomeEffect = .none
+    public var state: ViewState { uiState.state }
+    public var activeSession: ConnectedHostSession? { uiState.activeSession }
 
     private let loadHomeStatus: LoadHomeStatus
     private let loadActiveSession: LoadActiveConnectionSession?
@@ -29,16 +26,22 @@ public final class HomeViewModel {
     }
 
     public func load() async {
-        state = .loading
+        uiState.state = .loading
         do {
             async let status = loadHomeStatus()
             async let session = loadActiveSession?()
-            state = .loaded(try await status)
-            activeSession = await session
+            uiState.state = .loaded(try await status)
+            uiState.activeSession = await session
         } catch let error as DomainError {
-            state = .failed(error)
+            uiState.state = .failed(error)
+            effect = .showError(error.localizedDescription)
         } catch {
-            state = .failed(.unknown)
+            uiState.state = .failed(.unknown)
+            effect = .showError(DomainError.unknown.localizedDescription)
         }
+    }
+
+    public func clearEffect() {
+        effect = .none
     }
 }

@@ -8,9 +8,11 @@ import Domain
 @MainActor
 @Observable
 public final class TerminalViewModel {
-    public private(set) var host: Domain.Host?
-    public private(set) var session: TerminalSession?
-    public private(set) var loadError: String?
+    public private(set) var uiState = TerminalUIState()
+    public private(set) var effect: TerminalEffect = .none
+    public var host: Domain.Host? { uiState.host }
+    public var session: TerminalSession? { uiState.session }
+    public var loadError: String? { uiState.loadError }
 
     private let hostID: UUID
     private let loadHosts: LoadHosts
@@ -34,26 +36,31 @@ public final class TerminalViewModel {
 
     /// Human-readable connection target, e.g. `root@108.174.154.104`.
     public var connectionTitle: String {
-        guard let host else { return "Terminal" }
-        return "\(host.username)@\(host.hostname)"
+        uiState.connectionTitle
     }
 
     public func load() async {
         do {
             let hosts = try await loadHosts()
             guard let match = hosts.first(where: { $0.id == hostID }) else {
-                loadError = "Host not found"
+                uiState.loadError = "Host not found"
+                effect = .showError("Host not found")
                 return
             }
-            host = match
-            session = TerminalSession(
+            uiState.host = match
+            uiState.session = TerminalSession(
                 host: match,
                 openTerminal: openTerminal,
                 activateSession: activateSession,
                 endSession: endSession
             )
         } catch {
-            loadError = error.localizedDescription
+            uiState.loadError = error.localizedDescription
+            effect = .showError(error.localizedDescription)
         }
+    }
+
+    public func clearEffect() {
+        effect = .none
     }
 }

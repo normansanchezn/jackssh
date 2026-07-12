@@ -5,12 +5,27 @@ import Domain
 @MainActor
 @Observable
 public final class AuthViewModel {
-    public private(set) var authState: AuthState = .unauthenticated
-    public var email: String = ""
-    public var password: String = ""
-    public var confirmPassword: String = ""
-    public private(set) var isLoading = false
-    public var error: String?
+    public private(set) var uiState = AuthUIState()
+    public private(set) var effect: AuthEffect = .none
+
+    public var authState: AuthState { uiState.authState }
+    public var email: String {
+        get { uiState.email }
+        set { uiState.email = newValue }
+    }
+    public var password: String {
+        get { uiState.password }
+        set { uiState.password = newValue }
+    }
+    public var confirmPassword: String {
+        get { uiState.confirmPassword }
+        set { uiState.confirmPassword = newValue }
+    }
+    public var isLoading: Bool { uiState.isLoading }
+    public var error: String? {
+        get { uiState.error }
+        set { uiState.error = newValue }
+    }
 
     private let signIn: SignIn
     private let signUp: SignUp
@@ -32,68 +47,82 @@ public final class AuthViewModel {
     public func checkCurrentUser() async {
         do {
             if let user = try await loadCurrentUser() {
-                authState = .authenticated(user)
+                uiState.authState = .authenticated(user)
+                effect = .authenticated(user)
             } else {
-                authState = .unauthenticated
+                uiState.authState = .unauthenticated
             }
         } catch {
-            authState = .unauthenticated
+            uiState.authState = .unauthenticated
         }
     }
 
     public func login() async {
-        error = nil
+        uiState.error = nil
         guard !email.isEmpty, !password.isEmpty else {
-            error = "Email and password required"
+            uiState.error = "Email and password required"
+            effect = .showError("Email and password required")
             return
         }
 
-        isLoading = true
-        authState = .authenticating
-        defer { isLoading = false }
+        uiState.isLoading = true
+        uiState.authState = .authenticating
+        defer { uiState.isLoading = false }
 
         do {
             let user = try await signIn(email: email, password: password)
-            authState = .authenticated(user)
+            uiState.authState = .authenticated(user)
+            effect = .authenticated(user)
         } catch {
-            authState = .error(error.localizedDescription)
-            self.error = error.localizedDescription
+            uiState.authState = .error(error.localizedDescription)
+            uiState.error = error.localizedDescription
+            effect = .showError(error.localizedDescription)
         }
     }
 
     public func signup() async {
-        error = nil
+        uiState.error = nil
         guard !email.isEmpty, !password.isEmpty else {
-            error = "Email and password required"
+            uiState.error = "Email and password required"
+            effect = .showError("Email and password required")
             return
         }
         guard password == confirmPassword else {
-            error = "Passwords do not match"
+            uiState.error = "Passwords do not match"
+            effect = .showError("Passwords do not match")
             return
         }
 
-        isLoading = true
-        authState = .authenticating
-        defer { isLoading = false }
+        uiState.isLoading = true
+        uiState.authState = .authenticating
+        defer { uiState.isLoading = false }
 
         do {
             let user = try await signUp(email: email, password: password)
-            authState = .authenticated(user)
+            uiState.authState = .authenticated(user)
+            effect = .authenticated(user)
         } catch {
-            authState = .error(error.localizedDescription)
-            self.error = error.localizedDescription
+            uiState.authState = .error(error.localizedDescription)
+            uiState.error = error.localizedDescription
+            effect = .showError(error.localizedDescription)
         }
     }
 
     public func logout() async {
         do {
             try await signOut()
-            authState = .unauthenticated
-            email = ""
-            password = ""
-            confirmPassword = ""
+            uiState.authState = .unauthenticated
+            uiState.email = ""
+            uiState.password = ""
+            uiState.confirmPassword = ""
+            effect = .signedOut
         } catch {
-            self.error = error.localizedDescription
+            uiState.error = error.localizedDescription
+            effect = .showError(error.localizedDescription)
         }
+    }
+
+    public func clearEffect() {
+        effect = .none
     }
 }
