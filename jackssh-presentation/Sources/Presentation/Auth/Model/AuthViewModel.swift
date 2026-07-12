@@ -26,22 +26,38 @@ public final class AuthViewModel {
         get { uiState.error }
         set { uiState.error = newValue }
     }
+    public var biometricAvailability: BiometricLoginAvailability { uiState.biometricAvailability }
+    public var shouldOfferBiometricEnrollment: Bool { uiState.shouldOfferBiometricEnrollment }
 
     private let signIn: SignIn
     private let signUp: SignUp
     private let signOut: SignOut
     private let loadCurrentUser: LoadCurrentUser
+    private let loadBiometricLoginAvailability: LoadBiometricLoginAvailability?
+    private let enableBiometricLogin: EnableBiometricLogin?
+    private let loadBiometricLoginCredentials: LoadBiometricLoginCredentials?
 
     public init(
         signIn: SignIn,
         signUp: SignUp,
         signOut: SignOut,
-        loadCurrentUser: LoadCurrentUser
+        loadCurrentUser: LoadCurrentUser,
+        loadBiometricLoginAvailability: LoadBiometricLoginAvailability? = nil,
+        enableBiometricLogin: EnableBiometricLogin? = nil,
+        loadBiometricLoginCredentials: LoadBiometricLoginCredentials? = nil
     ) {
         self.signIn = signIn
         self.signUp = signUp
         self.signOut = signOut
         self.loadCurrentUser = loadCurrentUser
+        self.loadBiometricLoginAvailability = loadBiometricLoginAvailability
+        self.enableBiometricLogin = enableBiometricLogin
+        self.loadBiometricLoginCredentials = loadBiometricLoginCredentials
+    }
+
+    public func loadBiometricState() async {
+        guard let loadBiometricLoginAvailability else { return }
+        uiState.biometricAvailability = await loadBiometricLoginAvailability()
     }
 
     public func checkCurrentUser() async {
@@ -73,11 +89,58 @@ public final class AuthViewModel {
             let user = try await signIn(email: email, password: password)
             uiState.authState = .authenticated(user)
             effect = .authenticated(user)
+            await prepareBiometricEnrollmentOffer()
         } catch {
             uiState.authState = .error(error.localizedDescription)
             uiState.error = error.localizedDescription
             effect = .showError(error.localizedDescription)
         }
+    }
+
+    public func loginWithBiometrics() async {
+        guard let loadBiometricLoginCredentials else {
+            uiState.error = "Biometric login is not configured"
+            effect = .showError("Biometric login is not configured")
+            return
+        }
+
+        uiState.error = nil
+        uiState.isLoading = true
+        uiState.authState = .authenticating
+        defer { uiState.isLoading = false }
+
+        do {
+            let credentials = try await loadBiometricLoginCredentials()
+            let user = try await signIn(email: credentials.email, password: credentials.password)
+            uiState.email = credentials.email
+            uiState.password = ""
+            uiState.authState = .authenticated(user)
+            effect = .authenticated(user)
+        } catch {
+            uiState.authState = .error(error.localizedDescription)
+            uiState.error = error.localizedDescription
+            effect = .showError(error.localizedDescription)
+        }
+    }
+
+    public func enableBiometricLoginForCurrentCredentials() async {
+        guard let enableBiometricLogin else {
+            uiState.shouldOfferBiometricEnrollment = false
+            return
+        }
+        do {
+            try await enableBiometricLogin(email: email, password: password)
+            uiState.shouldOfferBiometricEnrollment = false
+            await loadBiometricState()
+        } catch {
+            uiState.shouldOfferBiometricEnrollment = false
+            uiState.error = "Couldn’t enable biometric login"
+            effect = .showError("Couldn’t enable biometric login")
+        }
+    }
+
+    public func dismissBiometricEnrollmentOffer() {
+        uiState.shouldOfferBiometricEnrollment = false
     }
 
     public func signup() async {
@@ -116,6 +179,7 @@ public final class AuthViewModel {
             uiState.password = ""
             uiState.confirmPassword = ""
             effect = .signedOut
+            await loadBiometricState()
         } catch {
             uiState.error = error.localizedDescription
             effect = .showError(error.localizedDescription)
@@ -124,5 +188,14 @@ public final class AuthViewModel {
 
     public func clearEffect() {
         effect = .none
+    }
+
+    private func prepareBiometricEnrollmentOffer() async {
+        guard let loadBiometricLoginAvailability else { return }
+        let availability = await loadBiometricLoginAvailability()
+        uiState.biometricAvailability = availability
+        guard availability.isAvailable, !availability.isEnabled else { return }
+        uiState.shouldOfferBiometricEnrollment = true
+        effect = .requestBiometricEnrollment(availability.biometryName)
     }
 }

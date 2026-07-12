@@ -8,6 +8,8 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Added
 
+- Biometric sign-in opt-in after password login, backed by Face ID/Touch ID protected Keychain credentials.
+- Login screen biometric sign-in action for devices with an enrolled biometric credential.
 - iPadOS adaptive app shell using `NavigationSplitView` with a persistent sidebar and detail navigation.
 - Regular-width host grid layout so iPad does not render the iPhone list as an oversized column.
 - Remote Supabase-backed host persistence through `SupabaseHostRepository`.
@@ -18,6 +20,7 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Changed
 
+- Auth composition now includes biometric login use cases while keeping LocalAuthentication inside the Data layer.
 - Home dashboard now adapts to regular-width layouts with constrained task panels.
 - `CompositionRoot` now wires hosts through a syncing repository instead of local-only SwiftData persistence.
 - Supabase auth repository now exposes a session context for remote data repositories.

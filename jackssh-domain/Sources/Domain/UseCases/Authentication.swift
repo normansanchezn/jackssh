@@ -51,3 +51,51 @@ public struct LoadCurrentUser: Sendable {
         try await repository.getCurrentUser()
     }
 }
+
+public struct LoadBiometricLoginAvailability: Sendable {
+    private let repository: BiometricLoginRepository
+
+    public init(repository: BiometricLoginRepository) {
+        self.repository = repository
+    }
+
+    public func callAsFunction() async -> BiometricLoginAvailability {
+        await repository.availability()
+    }
+}
+
+public struct EnableBiometricLogin: Sendable {
+    private let repository: BiometricLoginRepository
+
+    public init(repository: BiometricLoginRepository) {
+        self.repository = repository
+    }
+
+    public func callAsFunction(email: String, password: String) async throws {
+        try await repository.save(email: email, password: password)
+    }
+}
+
+public struct LoadBiometricLoginCredentials: Sendable {
+    private let repository: BiometricLoginRepository
+
+    public init(repository: BiometricLoginRepository) {
+        self.repository = repository
+    }
+
+    public func callAsFunction() async throws -> BiometricLoginCredentials {
+        try await repository.credentials()
+    }
+}
+
+public struct DisableBiometricLogin: Sendable {
+    private let repository: BiometricLoginRepository
+
+    public init(repository: BiometricLoginRepository) {
+        self.repository = repository
+    }
+
+    public func callAsFunction() async throws {
+        try await repository.delete()
+    }
+}

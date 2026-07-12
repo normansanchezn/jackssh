@@ -159,3 +159,36 @@ public protocol AuthRepository: Sendable {
     func getCurrentUser() async throws -> User?
     func resetPassword(email: String) async throws
 }
+
+/// Stores Supabase sign-in credentials behind device biometrics. Implemented in
+/// Data with LocalAuthentication + Keychain access control.
+public protocol BiometricLoginRepository: Sendable {
+    func availability() async -> BiometricLoginAvailability
+    func save(email: String, password: String) async throws
+    func credentials() async throws -> BiometricLoginCredentials
+    func delete() async throws
+}
+
+public struct BiometricLoginAvailability: Equatable, Sendable {
+    public let isAvailable: Bool
+    public let isEnabled: Bool
+    public let biometryName: String
+    public let email: String?
+
+    public init(isAvailable: Bool, isEnabled: Bool, biometryName: String, email: String?) {
+        self.isAvailable = isAvailable
+        self.isEnabled = isEnabled
+        self.biometryName = biometryName
+        self.email = email
+    }
+}
+
+public struct BiometricLoginCredentials: Equatable, Sendable {
+    public let email: String
+    public let password: String
+
+    public init(email: String, password: String) {
+        self.email = email
+        self.password = password
+    }
+}

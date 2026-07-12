@@ -5,4 +5,5 @@ public enum AuthEffect: Equatable {
     case authenticated(User)
     case signedOut
     case showError(String)
+    case requestBiometricEnrollment(String)
 }

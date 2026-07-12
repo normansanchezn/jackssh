@@ -20,6 +20,7 @@ final class CompositionRoot {
 
     let modelContainer: ModelContainer
     private let authRepository: SupabaseAuthRepository
+    private let biometricLoginRepository: BiometricLoginRepository
     private let hostRepository: HostRepository
     private let secretStore: SecretStore
     private let homeStatusRepository: HomeStatusRepository
@@ -32,7 +33,10 @@ final class CompositionRoot {
             signIn: SignIn(repository: authRepository),
             signUp: SignUp(repository: authRepository),
             signOut: SignOut(repository: authRepository),
-            loadCurrentUser: LoadCurrentUser(repository: authRepository)
+            loadCurrentUser: LoadCurrentUser(repository: authRepository),
+            loadBiometricLoginAvailability: LoadBiometricLoginAvailability(repository: biometricLoginRepository),
+            enableBiometricLogin: EnableBiometricLogin(repository: biometricLoginRepository),
+            loadBiometricLoginCredentials: LoadBiometricLoginCredentials(repository: biometricLoginRepository)
         )
     }()
 
@@ -69,6 +73,7 @@ final class CompositionRoot {
         secretStore = KeychainSecretStore()
         let supabaseAuthRepository = SupabaseAuthRepository(service: supabaseService, secureStore: secretStore)
         authRepository = supabaseAuthRepository
+        biometricLoginRepository = BiometricKeychainLoginRepository()
 
         let localHostRepository = SwiftDataHostRepository(modelContainer: modelContainer)
         let remoteHostRepository = SupabaseHostRepository(
