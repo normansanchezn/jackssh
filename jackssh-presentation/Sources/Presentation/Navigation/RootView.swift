@@ -7,6 +7,7 @@ import DesignSystem
 public struct RootView: View {
     @State private var authViewModel: AuthViewModel
     @State private var router: AppRouter
+    @State private var isBootstrapping = true
     private let homeViewModel: HomeViewModel
     private let hostsDependencies: HostsDependencies
 
@@ -24,25 +25,44 @@ public struct RootView: View {
 
     public var body: some View {
         DSThemeContainer {
-            switch authViewModel.authState {
-            case .authenticated:
-                NavigationStack(path: $router.path) {
-                    HomeView(viewModel: homeViewModel, router: router) {
-                        await authViewModel.logout()
-                    }
-                        .environment(router)
-                        .navigationDestination(for: AppRoute.self) { route in
-                            destination(for: route)
+            ZStack {
+                if isBootstrapping {
+                    SplashView()
+                        .transition(.opacity.combined(with: .scale(scale: 1.02)))
+                } else {
+                    switch authViewModel.authState {
+                    case .authenticated:
+                        NavigationStack(path: $router.path) {
+                            HomeView(viewModel: homeViewModel, router: router) {
+                                await authViewModel.logout()
+                            }
                                 .environment(router)
+                                .navigationDestination(for: AppRoute.self) { route in
+                                    destination(for: route)
+                                        .environment(router)
+                                }
                         }
+                    default:
+                        AuthFlowView(authViewModel: authViewModel)
+                    }
                 }
-            default:
-                AuthFlowView(authViewModel: authViewModel)
             }
+            .animation(.easeOut(duration: 0.28), value: isBootstrapping)
         }
         .task {
-            await authViewModel.checkCurrentUser()
+            await bootstrap()
         }
+    }
+
+    private func bootstrap() async {
+        async let sessionCheck: Void = authViewModel.checkCurrentUser()
+        async let minimumDisplay: Void = sleepForSplash()
+        _ = await (sessionCheck, minimumDisplay)
+        isBootstrapping = false
+    }
+
+    private func sleepForSplash() async {
+        try? await Task.sleep(for: .milliseconds(950))
     }
 
     @ViewBuilder

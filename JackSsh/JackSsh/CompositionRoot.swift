@@ -19,7 +19,7 @@ final class CompositionRoot {
     let router: AppRouter
 
     let modelContainer: ModelContainer
-    private let authRepository: AuthRepository
+    private let authRepository: SupabaseAuthRepository
     private let hostRepository: HostRepository
     private let secretStore: SecretStore
     private let homeStatusRepository: HomeStatusRepository
@@ -67,8 +67,16 @@ final class CompositionRoot {
             supabaseKey: EnvironmentConfig.supabaseKey
         )
         secretStore = KeychainSecretStore()
-        authRepository = SupabaseAuthRepository(service: supabaseService, secureStore: secretStore)
-        hostRepository = SwiftDataHostRepository(modelContainer: modelContainer)
+        let supabaseAuthRepository = SupabaseAuthRepository(service: supabaseService, secureStore: secretStore)
+        authRepository = supabaseAuthRepository
+
+        let localHostRepository = SwiftDataHostRepository(modelContainer: modelContainer)
+        let remoteHostRepository = SupabaseHostRepository(
+            supabaseURL: EnvironmentConfig.supabaseURL,
+            supabaseKey: EnvironmentConfig.supabaseKey,
+            sessionProvider: supabaseAuthRepository
+        )
+        hostRepository = SyncingHostRepository(local: localHostRepository, remote: remoteHostRepository)
         homeStatusRepository = HealthProbingHomeStatusRepository(
             configuration: .unconfigured,
             http: URLSessionHealthProbe(),

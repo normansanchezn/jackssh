@@ -1,0 +1,6 @@
+{
+  "ollamaBaseUrl": "http://localhost:11434",
+  "chatModel": "gemma4:latest",
+  "maxNotes": 8,
+  "maxCharsPerNote": 1800
+}

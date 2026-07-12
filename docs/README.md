@@ -21,6 +21,7 @@ Este directorio es el vault de Obsidian del proyecto. Toda documentación `.md` 
 - [[02-setup/Supabase-Local-Setup|Supabase Local Setup]]: Supabase local.
 - [[02-setup/Supabase-Remote-Setup|Supabase Remote Setup]]: Supabase remoto.
 - [[02-setup/Supabase-Integration-Guide|Supabase Integration Guide]]: integración con la app.
+- [[02-setup/Successful-Connection-Best-Practices|Successful Connection Best Practices]]: checklist operativo para conexiones SSH confiables.
 - [[03-architecture/Dependency-Injection|Dependency Injection]]: composición de dependencias.
 - [[03-architecture/Localization-Architecture|Localization Architecture]]: localización en `Presentation`.
 - [[04-modules/presentation/auth/welcome/Welcome-Architecture|Welcome Architecture]]: MVVM de Welcome.

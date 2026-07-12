@@ -45,19 +45,13 @@ public actor SupabaseAuthRepository: AuthRepository {
     }
 
     public func getCurrentUser() async throws -> User? {
-        guard var session = try await storedSession() else { return nil }
-        if session.expiresAt <= Date().addingTimeInterval(60) {
-            do {
-                let refreshed = try await service.refreshSession(refreshToken: session.refreshToken)
-                try await persist(refreshed)
-                session = StoredSession(refreshed)
-            } catch {
-                // Keep the local session when refresh cannot run (for example
-                // while the app resumes without a network connection). A later
-                // foreground launch can retry without forcing an unexpected logout.
-            }
-        }
+        guard let session = try await currentStoredSession() else { return nil }
         return User(id: session.userID, email: session.email)
+    }
+
+    public func currentSessionContext() async throws -> SupabaseSessionContext? {
+        guard let session = try await currentStoredSession() else { return nil }
+        return SupabaseSessionContext(accessToken: session.accessToken, userID: session.userID)
     }
 
     public func resetPassword(email: String) async throws {
@@ -79,6 +73,32 @@ public actor SupabaseAuthRepository: AuthRepository {
             try await secureStore.removeSecret(for: Self.sessionKey)
             return nil
         }
+    }
+
+    private func currentStoredSession() async throws -> StoredSession? {
+        guard var session = try await storedSession() else { return nil }
+        if session.expiresAt <= Date().addingTimeInterval(60) {
+            do {
+                let refreshed = try await service.refreshSession(refreshToken: session.refreshToken)
+                try await persist(refreshed)
+                session = StoredSession(refreshed)
+            } catch {
+                // Keep the local session when refresh cannot run (for example
+                // while the app resumes without a network connection). A later
+                // foreground launch can retry without forcing an unexpected logout.
+            }
+        }
+        return session
+    }
+}
+
+public struct SupabaseSessionContext: Sendable {
+    public let accessToken: String
+    public let userID: UUID
+
+    public init(accessToken: String, userID: UUID) {
+        self.accessToken = accessToken
+        self.userID = userID
     }
 }
 
