@@ -4,6 +4,7 @@ import Foundation
 public struct ValidationIssue: Equatable, Sendable {
     public enum Field: String, Sendable {
         case name, hostname, port, username
+        case authenticationMethod, openClawDashboardURL, favoriteRemotePath
     }
     public let field: Field
     public let message: String
@@ -20,12 +21,29 @@ public struct HostDraft: Equatable, Sendable {
     public var hostname: String
     public var port: Int
     public var username: String
+    public var authenticationMethod: SSHAuthMethod
+    public var openClawDashboardURL: String?
+    public var openClawBasePath: String?
+    public var favoriteRemotePath: String?
 
-    public init(name: String, hostname: String, port: Int, username: String) {
+    public init(
+        name: String,
+        hostname: String,
+        port: Int,
+        username: String,
+        authenticationMethod: SSHAuthMethod = .password,
+        openClawDashboardURL: String? = nil,
+        openClawBasePath: String? = nil,
+        favoriteRemotePath: String? = nil
+    ) {
         self.name = name
         self.hostname = hostname
         self.port = port
         self.username = username
+        self.authenticationMethod = authenticationMethod
+        self.openClawDashboardURL = openClawDashboardURL
+        self.openClawBasePath = openClawBasePath
+        self.favoriteRemotePath = favoriteRemotePath
     }
 }
 
@@ -50,6 +68,11 @@ public enum HostValidator {
         }
         if username.isEmpty {
             issues.append(.init(field: .username, message: "Username is required."))
+        }
+        if let urlStr = draft.openClawDashboardURL, !urlStr.isEmpty {
+            if URL(string: urlStr) == nil {
+                issues.append(.init(field: .openClawDashboardURL, message: "Invalid URL format."))
+            }
         }
         return issues
     }

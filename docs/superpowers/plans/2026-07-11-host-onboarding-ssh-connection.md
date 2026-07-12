@@ -26,7 +26,7 @@
 - Create: `jackssh-domain/Sources/Domain/Entities/OpenClawConfiguration.swift`
 
 **Interfaces:**
-- Produces: `enum SSHAuthenticationMethod { case password, publicKey }`, `struct OpenClawConfiguration`, extended `struct Host` with new fields
+- Produces: `enum SSHAuthMethod { case password, publicKey }`, `struct OpenClawConfiguration`, extended `struct Host` with new fields
 
 Complete code provided in plan deliverables (see initial plan response).
 

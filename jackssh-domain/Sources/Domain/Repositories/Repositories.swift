@@ -27,3 +27,12 @@ public protocol ConnectionStatusRepository: Sendable {
     func setStatus(_ status: ConnectionStatus) async throws
     func clearStatus(for hostID: UUID) async throws
 }
+
+/// Stores/retrieves SSH credentials (passwords, key material). Implemented in Data.
+public protocol CredentialStore: Sendable {
+    func storePassword(_ password: String, for hostID: UUID) async throws
+    func password(for hostID: UUID) async throws -> String?
+    func storePrivateKey(_ keyData: Data, for hostID: UUID) async throws
+    func privateKey(for hostID: UUID) async throws -> Data?
+    func deleteCredentials(for hostID: UUID) async throws
+}
