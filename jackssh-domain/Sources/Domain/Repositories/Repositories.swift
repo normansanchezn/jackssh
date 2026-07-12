@@ -129,3 +129,12 @@ public struct DashboardTunnel: Equatable, Sendable {
         self.remotePort = remotePort
     }
 }
+
+/// Authentication repository (Supabase). Implemented in Data.
+public protocol AuthRepository: Sendable {
+    func signUp(email: String, password: String) async throws -> User
+    func signIn(email: String, password: String) async throws -> User
+    func signOut() async throws
+    func getCurrentUser() async throws -> User?
+    func resetPassword(email: String) async throws
+}

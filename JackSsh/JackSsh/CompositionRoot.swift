@@ -7,6 +7,7 @@
 //  objects to Presentation. Keeps the app target thin — no business logic here.
 //
 
+import Foundation
 import SwiftData
 import Domain
 import Data
@@ -38,6 +39,14 @@ final class CompositionRoot {
         modelContainer = container
         router = AppRouter()
 
+        // Supabase Auth
+        let supabaseURL = URL(string: "https://qaqotvrvqglmgjlyesnf.supabase.co")!
+        let supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhcW90dnJ2cWdsbWdqbHllc25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MTAzMTAsImV4cCI6MjA5OTM4NjMxMH0.M4mYOLnF4vo2dgV-NFGywHb7hRHXeygtl_vAyKYtOXI"
+        let authRepository: AuthRepository = SupabaseAuthRepository(
+            supabaseURL: supabaseURL,
+            supabaseKey: supabaseKey
+        )
+
         // Shared infrastructure.
         let hostRepository: HostRepository = SwiftDataHostRepository(modelContainer: container)
         let secretStore: SecretStore = KeychainSecretStore()
@@ -60,6 +69,9 @@ final class CompositionRoot {
         // Hosts slice: factories so views never touch Data or build use cases.
         let sshConnector: SSHConnector = CitadelSSHConnector(credentialStore: secretStore)
         let loadHosts = LoadHosts(repository: hostRepository)
+
+        // Auth ViewModel factory
+        let authViewModelFactory = { AuthViewModel(authRepository: authRepository) }
 
         hostsDependencies = HostsDependencies(
             makeListViewModel: {
