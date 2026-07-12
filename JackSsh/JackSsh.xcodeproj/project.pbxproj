@@ -12,7 +12,6 @@
 		CC0000000000000000000003 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000003 /* DesignSystem */; };
 		CC0000000000000000000004 /* Presentation in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000004 /* Presentation */; };
 		CC0000000000000000000005 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000005 /* Shared */; };
-		D22FB5223003137D0034E398 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = D22FB5213003137D0034E398 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,7 +32,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D22FB5213003137D0034E398 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D2703E963002DA4D00259E7A /* JackSsh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JackSsh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2703EA73002DA4E00259E7A /* JackSshTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JackSshTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2703EB13002DA4E00259E7A /* JackSshUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JackSshUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -107,7 +105,6 @@
 				D2703EAA3002DA4E00259E7A /* JackSshTests */,
 				D2703EB43002DA4E00259E7A /* JackSshUITests */,
 				D2703E973002DA4D00259E7A /* Products */,
-				D22FB5213003137D0034E398 /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -254,7 +251,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D22FB5223003137D0034E398 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
