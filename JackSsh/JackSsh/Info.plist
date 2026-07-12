@@ -6,5 +6,14 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>JackSsh needs access to your local network to connect to SSH hosts on your private network.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_ssh._tcp</string>
+		<string>_sftp._tcp</string>
+	</array>
+	<key>NSNetworkExtensionUsageDescription</key>
+	<string>JackSsh uses network extensions to create secure tunnels for accessing remote services through SSH port forwarding.</string>
 </dict>
 </plist>
