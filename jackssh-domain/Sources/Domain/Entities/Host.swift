@@ -1,7 +1,7 @@
 import Foundation
 
 /// A managed SSH host. Non-sensitive: secrets (keys, passwords) live in the Keychain, keyed by `id`.
-public struct Host: Identifiable, Sendable {
+public struct Host: Identifiable, Equatable, Sendable {
     public let id: UUID
     public var name: String
     public var hostname: String
@@ -29,7 +29,7 @@ public struct Host: Identifiable, Sendable {
         username: String,
         privateAddress: String? = nil,
         tags: [String] = [],
-        authenticationMethod: SSHAuthMethod = .password(""),
+        authenticationMethod: SSHAuthMethod = .password,
         openClawConfiguration: OpenClawConfiguration? = nil,
         favoriteRemotePath: String? = nil,
         lastSuccessfulConnection: Date? = nil,

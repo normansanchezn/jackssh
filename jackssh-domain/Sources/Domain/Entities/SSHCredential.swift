@@ -1,8 +1,8 @@
 import Foundation
 
-/// Authentication method for SSH connection.
+/// Authentication method for SSH connection. Passwords stored in Keychain, never in Host.
 public enum SSHAuthMethod: Equatable, Sendable {
-    case password(String)
+    case password
     case publicKey(keyID: UUID)
 }
 
