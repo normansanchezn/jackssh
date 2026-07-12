@@ -41,9 +41,9 @@ final class CompositionRoot {
         modelContainer = container
         router = AppRouter()
 
-        // Supabase Auth — Auto-configured (local dev or production)
-        let supabaseURL = EnvironmentConfig.supabaseURL
-        let supabaseKey = EnvironmentConfig.supabaseKey
+        // Supabase Auth — Cloud production (simulador compatible)
+        let supabaseURL = URL(string: "https://qaqotvrvqglmgjlyesnf.supabase.co")!
+        let supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhcW90dnJ2cWdsbWdqbHllc25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MTAzMTAsImV4cCI6MjA5OTM4NjMxMH0.M4mYOLnF4vo2dgV-NFGywHb7hRHXeygtl_vAyKYtOXI"
         let authRepository: AuthRepository = SupabaseAuthRepository(
             supabaseURL: supabaseURL,
             supabaseKey: supabaseKey
