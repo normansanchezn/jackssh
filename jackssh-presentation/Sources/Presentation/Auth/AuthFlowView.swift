@@ -37,3 +37,8 @@ public struct AuthFlowView: View {
         }
     }
 }
+
+#Preview("Authentication") {
+    AuthFlowView(authViewModel: PreviewFixtures.authViewModel())
+        .withJacksshThemeAutomatic()
+}

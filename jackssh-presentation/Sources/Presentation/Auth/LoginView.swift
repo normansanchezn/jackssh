@@ -89,3 +89,8 @@ public struct LoginView: View {
         }
     }
 }
+
+#Preview("Login") {
+    LoginView(viewModel: PreviewFixtures.authViewModel(), onSuccess: {}, onSignUp: {})
+        .withJacksshThemeAutomatic()
+}

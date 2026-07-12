@@ -46,3 +46,7 @@ struct _SplashContent: View {
         }
     }
 }
+
+#Preview("Splash") {
+    SplashView().withJacksshThemeAutomatic()
+}

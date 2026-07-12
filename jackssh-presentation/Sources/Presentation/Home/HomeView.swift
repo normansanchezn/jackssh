@@ -170,3 +170,12 @@ public struct HomeView: View {
         }
     }
 }
+
+#Preview("Home") {
+    let router = AppRouter()
+    return NavigationStack {
+        HomeView(viewModel: PreviewFixtures.homeViewModel(), router: router)
+            .environment(router)
+    }
+    .withJacksshThemeAutomatic()
+}

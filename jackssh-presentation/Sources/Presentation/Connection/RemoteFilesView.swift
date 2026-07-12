@@ -134,3 +134,14 @@ private struct RemoteFileRow: View {
         return ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
     }
 }
+
+#Preview("Remote files") {
+    let dependencies = PreviewFixtures.hostsDependencies()
+    return NavigationStack {
+        RemoteFilesView(
+            viewModel: dependencies.makeRemoteFilesViewModel(PreviewFixtures.host.id, "/var/www"),
+            terminalViewModel: dependencies.makeTerminalViewModel(PreviewFixtures.host.id)
+        )
+    }
+    .withJacksshThemeAutomatic()
+}

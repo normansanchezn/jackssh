@@ -245,3 +245,20 @@ private struct WorkspaceAction: View {
         .buttonStyle(.plain)
     }
 }
+
+#Preview("Connected host") {
+    let router = AppRouter()
+    return NavigationStack {
+        ConnectedHostView(
+            session: ConnectedHostSession(
+                hostID: PreviewFixtures.host.id,
+                hostname: PreviewFixtures.host.hostname,
+                username: PreviewFixtures.host.username,
+                port: PreviewFixtures.host.port
+            ),
+            host: PreviewFixtures.host
+        )
+        .environment(router)
+    }
+    .withJacksshThemeAutomatic()
+}

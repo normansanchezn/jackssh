@@ -77,28 +77,26 @@ public struct HostsListView: View {
                     .buttonStyle(.borderedProminent)
             }
         case let .loaded(hosts):
-            List {
-                ForEach(hosts) { host in
-                    Button {
-                        router.push(.connecting(hostID: host.id.uuidString))
-                    } label: {
-                        HostRowLabel(host: host)
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button {
-                            editorTarget = .edit(host)
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        .tint(.blue)
-                        Button(role: .destructive) {
-                            pendingDeletion = host
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: DSSpacing.md) {
+                    Text("\(hosts.count) saved \(hosts.count == 1 ? "host" : "hosts")")
+                        .font(DSTypography.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, DSSpacing.lg)
+                        .padding(.top, DSSpacing.sm)
+
+                    ForEach(hosts) { host in
+                        HostRowLabel(
+                            host: host,
+                            onConnect: { router.push(.connecting(hostID: host.id.uuidString)) },
+                            onEdit: { editorTarget = .edit(host) },
+                            onDelete: { pendingDeletion = host }
+                        )
+                        .padding(.horizontal, DSSpacing.lg)
                     }
                 }
             }
+            .background(Color.clear)
         }
     }
 
@@ -131,32 +129,86 @@ private enum EditorTarget: Identifiable {
 }
 
 private struct HostRowLabel: View {
+    @Environment(\.jacksshTheme) private var theme
     let host: Domain.Host
+    let onConnect: () -> Void
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: DSSpacing.xxs) {
-                HStack {
+        HStack(alignment: .top, spacing: DSSpacing.md) {
+            Image(systemName: host.isFavorite ? "star.fill" : "server.rack")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(host.isFavorite ? theme.colors.warning : theme.colors.primary600)
+                .frame(width: 42, height: 42)
+                .background(
+                    host.isFavorite ? theme.colors.warning.opacity(0.12) : theme.colors.primary100,
+                    in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                )
+
+            Button(action: onConnect) {
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
                     Text(host.name)
-                        .font(DSTypography.body)
-                        .foregroundStyle(.primary)
-                    if host.isFavorite {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(.yellow)
-                    }
-                }
-                Text("\(host.username)@\(host.hostname):" + String(host.port))
-                    .font(DSTypography.caption)
-                    .foregroundStyle(.secondary)
-                if let lastConnection = host.lastSuccessfulConnection {
-                    Text("Last: \(lastConnection.formatted(date: .abbreviated, time: .shortened))")
+                        .font(DSTypography.sectionTitle)
+                        .foregroundStyle(theme.colors.textPrimary)
+                        .lineLimit(1)
+                    Text("\(host.username)@\(host.hostname):\(host.port)")
+                        .font(DSTypography.mono)
+                        .foregroundStyle(theme.colors.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(lastConnectionLabel)
                         .font(DSTypography.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(theme.colors.textTertiary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            Spacer()
+            .buttonStyle(.plain)
+
+            VStack(spacing: DSSpacing.xs) {
+                Button(action: onConnect) {
+                    Image(systemName: "arrow.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(theme.colors.textInverse)
+                        .frame(width: 32, height: 32)
+                        .background(theme.colors.primary600, in: Circle())
+                }
+                .accessibilityLabel("Connect to \(host.name)")
+
+                Menu {
+                    Button("Edit", systemImage: "pencil", action: onEdit)
+                    Button("Delete", systemImage: "trash", role: .destructive, action: onDelete)
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(theme.colors.textTertiary)
+                        .frame(width: 32, height: 24)
+                }
+                .accessibilityLabel("More options for \(host.name)")
+            }
+        }
+        .padding(DSSpacing.md)
+        .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                .stroke(theme.colors.border, lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(host.name), \(host.username) at \(host.hostname) port \(host.port)")
     }
+
+    private var lastConnectionLabel: String {
+        guard let date = host.lastSuccessfulConnection else { return "Not connected yet" }
+        return "Last connected \(date.formatted(date: .abbreviated, time: .shortened))"
+    }
+}
+
+#Preview("Hosts") {
+    let router = AppRouter()
+    return NavigationStack {
+        HostsListView(dependencies: PreviewFixtures.hostsDependencies())
+            .environment(router)
+    }
+    .withJacksshThemeAutomatic()
 }

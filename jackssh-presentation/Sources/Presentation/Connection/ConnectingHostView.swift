@@ -110,3 +110,12 @@ public struct ConnectingHostView: View {
         }
     }
 }
+
+#Preview("Connecting host") {
+    let router = AppRouter()
+    return NavigationStack {
+        ConnectingHostView(viewModel: PreviewFixtures.hostsDependencies().makeConnectingViewModel(PreviewFixtures.host.id))
+            .environment(router)
+    }
+    .withJacksshThemeAutomatic()
+}

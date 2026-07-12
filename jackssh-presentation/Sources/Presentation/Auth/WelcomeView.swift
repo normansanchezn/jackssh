@@ -69,3 +69,8 @@ struct _WelcomeContent: View {
         }
     }
 }
+
+#Preview("Welcome") {
+    WelcomeView(onSignIn: {}, onSignUp: {})
+        .withJacksshThemeAutomatic()
+}

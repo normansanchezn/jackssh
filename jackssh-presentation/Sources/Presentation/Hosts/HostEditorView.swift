@@ -116,3 +116,13 @@ public struct HostEditorView: View {
         #endif
     }
 }
+
+#Preview("Host editor") {
+    NavigationStack {
+        HostEditorView(
+            viewModel: PreviewFixtures.hostsDependencies().makeEditorViewModel(PreviewFixtures.host),
+            onFinished: { _ in }
+        )
+    }
+    .withJacksshThemeAutomatic()
+}
