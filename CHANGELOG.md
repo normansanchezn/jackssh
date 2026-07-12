@@ -21,6 +21,7 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Changed
 
+- Host editor now shows password fields by default for password-based hosts and requires a password when creating a new password host.
 - Welcome, Login, and Sign Up now use constrained form panels and a regular-width product sidebar instead of stretched iPhone layouts on iPad.
 - Host persistence is now local-first: SwiftData serves existing device data even when Supabase fails, then syncs remote opportunistically.
 - Auth composition now includes biometric login use cases while keeping LocalAuthentication inside the Data layer.
@@ -31,6 +32,8 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 
 ### Fixed
 
+- SSH connection could fail with "Password not found in Keychain" because password-based hosts could be saved without exposing/capturing a password.
+- Keychain host credential keys are now centralized so save/connect/terminal/files/delete use the same password/private-key identifiers.
 - Hosts screen could show "Couldn’t load hosts" when remote Supabase sync failed, even though local hosts still existed.
 - Hosts created on one device were not available on another device using the same Supabase account.
 - Splash screen existed but was not shown during app bootstrap.
