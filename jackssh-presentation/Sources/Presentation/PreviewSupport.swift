@@ -12,6 +12,7 @@ enum PreviewFixtures {
         tags: ["production"],
         openClawConfiguration: OpenClawConfiguration(host: "127.0.0.1", port: 18789),
         favoriteRemotePath: "/var/www",
+        favoriteRemotePaths: ["/var/www", "/etc/nginx", "/srv/openclaw"],
         lastSuccessfulConnection: Date().addingTimeInterval(-3_600),
         isFavorite: true
     )
