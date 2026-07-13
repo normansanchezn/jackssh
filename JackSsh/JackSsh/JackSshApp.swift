@@ -22,7 +22,11 @@ struct JackSshApp: App {
                 hostsDependencies: composition.hostsDependencies
             )
                 // Deep links are navigational only — never destructive.
-                .onOpenURL { composition.router.handle(url: $0) }
+                .onOpenURL { url in
+                    if !composition.handleActionURL(url) {
+                        composition.router.handle(url: url)
+                    }
+                }
         }
         .modelContainer(composition.modelContainer)
     }

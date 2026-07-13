@@ -103,6 +103,32 @@ final class CompositionRoot {
         router = AppRouter()
     }
 
+    @discardableResult
+    func handleActionURL(_ url: URL) -> Bool {
+        guard url.scheme == DeepLinkParser.scheme,
+              url.host(percentEncoded: false) == "openclaw" else {
+            return false
+        }
+
+        let parts = url.pathComponents.filter { $0 != "/" }
+        guard parts.count == 2,
+              parts[0] == "stop",
+              let hostID = UUID(uuidString: parts[1]) else {
+            return false
+        }
+
+        Task { @MainActor in
+            await stopPortForwarding(hostID: hostID)
+        }
+        return true
+    }
+
+    private func stopPortForwarding(hostID: UUID) async {
+        portForwardLifecycleReporter.portForwardStopped()
+        let registeredSession = portForwardSessionRegistry.removeSession(for: hostID)
+        await registeredSession?.session.stop()
+    }
+
     // MARK: - Factories
 
     private func makeHostsDependencies() -> HostsDependencies {
