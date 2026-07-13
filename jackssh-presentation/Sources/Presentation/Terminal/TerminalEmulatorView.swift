@@ -23,6 +23,12 @@ struct TerminalEmulatorView: UIViewRepresentable {
         view.font = TerminalTheme.font()
 
         view.terminalDelegate = context.coordinator
+        view.inputView = nil
+        view.inputAccessoryView = nil
+        view.keyboardAppearance = .dark
+        view.returnKeyType = .default
+        view.inputAssistantItem.leadingBarButtonGroups = []
+        view.inputAssistantItem.trailingBarButtonGroups = []
 
         // makeUIView is @MainActor; attach synchronously. The session defaults to
         // an 80x24 PTY until SwiftTerm reports the real size via `sizeChanged`.

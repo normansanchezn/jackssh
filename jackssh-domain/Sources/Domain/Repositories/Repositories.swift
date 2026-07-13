@@ -5,6 +5,11 @@ public protocol HomeStatusRepository: Sendable {
     func currentStatus() async throws -> HomeStatus
 }
 
+/// Reads operational OpenClaw logs from the configured VPS.
+public protocol OpenClawLogRepository: Sendable {
+    func recentLogs(for host: Host, limit: Int) async throws -> [OpenClawLogEntry]
+}
+
 /// CRUD for managed hosts (non-sensitive fields). Implemented in Data over SwiftData.
 public protocol HostRepository: Sendable {
     func all() async throws -> [Host]

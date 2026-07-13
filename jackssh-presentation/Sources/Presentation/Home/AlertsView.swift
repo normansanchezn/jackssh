@@ -27,13 +27,16 @@ public struct AlertsView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .task { await viewModel.load() }
+        .refreshable {
+            await viewModel.load()
+        }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: DSSpacing.xs) {
-            Text("Clear all")
+            Text("OpenClaw")
                 .font(DSTypography.caption.weight(.semibold))
-                .foregroundStyle(theme.colors.primary600)
+                .foregroundStyle(theme.colors.textSecondary)
             Text("Alerts")
                 .font(.system(.title2, weight: .bold))
                 .foregroundStyle(theme.colors.textPrimary)
@@ -47,25 +50,35 @@ public struct AlertsView: View {
             DSGlassSurface {
                 HStack(spacing: DSSpacing.md) {
                     ProgressView()
-                    Text("Checking alerts")
+                    Text("Checking OpenClaw logs")
                         .font(DSTypography.body)
                         .foregroundStyle(theme.colors.textSecondary)
                 }
                 .padding(DSSpacing.lg)
             }
-        case let .loaded(status):
-            alertsList(events(from: status))
+        case .loaded:
+            if let error = viewModel.openClawLogsError {
+                ContentUnavailableView("OpenClaw logs unavailable", systemImage: "bell.slash", description: Text(error))
+            } else if viewModel.openClawLogs.isEmpty {
+                ContentUnavailableView(
+                    "No OpenClaw alerts",
+                    systemImage: "checkmark.circle",
+                    description: Text("Only warning and error logs are shown here.")
+                )
+            } else {
+                alertsList(viewModel.openClawLogs)
+            }
         case let .failed(error):
             ContentUnavailableView("Alerts unavailable", systemImage: "bell.slash", description: Text(error.localizedDescription))
         }
     }
 
-    private func alertsList(_ events: [ActivityEvent]) -> some View {
+    private func alertsList(_ logs: [OpenClawLogEntry]) -> some View {
         DSGlassSurface {
             VStack(spacing: 0) {
-                ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
-                    AlertRow(event: event)
-                    if index < events.count - 1 {
+                ForEach(Array(logs.enumerated()), id: \.element.id) { index, log in
+                    AlertRow(log: log)
+                    if index < logs.count - 1 {
                         Divider()
                             .overlay(theme.colors.border.opacity(0.55))
                             .padding(.leading, 20)
@@ -76,22 +89,11 @@ public struct AlertsView: View {
             .padding(.vertical, DSSpacing.sm)
         }
     }
-
-    private func events(from status: HomeStatus) -> [ActivityEvent] {
-        if !status.recentActivity.isEmpty {
-            return status.recentActivity
-        }
-        return [
-            ActivityEvent(title: "OpenClaw dashboard ready", timestamp: Date(), state: status.openClaw),
-            ActivityEvent(title: "Private network \(status.privateNetworkOnline ? "online" : "down")", timestamp: Date().addingTimeInterval(-900), state: status.privateNetworkOnline ? .online : .offline),
-            ActivityEvent(title: "VPS \(status.vps.label.lowercased())", timestamp: Date().addingTimeInterval(-1_800), state: status.vps),
-        ]
-    }
 }
 
 private struct AlertRow: View {
     @Environment(\.jacksshTheme) private var theme
-    let event: ActivityEvent
+    let log: OpenClawLogEntry
 
     var body: some View {
         HStack(alignment: .top, spacing: DSSpacing.sm) {
@@ -102,40 +104,32 @@ private struct AlertRow: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: DSSpacing.sm) {
-                    Text(event.title)
+                    Text(log.severity == .error ? "Error" : "Warning")
                         .font(DSTypography.caption.weight(.semibold))
                         .foregroundStyle(theme.colors.textPrimary)
                         .lineLimit(1)
+                    if let source = log.source {
+                        Text(source.uppercased())
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(theme.colors.textTertiary)
+                            .lineLimit(1)
+                    }
                     Spacer(minLength: DSSpacing.sm)
-                    Text(event.timestamp, style: .relative)
+                    Text(log.timestamp, style: .relative)
                         .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(theme.colors.textTertiary)
                         .lineLimit(1)
                 }
-                Text(detail)
+                Text(log.message)
                     .font(.system(size: 10))
                     .foregroundStyle(theme.colors.textSecondary)
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
         }
         .padding(.vertical, DSSpacing.sm)
     }
 
-    private var detail: String {
-        switch event.state {
-        case .online: return "Service is reachable through the configured route."
-        case .degraded: return "Service responded, but needs attention."
-        case .offline: return "Service is not reachable from this device."
-        case .unknown: return "No recent signal has been recorded."
-        }
-    }
-
     private var toneColor: Color {
-        switch event.state.tone {
-        case .positive: return theme.colors.statusConnected
-        case .warning: return theme.colors.statusPending
-        case .critical: return theme.colors.statusDisconnected
-        case .neutral: return theme.colors.textTertiary
-        }
+        log.severity == .error ? theme.colors.statusDisconnected : theme.colors.statusPending
     }
 }

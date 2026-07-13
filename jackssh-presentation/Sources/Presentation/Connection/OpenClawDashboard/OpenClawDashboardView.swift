@@ -3,7 +3,10 @@ import DesignSystem
 import WebKit
 
 public struct OpenClawDashboardView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: OpenClawDashboardViewModel
+    @State private var showsStopConfirmation = false
+    @State private var isStopping = false
 
     public init(viewModel: OpenClawDashboardViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -20,7 +23,9 @@ public struct OpenClawDashboardView: View {
                         title: viewModel.host?.name ?? "OpenClaw",
                         tunnelDescription: viewModel.tunnelDescription,
                         dashboardURL: url,
-                        authToken: viewModel.authToken
+                        authToken: viewModel.authToken,
+                        isStopping: isStopping,
+                        onStop: { showsStopConfirmation = true }
                     )
                 } else {
                     unavailableView("Dashboard URL is not available")
@@ -34,8 +39,17 @@ public struct OpenClawDashboardView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .task { await viewModel.open() }
-        .onDisappear {
-            Task { await viewModel.close() }
+        .confirmationDialog(
+            "Stop port forwarding?",
+            isPresented: $showsStopConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Stop port forwarding", role: .destructive) {
+                stopPortForwarding()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("OpenClaw will stop being reachable through this SSH bridge until you start port forwarding again.")
         }
     }
 
@@ -62,6 +76,15 @@ public struct OpenClawDashboardView: View {
             description: Text(message)
         )
     }
+
+    private func stopPortForwarding() {
+        guard !isStopping else { return }
+        isStopping = true
+        Task {
+            await viewModel.close()
+            dismiss()
+        }
+    }
 }
 
 private struct OpenClawDashboardContent: View {
@@ -69,6 +92,8 @@ private struct OpenClawDashboardContent: View {
     let tunnelDescription: String?
     let dashboardURL: URL
     let authToken: String?
+    let isStopping: Bool
+    let onStop: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -88,6 +113,19 @@ private struct OpenClawDashboardContent: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
+                Button(role: .destructive, action: onStop) {
+                    if isStopping {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+                .disabled(isStopping)
+                .accessibilityLabel("Stop port forwarding")
             }
             .padding(DSSpacing.md)
             .background(.bar)

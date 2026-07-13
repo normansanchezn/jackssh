@@ -55,6 +55,17 @@ public struct CitadelOpenClawAuthenticator: OpenClawAuthenticating {
 }
 
 enum OpenClawTokenExtractor {
+    private static let preferredJSONPaths = [
+        ["gateway", "auth", "token"],
+        ["gateway", "auth", "access_token"],
+        ["gateway", "auth", "authToken"],
+        ["gateway", "token"],
+        ["auth", "token"],
+        ["auth", "access_token"],
+        ["dashboard", "token"],
+        ["dashboard", "auth", "token"],
+    ]
+
     private static let jsonKeys = [
         "token",
         "openclaw_token",
@@ -113,18 +124,74 @@ enum OpenClawTokenExtractor {
 
     private static func tokenFromJSON(_ value: String) -> String? {
         guard let data = value.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+              let json = try? JSONSerialization.jsonObject(with: data) else {
             return nil
         }
 
-        for key in jsonKeys {
-            if let token = json[key] as? String, isUsableToken(token) {
-                return normalized(token)
+        for path in preferredJSONPaths {
+            if let token = token(at: path, in: json) {
+                return token
             }
         }
 
-        if let auth = json["authorization"] as? String,
+        if let token = tokenFromJSONObject(json) {
+            return token
+        }
+
+        if let json = json as? [String: Any],
+           let auth = json["authorization"] as? String,
            let token = tokenFromBearerHeader(auth) {
+            return token
+        }
+
+        return nil
+    }
+
+    private static func token(at path: [String], in value: Any) -> String? {
+        var current = value
+        for key in path {
+            guard let dictionary = current as? [String: Any],
+                  let next = dictionary[key] else {
+                return nil
+            }
+            current = next
+        }
+
+        if let token = current as? String, isUsableToken(token) {
+            return normalized(token)
+        }
+        return nil
+    }
+
+    private static func tokenFromJSONObject(_ value: Any) -> String? {
+        if let dictionary = value as? [String: Any] {
+            for key in jsonKeys {
+                if let token = dictionary[key] as? String, isUsableToken(token) {
+                    return normalized(token)
+                }
+                if let auth = dictionary[key] as? String,
+                   key.lowercased().contains("authorization"),
+                   let token = tokenFromBearerHeader(auth) {
+                    return token
+                }
+            }
+
+            for child in dictionary.values {
+                if let token = tokenFromJSONObject(child) {
+                    return token
+                }
+            }
+        }
+
+        if let array = value as? [Any] {
+            for child in array {
+                if let token = tokenFromJSONObject(child) {
+                    return token
+                }
+            }
+        }
+
+        if let token = value as? String, tokenFromJWT(in: token) != nil {
             return token
         }
 

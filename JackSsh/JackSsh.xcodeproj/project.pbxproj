@@ -12,6 +12,9 @@
 		CC0000000000000000000003 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000003 /* DesignSystem */; };
 		CC0000000000000000000004 /* Presentation in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000004 /* Presentation */; };
 		CC0000000000000000000005 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000005 /* Shared */; };
+		CC0000000000000000000006 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000005 /* Shared */; };
+		CC0000000000000000000007 /* JackSshPortForwardLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E10000000000000000000002 /* JackSshPortForwardLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CC0000000000000000000008 /* JackSshPacketTunnel.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* JackSshPacketTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,12 +32,43 @@
 			remoteGlobalIDString = D2703E953002DA4D00259E7A;
 			remoteInfo = JackSsh;
 		};
+		E10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D2703E8E3002DA4D00259E7A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10000000000000000000007;
+			remoteInfo = JackSshPortForwardLiveActivity;
+		};
+		F10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D2703E8E3002DA4D00259E7A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F10000000000000000000007;
+			remoteInfo = JackSshPacketTunnel;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E10000000000000000000008 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CC0000000000000000000007 /* JackSshPortForwardLiveActivity.appex in Embed App Extensions */,
+				CC0000000000000000000008 /* JackSshPacketTunnel.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		D2703E963002DA4D00259E7A /* JackSsh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JackSsh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2703EA73002DA4E00259E7A /* JackSshTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JackSshTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2703EB13002DA4E00259E7A /* JackSshUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JackSshUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E10000000000000000000002 /* JackSshPortForwardLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = JackSshPortForwardLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F10000000000000000000002 /* JackSshPacketTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = JackSshPacketTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -44,6 +78,20 @@
 				Info.plist,
 			);
 			target = D2703E953002DA4D00259E7A /* JackSsh */;
+		};
+		E1000000000000000000000D /* Exceptions for "../JackSshPortForwardLiveActivity" folder in "JackSshPortForwardLiveActivity" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E10000000000000000000007 /* JackSshPortForwardLiveActivity */;
+		};
+		F1000000000000000000000D /* Exceptions for "../JackSshPacketTunnel" folder in "JackSshPacketTunnel" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F10000000000000000000007 /* JackSshPacketTunnel */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -64,6 +112,22 @@
 		D2703EB43002DA4E00259E7A /* JackSshUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = JackSshUITests;
+			sourceTree = "<group>";
+		};
+		E10000000000000000000003 /* ../JackSshPortForwardLiveActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E1000000000000000000000D /* Exceptions for "../JackSshPortForwardLiveActivity" folder in "JackSshPortForwardLiveActivity" target */,
+			);
+			path = ../JackSshPortForwardLiveActivity;
+			sourceTree = "<group>";
+		};
+		F10000000000000000000003 /* ../JackSshPacketTunnel */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F1000000000000000000000D /* Exceptions for "../JackSshPacketTunnel" folder in "JackSshPacketTunnel" target */,
+			);
+			path = ../JackSshPacketTunnel;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -95,6 +159,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E10000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC0000000000000000000006 /* Shared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -104,6 +183,8 @@
 				D2703E983002DA4D00259E7A /* JackSsh */,
 				D2703EAA3002DA4E00259E7A /* JackSshTests */,
 				D2703EB43002DA4E00259E7A /* JackSshUITests */,
+				E10000000000000000000003 /* ../JackSshPortForwardLiveActivity */,
+				F10000000000000000000003 /* ../JackSshPacketTunnel */,
 				D2703E973002DA4D00259E7A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -114,6 +195,8 @@
 				D2703E963002DA4D00259E7A /* JackSsh.app */,
 				D2703EA73002DA4E00259E7A /* JackSshTests.xctest */,
 				D2703EB13002DA4E00259E7A /* JackSshUITests.xctest */,
+				E10000000000000000000002 /* JackSshPortForwardLiveActivity.appex */,
+				F10000000000000000000002 /* JackSshPacketTunnel.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -128,10 +211,13 @@
 				D2703E923002DA4D00259E7A /* Sources */,
 				D2703E933002DA4D00259E7A /* Frameworks */,
 				D2703E943002DA4D00259E7A /* Resources */,
+				E10000000000000000000008 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E10000000000000000000009 /* PBXTargetDependency */,
+				F10000000000000000000009 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D2703E983002DA4D00259E7A /* JackSsh */,
@@ -194,6 +280,51 @@
 			productReference = D2703EB13002DA4E00259E7A /* JackSshUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		E10000000000000000000007 /* JackSshPortForwardLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1000000000000000000000C /* Build configuration list for PBXNativeTarget "JackSshPortForwardLiveActivity" */;
+			buildPhases = (
+				E10000000000000000000005 /* Sources */,
+				E10000000000000000000004 /* Frameworks */,
+				E10000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E10000000000000000000003 /* ../JackSshPortForwardLiveActivity */,
+			);
+			name = JackSshPortForwardLiveActivity;
+			packageProductDependencies = (
+				BB0000000000000000000005 /* Shared */,
+			);
+			productName = JackSshPortForwardLiveActivity;
+			productReference = E10000000000000000000002 /* JackSshPortForwardLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		F10000000000000000000007 /* JackSshPacketTunnel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1000000000000000000000C /* Build configuration list for PBXNativeTarget "JackSshPacketTunnel" */;
+			buildPhases = (
+				F10000000000000000000005 /* Sources */,
+				F10000000000000000000004 /* Frameworks */,
+				F10000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F10000000000000000000003 /* ../JackSshPacketTunnel */,
+			);
+			name = JackSshPacketTunnel;
+			packageProductDependencies = (
+			);
+			productName = JackSshPacketTunnel;
+			productReference = F10000000000000000000002 /* JackSshPacketTunnel.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -214,6 +345,12 @@
 					D2703EB03002DA4E00259E7A = {
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = D2703E953002DA4D00259E7A;
+					};
+					E10000000000000000000007 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					F10000000000000000000007 = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -242,6 +379,8 @@
 				D2703E953002DA4D00259E7A /* JackSsh */,
 				D2703EA63002DA4E00259E7A /* JackSshTests */,
 				D2703EB03002DA4E00259E7A /* JackSshUITests */,
+				E10000000000000000000007 /* JackSshPortForwardLiveActivity */,
+				F10000000000000000000007 /* JackSshPacketTunnel */,
 			);
 		};
 /* End PBXProject section */
@@ -262,6 +401,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D2703EAF3002DA4E00259E7A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -292,6 +445,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E10000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F10000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -305,6 +472,16 @@
 			target = D2703E953002DA4D00259E7A /* JackSsh */;
 			targetProxy = D2703EB23002DA4E00259E7A /* PBXContainerItemProxy */;
 		};
+		E10000000000000000000009 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10000000000000000000007 /* JackSshPortForwardLiveActivity */;
+			targetProxy = E10000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		F10000000000000000000009 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F10000000000000000000007 /* JackSshPacketTunnel */;
+			targetProxy = F10000000000000000000001 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -313,6 +490,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JackSsh/JackSsh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WAFK7SAHVN;
@@ -373,6 +551,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = JackSsh/JackSsh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WAFK7SAHVN;
@@ -646,6 +825,132 @@
 			};
 			name = Release;
 		};
+		E1000000000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WAFK7SAHVN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../JackSshPortForwardLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.normansanchez.JackSsh.PortForwardLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E1000000000000000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WAFK7SAHVN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../JackSshPortForwardLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.normansanchez.JackSsh.PortForwardLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F1000000000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = ../JackSshPacketTunnel/JackSshPacketTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WAFK7SAHVN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../JackSshPacketTunnel/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.normansanchez.JackSsh.PacketTunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F1000000000000000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = ../JackSshPacketTunnel/JackSshPacketTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WAFK7SAHVN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../JackSshPacketTunnel/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.normansanchez.JackSsh.PacketTunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -681,6 +986,24 @@
 			buildConfigurations = (
 				D2703EC33002DA4E00259E7A /* Debug */,
 				D2703EC43002DA4E00259E7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1000000000000000000000C /* Build configuration list for PBXNativeTarget "JackSshPortForwardLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1000000000000000000000A /* Debug */,
+				E1000000000000000000000B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F1000000000000000000000C /* Build configuration list for PBXNativeTarget "JackSshPacketTunnel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1000000000000000000000A /* Debug */,
+				F1000000000000000000000B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

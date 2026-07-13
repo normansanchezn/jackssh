@@ -62,6 +62,7 @@ public struct OpenClawConfiguration: Equatable, Sendable {
       "$HOME/.openclaw/dashboard.token" \
       "/root/.openclaw/token" \
       "/root/.config/openclaw/token" \
+      "/root/openclaw/data/credentials/openclaw-secrets.json" \
       "/etc/openclaw/token" \
       "/etc/openclaw/dashboard.token" \
       "/var/lib/openclaw/token" \
@@ -94,7 +95,7 @@ public struct OpenClawConfiguration: Equatable, Sendable {
         if [ -n "$output" ]; then printf '%s\\n' "$output"; exit 0; fi
         output="$(docker exec "$container_id" sh -lc '
           emit() { v="$(printf "%s" "$1" | tr -d "\\r" | awk "NF { print; exit }")"; [ -n "$v" ] && { printf "%s\\n" "$v"; exit 0; }; }
-          for f in "$HOME/.openclaw/token" "$HOME/.config/openclaw/token" /root/.openclaw/token /root/.config/openclaw/token /etc/openclaw/token /var/lib/openclaw/token /app/.openclaw/token /app/openclaw/token /data/openclaw/token; do
+          for f in "$HOME/.openclaw/token" "$HOME/.config/openclaw/token" /root/.openclaw/token /root/.config/openclaw/token /root/openclaw/data/credentials/openclaw-secrets.json /etc/openclaw/token /var/lib/openclaw/token /app/.openclaw/token /app/openclaw/token /data/openclaw/token; do
             [ -r "$f" ] && emit "$(cat "$f" 2>/dev/null)"
           done
           for k in OPENCLAW_TOKEN OPENCLAW_AUTH_TOKEN OPENCLAW_DASHBOARD_TOKEN DASHBOARD_TOKEN AUTH_TOKEN AUTHORIZATION ACCESS_TOKEN JWT TOKEN; do

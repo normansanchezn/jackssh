@@ -61,6 +61,14 @@ public final class TerminalSession {
         Task { await channel?.send(bytes) }
     }
 
+    public func sendBytes(_ bytes: [UInt8]) {
+        Task { await channel?.send(bytes) }
+    }
+
+    public func sendText(_ text: String) {
+        sendBytes(Array(text.utf8))
+    }
+
     /// Propagate a window-size change to the remote so full-screen apps reflow.
     func resizeRemote(cols: Int, rows: Int) {
         Task { await channel?.resize(cols: cols, rows: rows) }

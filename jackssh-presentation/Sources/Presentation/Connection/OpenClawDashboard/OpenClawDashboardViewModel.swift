@@ -18,22 +18,31 @@ public final class OpenClawDashboardViewModel {
     private let loadHosts: LoadHosts
     private let openPortForward: OpenPortForward
     private let resolveAuthToken: ResolveOpenClawAuthToken
-    private var tunnelSession: PortForwardSession?
+    private let portForwardLifecycleReporter: PortForwardLifecycleReporting
+    private let sessionRegistry: PortForwardSessionRegistry
 
     public init(
         hostID: UUID,
         loadHosts: LoadHosts,
         openPortForward: OpenPortForward,
-        resolveAuthToken: ResolveOpenClawAuthToken
+        resolveAuthToken: ResolveOpenClawAuthToken,
+        portForwardLifecycleReporter: PortForwardLifecycleReporting = NoopPortForwardLifecycleReporter(),
+        sessionRegistry: PortForwardSessionRegistry = PortForwardSessionRegistry()
     ) {
         self.hostID = hostID
         self.loadHosts = loadHosts
         self.openPortForward = openPortForward
         self.resolveAuthToken = resolveAuthToken
+        self.portForwardLifecycleReporter = portForwardLifecycleReporter
+        self.sessionRegistry = sessionRegistry
     }
 
     public func open() async {
-        guard tunnelSession == nil else { return }
+        if let existingSession = sessionRegistry.session(for: hostID) {
+            restore(existingSession)
+            return
+        }
+
         uiState.status = .connectingTunnel
 
         do {
@@ -65,18 +74,36 @@ public final class OpenClawDashboardViewModel {
                 return
             }
 
-            tunnelSession = session
-            uiState.dashboardURL = Self.dashboardURL(url, authToken: authToken)
-            uiState.tunnelDescription = "\(session.endpoint.localHost):\(session.endpoint.localPort) -> \(session.endpoint.remoteHost):\(session.endpoint.remotePort)"
+            let tunnelDescription = "\(session.endpoint.localHost):\(session.endpoint.localPort) -> \(session.endpoint.remoteHost):\(session.endpoint.remotePort)"
+            let dashboardURL = Self.dashboardURL(url, authToken: authToken)
+            sessionRegistry.register(
+                RegisteredPortForwardSession(
+                    host: host,
+                    session: session,
+                    endpoint: session.endpoint,
+                    dashboardURL: dashboardURL,
+                    tunnelDescription: tunnelDescription,
+                    authToken: authToken
+                ),
+                for: hostID
+            )
+            uiState.dashboardURL = dashboardURL
+            uiState.tunnelDescription = tunnelDescription
             uiState.status = .ready
+            portForwardLifecycleReporter.portForwardStarted(
+                host: host,
+                endpoint: session.endpoint,
+                tunnelDescription: tunnelDescription
+            )
         } catch {
             fail(error.localizedDescription)
         }
     }
 
     public func close() async {
-        await tunnelSession?.stop()
-        tunnelSession = nil
+        portForwardLifecycleReporter.portForwardStopped()
+        let registeredSession = sessionRegistry.removeSession(for: hostID)
+        await registeredSession?.session.stop()
         uiState.dashboardURL = nil
         uiState.tunnelDescription = nil
         uiState.authToken = nil
@@ -88,8 +115,22 @@ public final class OpenClawDashboardViewModel {
     }
 
     private func fail(_ message: String) {
+        portForwardLifecycleReporter.portForwardStopped()
         uiState.status = .failed(message)
         effect = .showError(message)
+    }
+
+    private func restore(_ registeredSession: RegisteredPortForwardSession) {
+        uiState.host = registeredSession.host
+        uiState.dashboardURL = registeredSession.dashboardURL
+        uiState.tunnelDescription = registeredSession.tunnelDescription
+        uiState.authToken = registeredSession.authToken
+        uiState.status = .ready
+        portForwardLifecycleReporter.portForwardStarted(
+            host: registeredSession.host,
+            endpoint: registeredSession.endpoint,
+            tunnelDescription: registeredSession.tunnelDescription
+        )
     }
 
     private static func dashboardURL(_ url: URL, authToken: String?) -> URL {

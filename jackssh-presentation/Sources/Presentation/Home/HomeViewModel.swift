@@ -14,6 +14,8 @@ public final class HomeViewModel {
     public var state: ViewState { uiState.state }
     public var activeSession: ConnectedHostSession? { uiState.activeSession }
     public var hostCount: Int { uiState.hostCount }
+    public var openClawLogs: [OpenClawLogEntry] { uiState.openClawLogs }
+    public var openClawLogsError: String? { uiState.openClawLogsError }
     public var hasConfiguredHosts: Bool { uiState.hostCount > 0 }
     public var hasOpenClawForActiveSession: Bool {
         guard let activeSession else { return false }
@@ -29,15 +31,18 @@ public final class HomeViewModel {
     private let loadHomeStatus: LoadHomeStatus
     private let loadActiveSession: LoadActiveConnectionSession?
     private let loadHosts: LoadHosts?
+    private let loadOpenClawLogs: LoadOpenClawLogs?
 
     public init(
         loadHomeStatus: LoadHomeStatus,
         loadActiveSession: LoadActiveConnectionSession? = nil,
-        loadHosts: LoadHosts? = nil
+        loadHosts: LoadHosts? = nil,
+        loadOpenClawLogs: LoadOpenClawLogs? = nil
     ) {
         self.loadHomeStatus = loadHomeStatus
         self.loadActiveSession = loadActiveSession
         self.loadHosts = loadHosts
+        self.loadOpenClawLogs = loadOpenClawLogs
     }
 
     public func load() async {
@@ -55,6 +60,7 @@ public final class HomeViewModel {
                         .filter { $0.openClawConfiguration != nil }
                         .map(\.id)
                 )
+                await loadOpenClawLogsIfNeeded(hosts: hosts)
             }
         } catch let error as DomainError {
             uiState.state = .failed(error)
@@ -67,5 +73,23 @@ public final class HomeViewModel {
 
     public func clearEffect() {
         effect = .none
+    }
+
+    private func loadOpenClawLogsIfNeeded(hosts: [Domain.Host]) async {
+        uiState.openClawLogs = []
+        uiState.openClawLogsError = nil
+
+        guard let loadOpenClawLogs,
+              let activeSession,
+              let host = hosts.first(where: { $0.id == activeSession.hostID }),
+              host.openClawConfiguration != nil else {
+            return
+        }
+
+        do {
+            uiState.openClawLogs = try await loadOpenClawLogs(for: host, limit: 100)
+        } catch {
+            uiState.openClawLogsError = error.localizedDescription
+        }
     }
 }

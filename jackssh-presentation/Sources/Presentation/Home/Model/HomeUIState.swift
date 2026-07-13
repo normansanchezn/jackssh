@@ -13,6 +13,8 @@ public struct HomeUIState: Equatable {
     public var activeSession: ConnectedHostSession?
     public var hostCount: Int = 0
     public var openClawHostIDs: Set<UUID> = []
+    public var openClawLogs: [OpenClawLogEntry] = []
+    public var openClawLogsError: String?
 
     public init() {}
 }

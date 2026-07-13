@@ -35,6 +35,14 @@ private struct SessionStore: ConnectionSessionStore {
     func deactivate(hostID: UUID) async {}
 }
 
+private struct OpenClawLogsRepo: OpenClawLogRepository {
+    let logs: [OpenClawLogEntry]
+
+    func recentLogs(for host: Domain.Host, limit: Int) async throws -> [OpenClawLogEntry] {
+        logs
+    }
+}
+
 @MainActor
 @Suite("HomeViewModel")
 struct HomeViewModelTests {
@@ -85,5 +93,31 @@ struct HomeViewModelTests {
         await vm.load()
 
         #expect(vm.hasOpenClawForActiveSession)
+    }
+
+    @Test func loadsOpenClawLogsForActiveConfiguredHost() async {
+        let hostID = UUID()
+        let host = Domain.Host(
+            id: hostID,
+            name: "Production",
+            hostname: "vps.example.com",
+            username: "root",
+            openClawConfiguration: OpenClawConfiguration(host: "127.0.0.1")
+        )
+        let session = ConnectedHostSession(hostID: hostID, hostname: host.hostname, username: host.username, port: host.port)
+        let logs = [
+            OpenClawLogEntry(severity: .warning, message: "token refresh is slow", source: "openclaw"),
+            OpenClawLogEntry(severity: .error, message: "failed to reach worker", source: "openclaw-api"),
+        ]
+        let vm = HomeViewModel(
+            loadHomeStatus: LoadHomeStatus(repository: SuccessRepo(status: makeStatus())),
+            loadActiveSession: LoadActiveConnectionSession(store: SessionStore(session: session)),
+            loadHosts: LoadHosts(repository: HostsRepo(hosts: [host])),
+            loadOpenClawLogs: LoadOpenClawLogs(repository: OpenClawLogsRepo(logs: logs))
+        )
+
+        await vm.load()
+
+        #expect(vm.openClawLogs == logs)
     }
 }

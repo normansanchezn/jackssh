@@ -28,7 +28,10 @@ final class CompositionRoot {
     private let terminalConnecting: TerminalConnecting
     private let portForwarding: PortForwarding
     private let openClawAuthenticator: OpenClawAuthenticating
+    private let openClawLogRepository: OpenClawLogRepository
     private let sessionStore: ConnectionSessionStore
+    private let portForwardLifecycleReporter = SystemPortForwardLifecycleReporter()
+    private let portForwardSessionRegistry = PortForwardSessionRegistry()
 
     private(set) lazy var authViewModel: AuthViewModel = {
         AuthViewModel(
@@ -46,7 +49,8 @@ final class CompositionRoot {
         HomeViewModel(
             loadHomeStatus: LoadHomeStatus(repository: homeStatusRepository),
             loadActiveSession: LoadActiveConnectionSession(store: sessionStore),
-            loadHosts: LoadHosts(repository: hostRepository)
+            loadHosts: LoadHosts(repository: hostRepository),
+            loadOpenClawLogs: LoadOpenClawLogs(repository: openClawLogRepository)
         )
     }()
 
@@ -94,6 +98,7 @@ final class CompositionRoot {
         terminalConnecting = CitadelTerminalConnecting(secretStore: secretStore)
         portForwarding = CitadelPortForwarding(secretStore: secretStore)
         openClawAuthenticator = CitadelOpenClawAuthenticator(secretStore: secretStore)
+        openClawLogRepository = CitadelOpenClawLogRepository(secretStore: secretStore)
         sessionStore = InMemoryConnectionSessionStore()
         router = AppRouter()
     }
@@ -156,7 +161,9 @@ final class CompositionRoot {
                     hostID: hostID,
                     loadHosts: LoadHosts(repository: hostRepository),
                     openPortForward: OpenPortForward(forwarding: portForwarding),
-                    resolveAuthToken: ResolveOpenClawAuthToken(authenticator: openClawAuthenticator)
+                    resolveAuthToken: ResolveOpenClawAuthToken(authenticator: openClawAuthenticator),
+                    portForwardLifecycleReporter: portForwardLifecycleReporter,
+                    sessionRegistry: portForwardSessionRegistry
                 )
             }
         )

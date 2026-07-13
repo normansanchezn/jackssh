@@ -9,6 +9,34 @@ struct OpenClawTokenExtractorTests {
         #expect(OpenClawTokenExtractor.extract(from: output) == "dashboard-token-123456")
     }
 
+    @Test func extractsTokenFromOpenClawSecretsJSON() {
+        let output = """
+        {
+          "gateway": {
+            "auth": {
+              "token": "openclaw-gateway-token-abcdef"
+            }
+          }
+        }
+        """
+
+        #expect(OpenClawTokenExtractor.extract(from: output) == "openclaw-gateway-token-abcdef")
+    }
+
+    @Test func extractsTokenFromNestedDashboardJSON() {
+        let output = """
+        {
+          "dashboard": {
+            "auth": {
+              "token": "openclaw-dashboard-token-nested"
+            }
+          }
+        }
+        """
+
+        #expect(OpenClawTokenExtractor.extract(from: output) == "openclaw-dashboard-token-nested")
+    }
+
     @Test func skipsWarningsAndExtractsBearerToken() {
         let output = """
         Warning: container has no TTY
