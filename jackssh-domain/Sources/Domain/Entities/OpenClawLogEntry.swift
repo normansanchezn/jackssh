@@ -3,6 +3,7 @@ import Foundation
 public enum OpenClawLogSeverity: String, Equatable, Sendable {
     case error
     case warning
+    case success
 }
 
 public struct OpenClawLogEntry: Identifiable, Equatable, Sendable {

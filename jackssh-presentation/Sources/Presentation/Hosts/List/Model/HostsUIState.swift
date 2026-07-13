@@ -9,6 +9,7 @@ public struct HostsUIState: Equatable {
     }
 
     public var state: ViewState = .idle
+    public var activeSession: ConnectedHostSession?
 
     public var hosts: [Domain.Host] {
         if case let .loaded(hosts) = state { return hosts }

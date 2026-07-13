@@ -12,13 +12,20 @@ public final class HostsViewModel {
     public private(set) var uiState = HostsUIState()
     public private(set) var effect: HostsEffect = .none
     public var state: ViewState { uiState.state }
+    public var activeSession: ConnectedHostSession? { uiState.activeSession }
 
     private let loadHosts: LoadHosts
     private let deleteHost: DeleteHost
+    private let loadActiveSession: LoadActiveConnectionSession?
 
-    public init(loadHosts: LoadHosts, deleteHost: DeleteHost) {
+    public init(
+        loadHosts: LoadHosts,
+        deleteHost: DeleteHost,
+        loadActiveSession: LoadActiveConnectionSession? = nil
+    ) {
         self.loadHosts = loadHosts
         self.deleteHost = deleteHost
+        self.loadActiveSession = loadActiveSession
     }
 
     public var hosts: [Domain.Host] {
@@ -28,6 +35,7 @@ public final class HostsViewModel {
     public func load() async {
         uiState.state = .loading
         do {
+            uiState.activeSession = await loadActiveSession?()
             uiState.state = .loaded(try await loadHosts())
         } catch let error as DomainError {
             uiState.state = .failed(error)

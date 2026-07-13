@@ -27,6 +27,18 @@ private struct NoopSecretStore: SecretStore {
     func removeSecret(for key: String) async throws {}
 }
 
+private struct SessionStore: ConnectionSessionStore {
+    let session: ConnectedHostSession?
+
+    func activeSession(for hostID: UUID) async -> ConnectedHostSession? {
+        session?.hostID == hostID ? session : nil
+    }
+
+    func mostRecentActiveSession() async -> ConnectedHostSession? { session }
+    func activate(_ session: ConnectedHostSession) async {}
+    func deactivate(hostID: UUID) async {}
+}
+
 @MainActor
 @Suite("HostsViewModel")
 struct HostsViewModelTests {
@@ -55,5 +67,25 @@ struct HostsViewModelTests {
         #expect(vm.hosts.count == 1)
         await vm.delete(id: host.id)
         #expect(vm.hosts.isEmpty)
+    }
+
+    @Test func loadsActiveSession() async {
+        let host = Domain.Host(name: "VPS", hostname: "10.0.0.1", port: 22022, username: "root")
+        let session = ConnectedHostSession(
+            hostID: host.id,
+            hostname: host.hostname,
+            username: host.username,
+            port: host.port
+        )
+        let repo = FakeHostRepository(seed: [host])
+        let vm = HostsViewModel(
+            loadHosts: LoadHosts(repository: repo),
+            deleteHost: DeleteHost(repository: repo, secrets: NoopSecretStore()),
+            loadActiveSession: LoadActiveConnectionSession(store: SessionStore(session: session))
+        )
+
+        await vm.load()
+
+        #expect(vm.activeSession == session)
     }
 }

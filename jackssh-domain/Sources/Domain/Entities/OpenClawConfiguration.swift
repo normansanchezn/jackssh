@@ -37,7 +37,12 @@ public struct OpenClawConfiguration: Equatable, Sendable {
     }
 
     try_file() {
-      if [ -r "$1" ]; then emit_token "$(cat "$1" 2>/dev/null)"; fi
+      if [ -r "$1" ]; then
+        case "$1" in
+          *.json) cat "$1" 2>/dev/null; exit 0 ;;
+          *) emit_token "$(cat "$1" 2>/dev/null)" ;;
+        esac
+      fi
     }
 
     try_command() {
@@ -96,7 +101,12 @@ public struct OpenClawConfiguration: Equatable, Sendable {
         output="$(docker exec "$container_id" sh -lc '
           emit() { v="$(printf "%s" "$1" | tr -d "\\r" | awk "NF { print; exit }")"; [ -n "$v" ] && { printf "%s\\n" "$v"; exit 0; }; }
           for f in "$HOME/.openclaw/token" "$HOME/.config/openclaw/token" /root/.openclaw/token /root/.config/openclaw/token /root/openclaw/data/credentials/openclaw-secrets.json /etc/openclaw/token /var/lib/openclaw/token /app/.openclaw/token /app/openclaw/token /data/openclaw/token; do
-            [ -r "$f" ] && emit "$(cat "$f" 2>/dev/null)"
+            if [ -r "$f" ]; then
+              case "$f" in
+                *.json) cat "$f" 2>/dev/null; exit 0 ;;
+                *) emit "$(cat "$f" 2>/dev/null)" ;;
+              esac
+            fi
           done
           for k in OPENCLAW_TOKEN OPENCLAW_AUTH_TOKEN OPENCLAW_DASHBOARD_TOKEN DASHBOARD_TOKEN AUTH_TOKEN AUTHORIZATION ACCESS_TOKEN JWT TOKEN; do
             eval "v=\\${$k:-}"

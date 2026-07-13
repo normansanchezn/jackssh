@@ -1,11 +1,76 @@
 import SwiftUI
 
-/// Dark operational background used by JackSSH console screens.
+/// A full-screen background with optional grid overlay for console-style interfaces.
+///
+/// `DSBackground` creates a dark, atmospheric background with gradient effects
+/// and an optional terminal-style grid. Use it as the base layer for authentication
+/// screens, dashboards, and other full-screen views that need a professional,
+/// technical aesthetic.
+///
+/// ## Overview
+///
+/// The background combines multiple visual layers:
+/// - A solid base color from your theme
+/// - A subtle gradient for depth
+/// - An optional monospaced grid overlay
+///
+/// ## Creating a Background
+///
+/// Basic usage without grid:
+///
+/// ```swift
+/// DSBackground {
+///     // Your content here
+///     Text("Console Interface")
+/// }
+/// ```
+///
+/// With grid overlay for terminal-style screens:
+///
+/// ```swift
+/// DSBackground(showGrid: true) {
+///     // Your content here
+///     TerminalView()
+/// }
+/// ```
+///
+/// ## Styling
+///
+/// The background automatically adapts to your app's theme using the
+/// `jacksshTheme` environment value. It extends to all screen edges,
+/// ignoring safe areas to create a truly immersive experience.
+///
+/// ## Topics
+///
+/// ### Creating Backgrounds
+///
+/// - ``init(showGrid:content:)``
+///
+/// ### Related Components
+///
+/// - ``DSBackgroundElevated``
+///
 public struct DSBackground<Content: View>: View {
     @Environment(\.jacksshTheme) var theme
     private let content: () -> Content
     private let showGrid: Bool
     
+    /// Creates a background view with optional grid overlay.
+    ///
+    /// - Parameters:
+    ///   - showGrid: Whether to display the terminal-style grid overlay. Defaults to `false`.
+    ///   - content: A view builder that creates the foreground content.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// DSBackground(showGrid: true) {
+    ///     VStack {
+    ///         Text("SSH Console")
+    ///         TerminalView()
+    ///     }
+    /// }
+    /// ```
     public init(showGrid: Bool = false, @ViewBuilder content: @escaping () -> Content) {
         self.showGrid = showGrid
         self.content = content
@@ -68,12 +133,74 @@ public struct DSBackground<Content: View>: View {
     }
 }
 
+/// An elevated card-style container with Liquid Glass visual effects.
+///
+/// `DSBackgroundElevated` wraps content in a translucent, elevated surface with:
+/// - Ultra-thin material background
+/// - Gradient overlay
+/// - Luminous border highlights
+/// - Subtle shadow
+///
+/// ## Overview
+///
+/// Use elevated backgrounds to create visual hierarchy and separate content
+/// from the base background. Perfect for cards, panels, and modal content.
+///
+/// ## Creating an Elevated Background
+///
+/// ```swift
+/// DSBackgroundElevated {
+///     VStack {
+///         Text("Settings")
+///             .font(.headline)
+///         Toggle("Notifications", isOn: $enabled)
+///     }
+/// }
+/// ```
+///
+/// Custom corner radius:
+///
+/// ```swift
+/// DSBackgroundElevated(cornerRadius: 20) {
+///     // Your content
+/// }
+/// ```
+///
+/// ## Visual Design
+///
+/// The component automatically adapts its appearance based on:
+/// - Current color scheme (light or dark mode)
+/// - Theme colors from the environment
+/// - System materials for platform consistency
+///
+/// ## Topics
+///
+/// ### Creating Elevated Backgrounds
+///
+/// - ``init(cornerRadius:content:)``
+///
 public struct DSBackgroundElevated<Content: View>: View {
     @Environment(\.jacksshTheme) var theme
     @Environment(\.colorScheme) var colorScheme
     private let content: () -> Content
     private let cornerRadius: CGFloat
     
+    /// Creates an elevated background container with rounded corners.
+    ///
+    /// - Parameters:
+    ///   - cornerRadius: The corner radius for the background shape. Defaults to `12`.
+    ///   - content: A view builder that creates the foreground content.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// DSBackgroundElevated(cornerRadius: 16) {
+    ///     VStack(spacing: 12) {
+    ///         Image(systemName: "checkmark.circle.fill")
+    ///         Text("Success")
+    ///     }
+    /// }
+    /// ```
     public init(
         cornerRadius: CGFloat = 12,
         @ViewBuilder content: @escaping () -> Content

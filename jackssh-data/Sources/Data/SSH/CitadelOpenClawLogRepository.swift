@@ -59,10 +59,11 @@ public struct CitadelOpenClawLogRepository: OpenClawLogRepository {
 
           if command -v journalctl >/dev/null 2>&1; then
             journalctl -u openclaw -n \(safeLimit) --no-pager -o short-iso 2>/dev/null || true
+            journalctl -u ollama -n \(safeLimit) --no-pager -o short-iso 2>/dev/null | sed 's/^/[ollama] /' || true
           fi
 
           if command -v docker >/dev/null 2>&1; then
-            container_ids="$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' 2>/dev/null | awk 'tolower($0) ~ /openclaw/ { print $1 }')"
+            container_ids="$(docker ps --format '{{.ID}} {{.Names}} {{.Image}}' 2>/dev/null | awk 'tolower($0) ~ /(openclaw|ollama)/ { print $1 }')"
             if [ -z "$container_ids" ]; then
               container_ids="$(docker ps --format '{{.ID}}' 2>/dev/null | awk 'NR <= 20 { print }')"
             fi
@@ -71,7 +72,12 @@ public struct CitadelOpenClawLogRepository: OpenClawLogRepository {
               docker logs --tail \(safeLimit) --timestamps "$container_id" 2>&1 | sed "s/^/[$container_name] /" || true
             done
           fi
-        } | awk 'tolower($0) ~ /(error|warn|warning)/ { print }' | tail -n \(safeLimit)
+        } | awk '{
+          line=tolower($0)
+          if (line ~ /(error|fatal|panic|warn|warning)/) { print; next }
+          if (line ~ /ollama/ && line ~ /(^|[^0-9])200([^0-9]|$|")/) { print; next }
+          if (line ~ /ollama/ && line ~ /(status|status_code|code)[=: ]+200/) { print; next }
+        }' | tail -n \(safeLimit)
         """
     }
 
@@ -97,6 +103,8 @@ enum OpenClawLogParser {
             severity = .error
         } else if lowercased.contains("warning") || lowercased.contains("warn") {
             severity = .warning
+        } else if isOllamaSuccess(lowercased) {
+            severity = .success
         } else {
             return nil
         }
@@ -128,6 +136,17 @@ enum OpenClawLogParser {
         }
         return line[line.index(after: endIndex)...]
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func isOllamaSuccess(_ line: String) -> Bool {
+        guard line.contains("ollama") else { return false }
+        if line.contains("status=200") || line.contains("status:200") || line.contains("status 200") {
+            return true
+        }
+        if line.contains("status_code=200") || line.contains("status_code:200") || line.contains("code=200") {
+            return true
+        }
+        return line.range(of: #"(^|[^0-9])200([^0-9]|$)"#, options: .regularExpression) != nil
     }
 
     private static func timestamp(from line: String) -> Date? {

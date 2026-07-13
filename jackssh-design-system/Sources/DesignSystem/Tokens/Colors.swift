@@ -2,68 +2,295 @@ import SwiftUI
 
 // MARK: - Color Tokens
 
+/// A comprehensive color palette for theming your app.
+///
+/// `DSColorTokens` provides a complete set of semantic colors organized into
+/// multiple scales and categories. Use these tokens to maintain consistent
+/// color usage throughout your app and support both light and dark modes.
+///
+/// ## Overview
+///
+/// The color system is organized into several categories:
+///
+/// ### Color Scales
+/// - **Neutral**: Grayscale colors from lightest (50) to darkest (900)
+/// - **Primary**: Brand colors for primary actions and emphasis
+/// - **Secondary**: Accent colors for secondary elements
+///
+/// ### Semantic Colors
+/// - **Status**: Success, warning, error, and info states
+/// - **Surface**: Backgrounds and containers
+/// - **Text**: Typography in various emphasis levels
+///
+/// ## Usage
+///
+/// Access colors through the theme environment:
+///
+/// ```swift
+/// struct MyView: View {
+///     @Environment(\.jacksshTheme) var theme
+///
+///     var body: some View {
+///         Text("Hello")
+///             .foregroundStyle(theme.colors.textPrimary)
+///             .background(theme.colors.surface)
+///     }
+/// }
+/// ```
+///
+/// ## Color Scale Convention
+///
+/// Color scales range from 50 (lightest) to 900 (darkest):
+/// - **50-200**: Very light tints
+/// - **300-400**: Light shades
+/// - **500-600**: Main colors (most commonly used)
+/// - **700-800**: Dark shades
+/// - **900**: Very dark tones
+///
+/// In dark mode, the numerical values typically invert: what was 50 becomes
+/// darker and what was 900 becomes lighter, maintaining appropriate contrast.
+///
+/// ## Topics
+///
+/// ### Color Scales
+///
+/// - ``neutral50``
+/// - ``primary50``
+/// - ``secondary50``
+///
+/// ### Semantic Colors
+///
+/// - ``success``
+/// - ``warning``
+/// - ``error``
+/// - ``info``
+///
+/// ### Surface Colors
+///
+/// - ``background``
+/// - ``surface``
+/// - ``surfaceElevated``
+/// - ``border``
+///
+/// ### Text Colors
+///
+/// - ``textPrimary``
+/// - ``textSecondary``
+/// - ``textTertiary``
+/// - ``textInverse``
+///
+/// ### Status Colors
+///
+/// - ``statusConnected``
+/// - ``statusDisconnected``
+/// - ``statusPending``
+///
 public struct DSColorTokens: Sendable {
-    // Neutral scale (grays)
+    // MARK: - Neutral Scale
+    
+    /// Neutral color scale - Lightest shade (50).
+    ///
+    /// Use for very subtle backgrounds or the lightest possible gray.
     public let neutral50: Color
+    
+    /// Neutral color scale - Very light gray (100).
     public let neutral100: Color
+    
+    /// Neutral color scale - Light gray (200).
     public let neutral200: Color
+    
+    /// Neutral color scale - Soft gray (300).
     public let neutral300: Color
+    
+    /// Neutral color scale - Medium-light gray (400).
     public let neutral400: Color
+    
+    /// Neutral color scale - Medium gray (500).
     public let neutral500: Color
+    
+    /// Neutral color scale - Medium-dark gray (600).
     public let neutral600: Color
+    
+    /// Neutral color scale - Dark gray (700).
     public let neutral700: Color
+    
+    /// Neutral color scale - Very dark gray (800).
     public let neutral800: Color
+    
+    /// Neutral color scale - Darkest shade (900).
+    ///
+    /// Use for the deepest shadows or darkest possible gray.
     public let neutral900: Color
 
-    // Primary brand (blue)
+    // MARK: - Primary Scale
+    
+    /// Primary brand color scale - Lightest shade (50).
     public let primary50: Color
+    
+    /// Primary brand color scale - Very light (100).
     public let primary100: Color
+    
+    /// Primary brand color scale - Light (200).
     public let primary200: Color
+    
+    /// Primary brand color scale - Soft (300).
     public let primary300: Color
+    
+    /// Primary brand color scale - Medium-light (400).
     public let primary400: Color
+    
+    /// Primary brand color scale - Medium (500).
     public let primary500: Color
+    
+    /// Primary brand color (600) - The main brand color.
+    ///
+    /// This is the primary color used throughout the app for buttons,
+    /// links, and other interactive elements. Hex: `#4EACF9`
     public let primary600: Color
+    
+    /// Primary brand color scale - Dark (700).
     public let primary700: Color
+    
+    /// Primary brand color scale - Very dark (800).
     public let primary800: Color
+    
+    /// Primary brand color scale - Darkest shade (900).
     public let primary900: Color
 
-    // Secondary (teal)
+    // MARK: - Secondary Scale
+    
+    /// Secondary accent color scale - Lightest shade (50).
     public let secondary50: Color
+    
+    /// Secondary accent color scale - Very light (100).
     public let secondary100: Color
+    
+    /// Secondary accent color scale - Light (200).
     public let secondary200: Color
+    
+    /// Secondary accent color scale - Soft (300).
     public let secondary300: Color
+    
+    /// Secondary accent color scale - Medium-light (400).
     public let secondary400: Color
+    
+    /// Secondary accent color scale - Medium (500).
     public let secondary500: Color
+    
+    /// Secondary accent color (600) - Main secondary color.
     public let secondary600: Color
+    
+    /// Secondary accent color scale - Dark (700).
     public let secondary700: Color
+    
+    /// Secondary accent color scale - Very dark (800).
     public let secondary800: Color
+    
+    /// Secondary accent color scale - Darkest shade (900).
     public let secondary900: Color
 
-    // Semantic colors
+    // MARK: - Semantic Colors
+    
+    /// Color indicating successful operations or positive states.
+    ///
+    /// Use for success messages, checkmarks, and confirmations.
     public let success: Color
+    
+    /// Color indicating warnings or caution.
+    ///
+    /// Use for warning messages and alerts that need attention.
     public let warning: Color
+    
+    /// Color indicating errors or destructive actions.
+    ///
+    /// Use for error messages, failed operations, and delete actions.
     public let error: Color
+    
+    /// Color for informational messages and neutral highlights.
+    ///
+    /// Use for informational callouts and tips.
     public let info: Color
 
-    // Surface colors
+    // MARK: - Surface Colors
+    
+    /// The main background color for the app.
+    ///
+    /// Use as the base layer for most screens and views.
     public let background: Color
+    
+    /// Standard surface color for cards and containers.
+    ///
+    /// Use for cards, panels, and other content containers.
     public let surface: Color
+    
+    /// Elevated surface color with more contrast than standard surface.
+    ///
+    /// Use for modals, popovers, and elevated cards that need more emphasis.
     public let surfaceElevated: Color
+    
+    /// Border color for dividers and outlines.
+    ///
+    /// Use for separators, borders, and subtle dividing lines.
     public let border: Color
 
-    // Text colors
+    // MARK: - Text Colors
+    
+    /// Primary text color with maximum contrast.
+    ///
+    /// Use for main headings, titles, and important text content.
     public let textPrimary: Color
+    
+    /// Secondary text color with medium contrast.
+    ///
+    /// Use for body text, descriptions, and less emphasized content.
     public let textSecondary: Color
+    
+    /// Tertiary text color with minimal contrast.
+    ///
+    /// Use for captions, hints, and the least important text.
     public let textTertiary: Color
+    
+    /// Inverse text color for use on colored backgrounds.
+    ///
+    /// Use for text on buttons, badges, and other filled components.
     public let textInverse: Color
 
-    // Status specific
+    // MARK: - Status Colors
+    
+    /// Color indicating an active, connected state.
+    ///
+    /// Use for connection indicators showing successful connections.
     public let statusConnected: Color
+    
+    /// Color indicating a disconnected or inactive state.
+    ///
+    /// Use for connection indicators showing disconnection.
     public let statusDisconnected: Color
+    
+    /// Color indicating a pending or in-progress state.
+    ///
+    /// Use for connection indicators showing connecting or loading states.
     public let statusPending: Color
 }
 
 // MARK: - Light Mode Colors
+
+/// The default light mode color palette.
+///
+/// Use this palette when your app is in light mode or when you need to
+/// explicitly reference light mode colors.
+///
+/// ## Overview
+///
+/// This palette provides high contrast colors optimized for readability
+/// in well-lit environments. Background colors are light, and text colors
+/// are dark for maximum legibility.
+///
+/// Access through the theme:
+/// ```swift
+/// @Environment(\.jacksshTheme) var theme
+/// // Automatically uses lightColorTokens in light mode
+/// ```
 public let lightColorTokens = DSColorTokens(
     // Neutral
     neutral50: Color(red: 0.98, green: 0.98, blue: 0.98),
@@ -126,6 +353,24 @@ public let lightColorTokens = DSColorTokens(
 )
 
 // MARK: - Dark Mode Colors
+
+/// The default dark mode color palette.
+///
+/// Use this palette when your app is in dark mode or when you need to
+/// explicitly reference dark mode colors.
+///
+/// ## Overview
+///
+/// This palette provides optimized colors for viewing in low-light conditions.
+/// Background colors are dark, and text colors are light for comfortable
+/// nighttime viewing. Primary colors are brightened to maintain visibility
+/// against dark backgrounds.
+///
+/// Access through the theme:
+/// ```swift
+/// @Environment(\.jacksshTheme) var theme
+/// // Automatically uses darkColorTokens in dark mode
+/// ```
 public let darkColorTokens = DSColorTokens(
     // Neutral
     neutral50: Color(red: 0.025, green: 0.035, blue: 0.052),

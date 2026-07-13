@@ -110,7 +110,8 @@ final class CompositionRoot {
             makeListViewModel: { [self] in
                 HostsViewModel(
                     loadHosts: LoadHosts(repository: hostRepository),
-                    deleteHost: DeleteHost(repository: hostRepository, secrets: secretStore)
+                    deleteHost: DeleteHost(repository: hostRepository, secrets: secretStore),
+                    loadActiveSession: LoadActiveConnectionSession(store: sessionStore)
                 )
             },
             makeEditorViewModel: { [self] existing in

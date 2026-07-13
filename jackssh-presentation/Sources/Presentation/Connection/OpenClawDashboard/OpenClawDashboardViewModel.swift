@@ -66,6 +66,11 @@ public final class OpenClawDashboardViewModel {
 
             uiState.status = .preparingAuthentication
             let authToken = try await resolveAuthToken(for: host, configuration: config)
+            guard let authToken, !authToken.isEmpty else {
+                await session.stop()
+                fail("OpenClaw token was not found on the VPS. Check /root/openclaw/data/credentials/openclaw-secrets.json and gateway.auth.token.")
+                return
+            }
             uiState.authToken = authToken
 
             guard let url = session.endpoint.localURL else {
@@ -74,7 +79,7 @@ public final class OpenClawDashboardViewModel {
                 return
             }
 
-            let tunnelDescription = "\(session.endpoint.localHost):\(session.endpoint.localPort) -> \(session.endpoint.remoteHost):\(session.endpoint.remotePort)"
+            let tunnelDescription = "iPad \(session.endpoint.localHost):\(session.endpoint.localPort) -> VPS \(session.endpoint.remoteHost):\(session.endpoint.remotePort)"
             let dashboardURL = Self.dashboardURL(url, authToken: authToken)
             sessionRegistry.register(
                 RegisteredPortForwardSession(

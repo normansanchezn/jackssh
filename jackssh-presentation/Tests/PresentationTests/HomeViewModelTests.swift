@@ -108,6 +108,7 @@ struct HomeViewModelTests {
         let logs = [
             OpenClawLogEntry(severity: .warning, message: "token refresh is slow", source: "openclaw"),
             OpenClawLogEntry(severity: .error, message: "failed to reach worker", source: "openclaw-api"),
+            OpenClawLogEntry(severity: .success, message: "POST /api/generate 200", source: "ollama"),
         ]
         let vm = HomeViewModel(
             loadHomeStatus: LoadHomeStatus(repository: SuccessRepo(status: makeStatus())),

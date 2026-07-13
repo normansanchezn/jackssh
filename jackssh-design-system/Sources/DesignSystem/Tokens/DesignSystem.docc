@@ -1,0 +1,281 @@
+# JackSSH Design System
+
+A comprehensive design system for building modern SSH client interfaces with Liquid Glass aesthetics.
+
+## Overview
+
+The JackSSH Design System provides a complete set of reusable components, design tokens, and patterns for creating beautiful, consistent user interfaces. Built with SwiftUI, it embraces Apple's design principles while adding a unique technical aesthetic perfect for developer tools.
+
+## Key Features
+
+- **Liquid Glass Design**: Translucent, layered interfaces with depth and motion
+- **Dark Mode First**: Optimized for low-light coding environments
+- **Accessible**: Full Dynamic Type and VoiceOver support
+- **Modular**: Import only what you need
+- **Themeable**: Easy customization through design tokens
+
+## Core Components
+
+### Buttons
+
+``DSButton`` - Modern button with three visual styles (filled, outline, text), loading states, and full accessibility support.
+
+### Backgrounds
+
+- ``DSBackground`` - Full-screen background with optional terminal grid
+- ``DSBackgroundElevated`` - Elevated card-style container with Liquid Glass effects
+
+### Design Tokens
+
+- ``DSSpacing`` - Consistent spacing scale from 2pt to 32pt
+- ``DSRadius`` - Corner radius values for shapes
+- ``DSTypography`` - Semantic type scale with Dynamic Type
+- ``DSColorTokens`` - Comprehensive color palette with light/dark modes
+
+## Getting Started
+
+### Import the Design System
+
+```swift
+import DesignSystem
+```
+
+### Apply a Theme
+
+Wrap your app content with a theme:
+
+```swift
+ContentView()
+    .environment(\.jacksshTheme, JackSSHTheme(colorScheme: .dark))
+```
+
+### Build with Components
+
+```swift
+DSBackground(showGrid: true) {
+    VStack(spacing: DSSpacing.lg) {
+        Text("SSH Console")
+            .font(DSTypography.screenTitle)
+            .foregroundStyle(theme.colors.textPrimary)
+        
+        DSButton("Connect", 
+                 icon: "terminal.fill",
+                 style: .filled,
+                 fullWidth: true) {
+            connect()
+        }
+    }
+    .padding(DSSpacing.xl)
+}
+```
+
+## Design Principles
+
+### 1. Consistency
+
+Use design tokens (spacing, colors, typography) consistently throughout your app. Never use arbitrary values.
+
+**Good:**
+```swift
+.padding(DSSpacing.md)
+.foregroundStyle(theme.colors.textPrimary)
+```
+
+**Avoid:**
+```swift
+.padding(13)  // Magic number
+.foregroundStyle(Color.gray)  // Arbitrary color
+```
+
+### 2. Hierarchy
+
+Establish visual hierarchy through typography, spacing, and color:
+
+- **Primary actions**: Filled buttons with bold text
+- **Secondary actions**: Outline buttons with medium text
+- **Tertiary actions**: Text buttons with subtle styling
+
+### 3. Accessibility
+
+All components support:
+- Dynamic Type (text scales with user preferences)
+- High contrast modes
+- VoiceOver with descriptive labels
+- Keyboard navigation
+
+### 4. Liquid Glass Aesthetic
+
+Layer translucent materials to create depth:
+
+```swift
+DSBackgroundElevated {
+    // Content appears to float above background
+    // with soft shadows and luminous borders
+}
+```
+
+## Color System
+
+### Scales
+
+Colors are organized in scales from 50 (lightest) to 900 (darkest):
+
+- **Neutral**: Grayscale for backgrounds and borders
+- **Primary**: Brand color (#4EACF9) for key actions
+- **Secondary**: Accent color for variety
+
+### Semantic Colors
+
+Use semantic names for specific purposes:
+
+- `success` - Positive confirmations
+- `warning` - Cautions and alerts
+- `error` - Problems and destructive actions
+- `info` - Informational messages
+
+### Surface Colors
+
+- `background` - Main app background
+- `surface` - Cards and containers
+- `surfaceElevated` - Modals and popovers
+- `border` - Dividers and outlines
+
+### Text Colors
+
+- `textPrimary` - Headings and important text
+- `textSecondary` - Body text
+- `textTertiary` - Captions and hints
+- `textInverse` - Text on colored backgrounds
+
+## Spacing System
+
+Use the spacing scale to create rhythm and consistency:
+
+| Token | Value | Use Case |
+|-------|-------|----------|
+| `DSSpacing.xxs` | 2pt | Minimal gaps, icon offsets |
+| `DSSpacing.xs` | 4pt | Tight spacing |
+| `DSSpacing.sm` | 8pt | Small gaps |
+| `DSSpacing.md` | 12pt | Standard spacing ⭐ |
+| `DSSpacing.lg` | 16pt | Section spacing |
+| `DSSpacing.xl` | 24pt | Large gaps |
+| `DSSpacing.xxl` | 32pt | Maximum spacing |
+
+**Most common:** `DSSpacing.md` for general component spacing.
+
+## Typography System
+
+All typography styles scale with Dynamic Type:
+
+| Style | Base Size | Weight | Use Case |
+|-------|-----------|--------|----------|
+| `screenTitle` | Title 2 | Bold | Screen headers |
+| `sectionTitle` | Headline | Semibold | Section headers |
+| `body` | Subheadline | Regular | General text |
+| `caption` | Caption 2 | Regular | Metadata |
+| `mono` | Caption | Regular | Code snippets |
+| `monoBody` | Subheadline | Regular | Terminal output |
+
+## Best Practices
+
+### Layout
+
+1. **Use VStack/HStack with token spacing**
+   ```swift
+   VStack(spacing: DSSpacing.md) {
+       // Content
+   }
+   ```
+
+2. **Pad with token values**
+   ```swift
+   .padding(DSSpacing.xl)
+   .padding(.horizontal, DSSpacing.lg)
+   ```
+
+3. **Align to grid** (when using `DSBackground(showGrid: true)`)
+
+### Colors
+
+1. **Access through theme**
+   ```swift
+   @Environment(\.jacksshTheme) var theme
+   .foregroundStyle(theme.colors.textPrimary)
+   ```
+
+2. **Use semantic colors**
+   ```swift
+   // Good
+   .foregroundStyle(theme.colors.success)
+   
+   // Avoid
+   .foregroundStyle(.green)
+   ```
+
+3. **Support both light and dark**
+   All color tokens automatically adapt to the color scheme.
+
+### Components
+
+1. **Compose with existing components**
+   Build complex UIs from simple, reusable pieces.
+
+2. **Follow button hierarchy**
+   - One filled button (primary action)
+   - One or more outline buttons (secondary)
+   - Text buttons for tertiary actions
+
+3. **Show loading states**
+   ```swift
+   DSButton("Save", isLoading: viewModel.isSaving) {
+       viewModel.save()
+   }
+   ```
+
+## Advanced Topics
+
+### Creating Custom Themes
+
+Extend the design system with your own color palette:
+
+```swift
+let customTheme = JackSSHTheme(
+    colorScheme: .dark,
+    colors: customColorTokens
+)
+```
+
+### Terminal Grid Backgrounds
+
+Perfect for SSH client interfaces:
+
+```swift
+DSBackground(showGrid: true) {
+    TerminalView()
+}
+```
+
+The grid uses monospaced dimensions (12x18pt) to align with terminal cells.
+
+### Liquid Glass Effects
+
+Components like `DSBackgroundElevated` combine:
+- `.ultraThinMaterial` for translucency
+- Gradient overlays for depth
+- Luminous borders for emphasis
+- Subtle shadows for elevation
+
+Study the implementation to create your own Liquid Glass components.
+
+## Platform Support
+
+- ✅ iOS 17.0+
+- ✅ iPadOS 17.0+
+- ✅ macOS 14.0+
+- ✅ visionOS 1.0+
+
+## See Also
+
+- [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
+- [SF Symbols](https://developer.apple.com/sf-symbols/)
+- [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)

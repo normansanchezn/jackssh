@@ -115,6 +115,12 @@ public struct HostsListView: View {
                             .padding(.horizontal, DSSpacing.md)
                             .padding(.vertical, DSSpacing.sm)
                     }
+                    .overlay {
+                        if isConnected(host) {
+                            RoundedRectangle(cornerRadius: DSRadius.md, style: .continuous)
+                                .stroke(theme.colors.statusConnected.opacity(0.86), lineWidth: 1)
+                        }
+                    }
                 }
             }
         } else {
@@ -122,6 +128,12 @@ public struct HostsListView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(hosts.enumerated()), id: \.element.id) { index, host in
                         hostRow(host)
+                            .overlay {
+                                if isConnected(host) {
+                                    RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                                        .stroke(theme.colors.statusConnected.opacity(0.86), lineWidth: 1)
+                                }
+                            }
                         if index < hosts.count - 1 {
                             Divider()
                                 .overlay(theme.colors.border.opacity(0.5))
@@ -136,7 +148,7 @@ public struct HostsListView: View {
     }
 
     private func hostRow(_ host: Domain.Host) -> some View {
-        HostRowLabel(host: host)
+        HostRowLabel(host: host, isConnected: isConnected(host))
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .simultaneousGesture(TapGesture().onEnded {
@@ -150,6 +162,10 @@ public struct HostsListView: View {
                     pendingDeletion = host
                 }
             }
+    }
+
+    private func isConnected(_ host: Domain.Host) -> Bool {
+        viewModel.activeSession?.hostID == host.id
     }
     
     private var deletionBinding: Binding<Bool> {
@@ -183,11 +199,12 @@ private enum EditorTarget: Identifiable {
 private struct HostRowLabel: View {
     @Environment(\.jacksshTheme) private var theme
     let host: Domain.Host
+    let isConnected: Bool
     
     var body: some View {
         HStack(alignment: .center, spacing: DSSpacing.sm) {
             Circle()
-                .fill(host.isFavorite ? theme.colors.statusPending : theme.colors.statusConnected)
+                .fill(isConnected ? theme.colors.statusConnected : theme.colors.textTertiary.opacity(0.65))
                 .frame(width: 6, height: 6)
             
             VStack(alignment: .leading, spacing: DSSpacing.xs) {
@@ -195,20 +212,18 @@ private struct HostRowLabel: View {
                     .font(DSTypography.caption.weight(.semibold))
                     .foregroundStyle(theme.colors.textPrimary)
                     .lineLimit(1)
-                Text("\(host.username)@\(host.hostname):\(host.port)")
+                Text(endpointLabel)
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(theme.colors.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                Text(lastConnectionLabel)
-                    .font(.system(size: 9))
-                    .foregroundStyle(theme.colors.textTertiary)
+                if let lastConnectionLabel {
+                    Text(lastConnectionLabel)
+                        .font(.system(size: 9))
+                        .foregroundStyle(theme.colors.textTertiary)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(host.isFavorite ? "Idle" : "Connected")
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundStyle(host.isFavorite ? theme.colors.statusPending : theme.colors.statusConnected)
 
             Image(systemName: "chevron.right")
                 .font(.caption2.weight(.semibold))
@@ -221,7 +236,12 @@ private struct HostRowLabel: View {
         .accessibilityHint("Tap to connect")
     }
     
-    private var lastConnectionLabel: String {
+    private var endpointLabel: String {
+        "\(host.username)@\(host.hostname):\(String(host.port))"
+    }
+
+    private var lastConnectionLabel: String? {
+        guard !isConnected else { return nil }
         guard let date = host.lastSuccessfulConnection else { return "Not connected yet" }
         return "Last connected \(date.formatted(date: .abbreviated, time: .shortened))"
     }

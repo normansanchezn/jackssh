@@ -18,6 +18,11 @@
 		<string>_ssh._tcp</string>
 		<string>_sftp._tcp</string>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSNetworkExtensionUsageDescription</key>
 	<string>JackSsh uses network extensions to create secure tunnels for accessing remote services through SSH port forwarding.</string>
 	<key>UIBackgroundModes</key>

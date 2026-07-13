@@ -1,15 +1,88 @@
 import SwiftUI
 
-/// Button component
+/// A modern button component with Liquid Glass design and multiple visual styles.
 ///
-/// - Parameters:
-///     - title: Texto del botón.
-///     - icon: Nombre del SF Symbol opcional que aparece antes del texto.
-///     - style: Estilo visual del botón. Valores posibles son .filled, .outline y .text.
-///     - size: Tamaño del botón. Valores posibles son .small, .medium y .large.
-///     - fullWidth: Determina si el botón debe ocupar todo el ancho disponible.
-///     - isLoading: Muestra un indicador de progreso en lugar del contenido mientras está cargando.
-///     - action: Acción a ejecutar al presionar el botón. Debe ser una función que no tenga
+/// `DSButton` provides a consistent, accessible button interface across your app
+/// with support for icons, loading states, multiple sizes, and three distinct visual
+/// styles: filled, outline, and text-only. The component automatically adapts to
+/// the current theme and respects system accessibility settings.
+///
+/// ## Overview
+///
+/// Use buttons to enable users to take actions with a single tap. Choose the
+/// appropriate style based on the importance of the action:
+///
+/// - **Filled**: High-emphasis actions (primary buttons)
+/// - **Outline**: Medium-emphasis actions (secondary buttons)  
+/// - **Text**: Low-emphasis actions (tertiary buttons)
+///
+/// ## Creating a Button
+///
+/// Create a simple filled button:
+///
+/// ```swift
+/// DSButton("Sign In", icon: "arrow.right") {
+///     performSignIn()
+/// }
+/// ```
+///
+/// Create a full-width outline button:
+///
+/// ```swift
+/// DSButton("Create Account", 
+///          icon: "person.badge.plus",
+///          style: .outline,
+///          fullWidth: true) {
+///     showRegistration()
+/// }
+/// ```
+///
+/// ## Handling Loading States
+///
+/// Display a loading indicator while processing:
+///
+/// ```swift
+/// DSButton("Connect",
+///          icon: "terminal",
+///          isLoading: viewModel.isConnecting) {
+///     viewModel.connect()
+/// }
+/// ```
+///
+/// ## Button Sizes
+///
+/// Choose from three predefined sizes:
+///
+/// ```swift
+/// DSButton("Small", size: .small) { }
+/// DSButton("Medium", size: .medium) { }
+/// DSButton("Large", size: .large) { }
+/// ```
+///
+/// ## Accessibility
+///
+/// `DSButton` automatically:
+/// - Scales fonts with Dynamic Type
+/// - Provides appropriate contrast ratios
+/// - Indicates disabled states with reduced opacity
+/// - Prevents interaction when loading
+///
+/// ## Topics
+///
+/// ### Creating Buttons
+///
+/// - ``init(_:icon:style:size:fullWidth:isLoading:action:)``
+///
+/// ### Button Styles
+///
+/// - ``DSButtonStyle``
+/// - ``DSButtonSize``
+///
+/// ### Customizing Appearance
+///
+/// - ``fullWidth``
+/// - ``isLoading``
+///
 public struct DSButton: View {
     @Environment(\.jacksshTheme) var theme
     @Environment(\.isEnabled) private var isEnabled
@@ -22,6 +95,27 @@ public struct DSButton: View {
     private let isLoading: Bool
     private let action: () -> Void
     
+    /// Creates a button with the specified configuration.
+    ///
+    /// - Parameters:
+    ///   - title: The text displayed on the button.
+    ///   - icon: An optional SF Symbol name to display before the title.
+    ///   - style: The visual style of the button. Defaults to `.filled`.
+    ///   - size: The size of the button. Defaults to `.medium`.
+    ///   - fullWidth: Whether the button should expand to fill available width. Defaults to `false`.
+    ///   - isLoading: Whether to show a loading indicator instead of the button content. Defaults to `false`.
+    ///   - action: The closure to execute when the user taps the button.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// DSButton("Connect",
+    ///          icon: "terminal.fill",
+    ///          style: .filled,
+    ///          fullWidth: true) {
+    ///     print("Connecting...")
+    /// }
+    /// ```
     public init(
         _ title: String,
         icon: String? = nil,
@@ -120,24 +214,83 @@ public struct DSButton: View {
 
 // MARK: - Button Style Enum
 
-/// Estilos visuales disponibles para DSButton
+/// The visual style of a button.
+///
+/// Button styles convey hierarchy and importance in your interface:
+///
+/// - Use ``filled`` for primary actions that deserve the most emphasis
+/// - Use ``outline`` for secondary actions that need less attention
+/// - Use ``text`` for tertiary or low-priority actions
+///
+/// ## Examples
+///
+/// ```swift
+/// // Primary action - filled button
+/// DSButton("Sign In", style: .filled) {
+///     signIn()
+/// }
+///
+/// // Secondary action - outline button  
+/// DSButton("Cancel", style: .outline) {
+///     dismiss()
+/// }
+///
+/// // Tertiary action - text button
+/// DSButton("Learn More", style: .text) {
+///     showHelp()
+/// }
+/// ```
 public enum DSButtonStyle {
-    /// Botón relleno con color primario (acción principal)
+    /// A button with a solid background fill and high contrast text.
+    ///
+    /// Use filled buttons for primary actions that deserve the most emphasis
+    /// in your interface, such as "Save", "Sign In", or "Connect".
     case filled
     
-    /// Botón con borde y texto en color primario (acción secundaria)
+    /// A button with a translucent background and colored border.
+    ///
+    /// Use outline buttons for secondary actions that need less visual weight
+    /// than primary actions, such as "Cancel" or "Settings".
     case outline
     
-    /// Botón solo con texto, sin borde ni relleno (acción terciaria)
+    /// A button with no background, showing only the text and optional icon.
+    ///
+    /// Use text buttons for tertiary or low-priority actions, such as
+    /// "Learn More", "Skip", or auxiliary navigation.
     case text
 }
 
 // MARK: - Button Size Enum
 
-/// Tamaños disponibles para DSButton
+/// The size of a button, affecting padding, font size, and overall dimensions.
+///
+/// Choose a size based on the button's importance and the available space:
+///
+/// - ``small``: Compact size for toolbars or tight spaces
+/// - ``medium``: Standard size for most buttons (default)
+/// - ``large``: Prominent size for important actions
+///
+/// ## Examples
+///
+/// ```swift
+/// DSButton("Small", size: .small) { }
+/// DSButton("Medium", size: .medium) { }
+/// DSButton("Large", size: .large) { }
+/// ```
 public enum DSButtonSize {
+    /// A small button with compact padding and footnote-sized text.
+    ///
+    /// Use for toolbars, inline actions, or when space is constrained.
     case small
+    
+    /// A medium button with standard padding and body-sized text.
+    ///
+    /// This is the default size and works well for most use cases.
     case medium
+    
+    /// A large button with generous padding and title-sized text.
+    ///
+    /// Use for prominent actions or when you need extra emphasis.
     case large
     
     var font: Font {

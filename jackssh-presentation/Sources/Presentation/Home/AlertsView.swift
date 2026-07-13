@@ -50,7 +50,7 @@ public struct AlertsView: View {
             DSGlassSurface {
                 HStack(spacing: DSSpacing.md) {
                     ProgressView()
-                    Text("Checking OpenClaw logs")
+                    Text("Checking operations logs")
                         .font(DSTypography.body)
                         .foregroundStyle(theme.colors.textSecondary)
                 }
@@ -58,12 +58,12 @@ public struct AlertsView: View {
             }
         case .loaded:
             if let error = viewModel.openClawLogsError {
-                ContentUnavailableView("OpenClaw logs unavailable", systemImage: "bell.slash", description: Text(error))
+                ContentUnavailableView("Logs unavailable", systemImage: "bell.slash", description: Text(error))
             } else if viewModel.openClawLogs.isEmpty {
                 ContentUnavailableView(
-                    "No OpenClaw alerts",
+                    "No alerts",
                     systemImage: "checkmark.circle",
-                    description: Text("Only warning and error logs are shown here.")
+                    description: Text("OpenClaw warnings/errors and Ollama 200/error events appear here.")
                 )
             } else {
                 alertsList(viewModel.openClawLogs)
@@ -104,7 +104,7 @@ private struct AlertRow: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: DSSpacing.sm) {
-                    Text(log.severity == .error ? "Error" : "Warning")
+                    Text(severityLabel)
                         .font(DSTypography.caption.weight(.semibold))
                         .foregroundStyle(theme.colors.textPrimary)
                         .lineLimit(1)
@@ -130,6 +130,21 @@ private struct AlertRow: View {
     }
 
     private var toneColor: Color {
-        log.severity == .error ? theme.colors.statusDisconnected : theme.colors.statusPending
+        switch log.severity {
+        case .error:
+            theme.colors.statusDisconnected
+        case .warning:
+            theme.colors.statusPending
+        case .success:
+            theme.colors.statusConnected
+        }
+    }
+
+    private var severityLabel: String {
+        switch log.severity {
+        case .error: "Error"
+        case .warning: "Warning"
+        case .success: "OK"
+        }
     }
 }

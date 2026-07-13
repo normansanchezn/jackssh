@@ -1,24 +1,94 @@
 import SwiftUI
 
-/// Atom: rounded surface container.
+/// A rounded container with Liquid Glass styling for grouping related content.
 ///
-/// Overview: The DSCard struct creates a rounded corner container that automatically adjusts to light and dark mode using the system's material background.
-/// - Parameters:
-///   - content: A view builder closure that specifies the content to be displayed within the card.
-/// - Returns: A new instance of `DSCard`.
+/// `DSCard` provides a consistent card interface with translucent background,
+/// subtle borders, and automatic padding. Use cards to group related information
+/// and create visual hierarchy in your layouts.
 ///
-/// Example Usage:
+/// ## Overview
+///
+/// Cards are fundamental building blocks for structured layouts. They:
+/// - Contain related content
+/// - Create visual separation
+/// - Support both light and dark modes
+/// - Use Liquid Glass aesthetics
+///
+/// ## Creating a Card
+///
+/// Basic card with text content:
 ///
 /// ```swift
 /// DSCard {
-///     Text("Hello, DSCard!")
-///         .padding()
+///     VStack(alignment: .leading, spacing: 8) {
+///         Text("Server Status")
+///             .font(.headline)
+///         Text("All systems operational")
+///             .font(.caption)
+///             .foregroundStyle(.secondary)
+///     }
 /// }
 /// ```
-//
+///
+/// Card with multiple sections:
+///
+/// ```swift
+/// DSCard {
+///     VStack(spacing: DSSpacing.md) {
+///         HStack {
+///             Text("Connection")
+///             Spacer()
+///             Image(systemName: "checkmark.circle.fill")
+///                 .foregroundStyle(.green)
+///         }
+///         
+///         Divider()
+///         
+///         Text("Host: example.com")
+///             .font(.caption)
+///             .foregroundStyle(.secondary)
+///     }
+/// }
+/// ```
+///
+/// ## Layout
+///
+/// Cards automatically:
+/// - Add padding around content (`DSSpacing.lg`)
+/// - Expand to fill available width
+/// - Align content to leading edge by default
+///
+/// ## Styling
+///
+/// Cards use ``DSGlassSurface`` for consistent Liquid Glass appearance
+/// across the design system.
+///
+/// ## Topics
+///
+/// ### Creating Cards
+///
+/// - ``init(content:)``
+///
+/// ### Related Components
+///
+/// - ``DSGlassSurface``
+/// - ``DSBackgroundElevated``
+///
 public struct DSCard<Content: View>: View {
     private let content: Content
 
+    /// Creates a card container with the specified content.
+    ///
+    /// - Parameter content: A view builder closure that creates the card's content.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// DSCard {
+    ///     Text("Card content")
+    ///         .font(.headline)
+    /// }
+    /// ```
     public init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
