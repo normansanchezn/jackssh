@@ -2,6 +2,7 @@ import SwiftUI
 import DesignSystem
 
 public struct DashboardView: View {
+    @Environment(\.jacksshTheme) private var theme
     let hostID: String
 
     public init(hostID: String) {
@@ -24,7 +25,7 @@ public struct DashboardView: View {
             VStack(alignment: .center, spacing: DSSpacing.lg) {
                 Image(systemName: "globe")
                     .font(.system(size: 64))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(theme.colors.primary600)
 
                 Text("Dashboard Loading")
                     .font(DSTypography.sectionTitle)

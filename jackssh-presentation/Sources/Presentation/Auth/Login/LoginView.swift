@@ -113,24 +113,10 @@ public struct LoginView: View {
     private var passwordSignInContent: some View {
         VStack(spacing: DSSpacing.lg) {
             VStack(spacing: DSSpacing.md) {
-                TextField("Email", text: $viewModel.email)
+                DSInput("Email", text: $viewModel.email)
                     .autocorrectionDisabled()
-                    .padding(DSSpacing.md)
-                    .background(theme.colors.surfaceElevated.opacity(0.8))
-                    .cornerRadius(DSRadius.sm)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DSRadius.sm)
-                            .stroke(theme.colors.border, lineWidth: 1)
-                    )
 
-                SecureField("Password", text: $viewModel.password)
-                    .padding(DSSpacing.md)
-                    .background(theme.colors.surfaceElevated.opacity(0.8))
-                    .cornerRadius(DSRadius.sm)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: DSRadius.sm)
-                            .stroke(theme.colors.border, lineWidth: 1)
-                    )
+                DSInput("Password", text: $viewModel.password, isSecure: true)
             }
 
             DSButton(

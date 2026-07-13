@@ -85,7 +85,7 @@ public struct DSButton: View {
                 .fill(theme.colors.primary600)
                 .overlay {
                     RoundedRectangle(cornerRadius: size.cornerRadius)
-                        .fill(.thinMaterial.opacity(0.16))
+                        .fill(Color.white.opacity(0.08))
                 }
         case .outline:
             RoundedRectangle(cornerRadius: size.cornerRadius)
@@ -227,7 +227,7 @@ public enum DSButtonSize {
             VStack(spacing: DSSpacing.sm) {
                 Image(systemName: "sparkles")
                     .font(.system(size: 40))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(lightColorTokens.primary600)
                 
                 Text("Liquid Glass Design")
                     .font(.title2.bold())
@@ -366,8 +366,8 @@ public enum DSButtonSize {
             VStack(spacing: DSSpacing.md) {
                 Image(systemName: "terminal.fill")
                     .font(.system(size: 60))
-                    .foregroundStyle(.blue)
-                    .shadow(color: .blue.opacity(0.5), radius: 20)
+                    .foregroundStyle(lightColorTokens.primary600)
+                    .shadow(color: lightColorTokens.primary600.opacity(0.5), radius: 20)
                 
                 Text("JackSSH")
                     .font(.largeTitle.bold())
@@ -535,7 +535,7 @@ public enum DSButtonSize {
             // Ambient glow
             RadialGradient(
                 colors: [
-                    Color.blue.opacity(0.15),
+                    lightColorTokens.primary600.opacity(0.15),
                     Color.clear
                 ],
                 center: .topLeading,

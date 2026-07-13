@@ -3,6 +3,7 @@ import Domain
 import DesignSystem
 
 public struct ConnectionStatusView: View {
+    @Environment(\.jacksshTheme) private var theme
     let status: ConnectionStatus
 
     public init(status: ConnectionStatus) {
@@ -37,7 +38,7 @@ public struct ConnectionStatusView: View {
                 .foregroundStyle(.gray)
         case .connecting:
             ProgressView()
-                .tint(.blue)
+                .tint(theme.colors.primary600)
         case .connected:
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)

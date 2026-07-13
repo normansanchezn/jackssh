@@ -14,10 +14,10 @@ public enum DSSpacing {
 }
 
 public enum DSRadius {
-    public static let xs: CGFloat = 6
-    public static let sm: CGFloat = 8
-    public static let md: CGFloat = 10
-    public static let lg: CGFloat = 14
+    public static let xs: CGFloat = 8
+    public static let sm: CGFloat = 12
+    public static let md: CGFloat = 16
+    public static let lg: CGFloat = 20
 }
 
 /// Semantic typography. All styles are relative to Dynamic Type text styles,

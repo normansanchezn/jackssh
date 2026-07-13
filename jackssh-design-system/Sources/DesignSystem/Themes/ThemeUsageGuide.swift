@@ -66,7 +66,7 @@ import SwiftUI
 ///   - surfaceElevated: Higher elevation background
 ///   - border: Border color
 ///   - primary500: Brand blue
-///   - secondary500: Brand teal
+///   - secondary500: Brand blue accent
 ///   - success: Green (✓)
 ///   - warning: Orange (⚠)
 ///   - error: Red (✗)
@@ -76,4 +76,4 @@ import SwiftUI
 ///   - statusPending: Orange
 ///   - neutralXXX: Gray scale (50-900)
 ///   - primaryXXX: Blue scale (50-900)
-///   - secondaryXXX: Teal scale (50-900)
+///   - secondaryXXX: Blue accent scale (50-900)

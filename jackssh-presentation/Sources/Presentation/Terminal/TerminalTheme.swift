@@ -34,7 +34,7 @@ enum TerminalTheme {
 
     static let background = UIColor(red: 0x02/255, green: 0x05/255, blue: 0x0B/255, alpha: 1)
     static let foreground = UIColor(red: 0xB5/255, green: 0xC2/255, blue: 0xCA/255, alpha: 1)
-    static let cursor = UIColor(red: 0x23/255, green: 0xD5/255, blue: 0xEA/255, alpha: 1)
+    static let cursor = UIColor(red: 0x4E/255, green: 0xAC/255, blue: 0xF9/255, alpha: 1)
     static let selection = UIColor(red: 0x13/255, green: 0x31/255, blue: 0x3C/255, alpha: 1)
 
     /// Preferred monospace font. JetBrains Mono is used when its .ttf is bundled

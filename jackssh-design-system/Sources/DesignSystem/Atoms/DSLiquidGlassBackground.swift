@@ -8,6 +8,7 @@
 import SwiftUI
 
 public struct DSLiquidGlassBackground<Content: View>: View {
+    @Environment(\.jacksshTheme) private var theme
     @State private var start = UnitPoint(x: 0, y: -0.5)
     @State private var end = UnitPoint(x: 4, y: 0)
     private let content: Content
@@ -41,12 +42,12 @@ public struct DSLiquidGlassBackground<Content: View>: View {
                     // Burbujas de luz muy tenues para dar sensación de profundidad
                     ZStack {
                         Circle()
-                            .fill(Color.blue.opacity(0.1))
+                            .fill(theme.colors.primary600.opacity(0.1))
                             .blur(radius: 100)
                             .offset(x: -50, y: -100)
                         
                         Circle()
-                            .fill(Color(red: 0.0, green: 0.1, blue: 0.3).opacity(0.08))
+                            .fill(theme.colors.primary600.opacity(0.08))
                             .blur(radius: 80)
                             .offset(x: 100, y: 150)
                     }

@@ -22,11 +22,12 @@ public struct DSInput: View {
             }
         }
         .textFieldStyle(.plain)
+        .tint(theme.colors.primary600)
         .padding(DSSpacing.md)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+        .background(theme.colors.surfaceElevated.opacity(0.82), in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                .stroke(theme.colors.border.opacity(0.8), lineWidth: 1)
+                .stroke(theme.colors.border.opacity(0.9), lineWidth: 1)
         }
     }
 }

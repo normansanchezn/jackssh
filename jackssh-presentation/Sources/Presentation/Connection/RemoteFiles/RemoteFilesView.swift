@@ -164,15 +164,16 @@ public struct RemoteFilesView: View {
 }
 
 private struct RemoteFileRow: View {
+    @Environment(\.jacksshTheme) private var theme
     let file: SFTPFileInfo
 
     var body: some View {
         HStack(spacing: DSSpacing.md) {
             Image(systemName: file.isDirectory ? "folder.fill" : "doc")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(file.isDirectory ? Color.cyan : .secondary)
+                .foregroundStyle(file.isDirectory ? theme.colors.primary600 : theme.colors.textSecondary)
                 .frame(width: 22, height: 22)
-                .background((file.isDirectory ? Color.cyan : Color.gray).opacity(0.12), in: RoundedRectangle(cornerRadius: DSRadius.xs))
+                .background((file.isDirectory ? theme.colors.primary600 : theme.colors.textTertiary).opacity(0.12), in: RoundedRectangle(cornerRadius: DSRadius.xs))
             VStack(alignment: .leading, spacing: DSSpacing.xxs) {
                 Text(file.name)
                     .font(DSTypography.caption.weight(.semibold))

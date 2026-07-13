@@ -72,22 +72,22 @@ struct AuthAdaptiveLayout<Content: View>: View {
         .padding(.horizontal, DSSpacing.xxl)
         .padding(.vertical, DSSpacing.xxl)
         .frame(maxWidth: 460, alignment: .leading)
-        .background(theme.colors.surface.opacity(0.82), in: RoundedRectangle(cornerRadius: DSRadius.md, style: .continuous))
+        .background(theme.colors.surface.opacity(0.82), in: RoundedRectangle(cornerRadius: DSRadius.lg, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: DSRadius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: DSRadius.lg, style: .continuous)
                 .stroke(theme.colors.border, lineWidth: 1)
         }
     }
 
     private var header: some View {
         VStack(alignment: horizontalSizeClass == .regular ? .leading : .center, spacing: DSSpacing.md) {
-            Image("logo_jack_ssh", bundle: .module)
-                
-                .resizable()
-                .frame(maxWidth: .infinity, alignment: .center)
-                .aspectRatio(contentMode: .fit)
-
-                .padding()
+            if horizontalSizeClass != .regular {
+                Image("logo_jack_ssh", bundle: .module)
+                    .resizable()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .aspectRatio(contentMode: .fit)
+                    .padding()
+            }
 
             VStack(alignment: horizontalSizeClass == .regular ? .leading : .center, spacing: DSSpacing.xs) {
                 Text(title)
@@ -118,12 +118,15 @@ struct AuthAdaptiveLayout<Content: View>: View {
     private var sidePanel: some View {
         VStack(alignment: .leading, spacing: DSSpacing.xxl) {
             VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                Text("JackSSH")
-                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    .foregroundStyle(theme.colors.textPrimary)
+                Image("logo_jack_ssh", bundle: .module)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220)
+                    .padding(.bottom, DSSpacing.xs)
+
                 Text("Private OPS console")
-                    .font(DSTypography.body)
-                    .foregroundStyle(theme.colors.textSecondary)
+                    .font(.system(.title2, design: .rounded, weight: .bold))
+                    .foregroundStyle(theme.colors.textPrimary)
             }
 
             VStack(alignment: .leading, spacing: DSSpacing.md) {
