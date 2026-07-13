@@ -37,7 +37,8 @@ public struct RootView: View {
                             IPadAppShell(
                                 router: router,
                                 homeViewModel: homeViewModel,
-                                hostsDependencies: hostsDependencies
+                                hostsDependencies: hostsDependencies,
+                                dashboardTitle: dashboardTitle
                             ) {
                                 await authViewModel.logout()
                             }
@@ -46,7 +47,8 @@ public struct RootView: View {
                             CompactAppShell(
                                 router: router,
                                 homeViewModel: homeViewModel,
-                                hostsDependencies: hostsDependencies
+                                hostsDependencies: hostsDependencies,
+                                dashboardTitle: dashboardTitle
                             ) {
                                 await authViewModel.logout()
                             }
@@ -75,22 +77,37 @@ public struct RootView: View {
     private func sleepForSplash() async {
         try? await Task.sleep(for: .milliseconds(950))
     }
+
+    private var dashboardTitle: String {
+        if case let .authenticated(user) = authViewModel.authState {
+            let name = user.displayName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return name.isEmpty ? "Gest test" : name
+        }
+        return "Gest test"
+    }
 }
 
 private enum IPadSidebarSelection: Hashable {
     case dashboard
     case hosts
+    case terminal
+    case files
+    case alerts
 }
 
 private struct CompactAppShell: View {
     @Bindable var router: AppRouter
+    @State private var isAddHostSheetPresented = false
     let homeViewModel: HomeViewModel
     let hostsDependencies: HostsDependencies
+    let dashboardTitle: String
     let onLogout: () async -> Void
 
     var body: some View {
         NavigationStack(path: $router.path) {
-            HomeView(viewModel: homeViewModel, router: router) {
+            HomeView(viewModel: homeViewModel, router: router, dashboardTitle: dashboardTitle) {
+                isAddHostSheetPresented = true
+            } onLogout: {
                 await onLogout()
             }
             .environment(router)
@@ -108,31 +125,44 @@ private struct CompactAppShell: View {
                 .padding(.horizontal, 22)
                 .padding(.bottom, 8)
         }
+        .sheet(isPresented: $isAddHostSheetPresented) {
+            NavigationStack {
+                HostEditorView(viewModel: hostsDependencies.makeEditorViewModel(nil)) { saved in
+                    isAddHostSheetPresented = false
+                    if saved {
+                        Task { await homeViewModel.load() }
+                    }
+                }
+            }
+        }
     }
 
     private var navItems: [DSBottomNavItem] {
-        let session = homeViewModel.activeSession
-        return [
-            DSBottomNavItem(id: "home", title: "Home", systemImage: "square.grid.2x2") {
+        var items = [
+            DSBottomNavItem(id: "home", title: "Dashboard", systemImage: "square.grid.2x2") {
                 router.popToRoot()
-            },
+            }
+        ]
+
+        guard let session = homeViewModel.activeSession else {
+            return items
+        }
+
+        items.append(contentsOf: [
             DSBottomNavItem(id: "hosts", title: "Hosts", systemImage: "server.rack") {
                 router.path = [.hosts]
             },
-            DSBottomNavItem(id: "shell", title: "Shell", systemImage: "terminal", isEnabled: session != nil) {
-                if let session {
-                    router.path = [.terminal(hostID: session.hostID.uuidString)]
-                }
+            DSBottomNavItem(id: "shell", title: "Shell", systemImage: "terminal") {
+                router.path = [.terminal(hostID: session.hostID.uuidString)]
             },
-            DSBottomNavItem(id: "files", title: "Files", systemImage: "folder", isEnabled: session != nil) {
-                if let session {
-                    router.path = [.files(hostID: session.hostID.uuidString, path: "/")]
-                }
+            DSBottomNavItem(id: "files", title: "Files", systemImage: "folder") {
+                router.path = [.files(hostID: session.hostID.uuidString, path: "/")]
             },
             DSBottomNavItem(id: "alerts", title: "Alerts", systemImage: "bell", badgeCount: 2) {
                 router.path = [.alerts]
             },
-        ]
+        ])
+        return items
     }
 
     private var selectedID: String {
@@ -156,38 +186,57 @@ private struct IPadAppShell: View {
     @Environment(\.jacksshTheme) private var theme
     @State private var selection: IPadSidebarSelection? = .dashboard
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var isLogoutConfirmationPresented = false
 
     @Bindable var router: AppRouter
     let homeViewModel: HomeViewModel
     let hostsDependencies: HostsDependencies
+    let dashboardTitle: String
     let onLogout: () async -> Void
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $selection) {
-                Section("Operations") {
-                    Label("Dashboard", systemImage: "gauge.with.dots.needle.67percent")
-                        .tag(IPadSidebarSelection.dashboard)
-                    Label("Hosts", systemImage: "server.rack")
-                        .tag(IPadSidebarSelection.hosts)
-                }
-            }
-            .navigationTitle("JackSSH")
-            .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button(role: .destructive) {
-                            Task { await onLogout() }
-                        } label: {
-                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
-                        }
-                    } label: {
-                        Image(systemName: "person.crop.circle")
+            VStack(alignment: .leading, spacing: DSSpacing.lg) {
+                Image("logo_jack_ssh", bundle: .module)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 112)
+                    .padding(.top, DSSpacing.md)
+
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                    sidebarButton(.dashboard, title: "Dashboard", systemImage: "gauge.with.dots.needle.67percent")
+
+                    if homeViewModel.activeSession != nil {
+                        sidebarButton(.hosts, title: "Hosts", systemImage: "server.rack")
+                        sidebarButton(.terminal, title: "Terminal", systemImage: "terminal")
+                        sidebarButton(.files, title: "Explorador", systemImage: "folder")
+                        sidebarButton(.alerts, title: "Notificaciones", systemImage: "bell")
                     }
-                    .accessibilityLabel("Account options")
                 }
+
+                Spacer()
+
+                Button(role: .destructive) {
+                    isLogoutConfirmationPresented = true
+                } label: {
+                    Label("Cerrar sesión", systemImage: "rectangle.portrait.and.arrow.right")
+                        .font(DSTypography.caption.weight(.semibold))
+                        .foregroundStyle(theme.colors.statusDisconnected)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, DSSpacing.md)
+                        .padding(.vertical, DSSpacing.sm)
+                        .background(theme.colors.statusDisconnected.opacity(0.12), in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                                .stroke(theme.colors.statusDisconnected.opacity(0.35), lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, DSSpacing.lg)
+            .padding(.bottom, DSSpacing.lg)
+            .background(theme.colors.background)
+            .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
         } detail: {
             NavigationStack(path: $router.path) {
                 selectedRoot
@@ -207,6 +256,45 @@ private struct IPadAppShell: View {
                 selection = .hosts
             }
         }
+        .onChange(of: homeViewModel.activeSession) { _, session in
+            if session == nil, selection != .dashboard {
+                selection = .dashboard
+                router.popToRoot()
+            }
+        }
+        .confirmationDialog(
+            "¿Cerrar sesión?",
+            isPresented: $isLogoutConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Cerrar sesión", role: .destructive) {
+                Task { await onLogout() }
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Se cerrará tu sesión de JackSSH en este dispositivo.")
+        }
+    }
+
+    private func sidebarButton(_ item: IPadSidebarSelection, title: String, systemImage: String) -> some View {
+        Button {
+            selection = item
+            router.popToRoot()
+        } label: {
+            Label(title, systemImage: systemImage)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(selection == item ? theme.colors.primary600 : theme.colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, DSSpacing.sm)
+                .padding(.vertical, 9)
+                .background {
+                    if selection == item {
+                        RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                            .fill(theme.colors.primary600.opacity(0.14))
+                    }
+                }
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -216,11 +304,29 @@ private struct IPadAppShell: View {
             HomeView(
                 viewModel: homeViewModel,
                 router: router,
+                dashboardTitle: dashboardTitle,
                 showsAccountMenu: false,
                 onLogout: onLogout
             )
         case .hosts:
             HostsListView(dependencies: hostsDependencies)
+        case .terminal:
+            if let session = homeViewModel.activeSession {
+                TerminalView(hostID: session.hostID.uuidString, dependencies: hostsDependencies)
+            } else {
+                HomeView(viewModel: homeViewModel, router: router, dashboardTitle: dashboardTitle, showsAccountMenu: false, onLogout: onLogout)
+            }
+        case .files:
+            if let session = homeViewModel.activeSession {
+                RemoteFilesView(
+                    viewModel: hostsDependencies.makeRemoteFilesViewModel(session.hostID, "/"),
+                    terminalViewModel: hostsDependencies.makeTerminalViewModel(session.hostID)
+                )
+            } else {
+                HomeView(viewModel: homeViewModel, router: router, dashboardTitle: dashboardTitle, showsAccountMenu: false, onLogout: onLogout)
+            }
+        case .alerts:
+            AlertsView(viewModel: homeViewModel)
         }
     }
 }

@@ -30,6 +30,7 @@ public struct SignUpView: View {
                 .foregroundStyle(theme.colors.primary600)
 
                 VStack(spacing: DSSpacing.md) {
+                    DSInput("Name", text: $viewModel.displayName)
                     DSInput("Email", text: $viewModel.email)
                     DSInput("Password", text: $viewModel.password, isSecure: true)
                     DSInput("Confirm Password", text: $viewModel.confirmPassword, isSecure: true)

@@ -45,7 +45,8 @@ final class CompositionRoot {
     private(set) lazy var homeViewModel: HomeViewModel = {
         HomeViewModel(
             loadHomeStatus: LoadHomeStatus(repository: homeStatusRepository),
-            loadActiveSession: LoadActiveConnectionSession(store: sessionStore)
+            loadActiveSession: LoadActiveConnectionSession(store: sessionStore),
+            loadHosts: LoadHosts(repository: hostRepository)
         )
     }()
 

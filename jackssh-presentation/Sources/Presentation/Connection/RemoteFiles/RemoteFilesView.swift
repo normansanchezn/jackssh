@@ -17,9 +17,15 @@ public struct RemoteFilesView: View {
         DSBackground(showGrid: true) {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: DSSpacing.md) {
-                    Text("Files")
-                        .font(.system(.title2, weight: .bold))
-                        .foregroundStyle(.primary)
+                    HStack(alignment: .center) {
+                        Text("Files")
+                            .font(.system(.title2, weight: .bold))
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        terminalToggleButton
+                    }
                     directoryHeader
                 }
                 .padding(.horizontal, DSSpacing.lg)
@@ -38,21 +44,6 @@ public struct RemoteFilesView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    if isTerminalVisible {
-                        isTerminalVisible = false
-                    } else {
-                        terminalViewModel.prepareEmbeddedTerminal(startupDirectory: viewModel.path)
-                        isTerminalVisible = true
-                    }
-                } label: {
-                    Image(systemName: isTerminalVisible ? "terminal.fill" : "terminal")
-                }
-                .accessibilityLabel(isTerminalVisible ? "Hide terminal" : "Show terminal")
-            }
-        }
         .sheet(item: codeFileBinding) { codeFile in
             NavigationStack {
                 CodeFileViewer(codeFile: codeFile)
@@ -69,6 +60,25 @@ public struct RemoteFilesView: View {
             Text(viewModel.fileLoadError ?? "Unknown error")
         }
         .task { await viewModel.load() }
+    }
+
+    private var terminalToggleButton: some View {
+        Button {
+            if isTerminalVisible {
+                isTerminalVisible = false
+            } else {
+                terminalViewModel.prepareEmbeddedTerminal(startupDirectory: viewModel.path)
+                isTerminalVisible = true
+            }
+        } label: {
+            Image(systemName: isTerminalVisible ? "terminal.fill" : "terminal")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(isTerminalVisible ? .primary : .secondary)
+                .frame(width: 36, height: 36)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isTerminalVisible ? "Hide terminal" : "Show terminal")
     }
 
     private var directoryHeader: some View {

@@ -17,16 +17,16 @@ public struct DSMetricTile: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: DSSpacing.xs) {
             Text(value)
-                .font(.system(.title3, design: .monospaced, weight: .semibold))
+                .font(.system(.title2, design: .monospaced, weight: .semibold))
                 .foregroundStyle(toneColor)
                 .lineLimit(1)
             Text(label)
-                .font(DSTypography.caption.weight(.semibold))
+                .font(.system(.footnote, design: .default, weight: .semibold))
                 .foregroundStyle(theme.colors.textPrimary)
                 .lineLimit(1)
             Text(caption)
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(theme.colors.textTertiary)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(theme.colors.textSecondary)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -74,20 +74,20 @@ public struct DSOpsStatusRow: View {
     public var body: some View {
         HStack(spacing: DSSpacing.sm) {
             Image(systemName: systemImage)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(toneColor)
-                .frame(width: 24, height: 24)
+                .frame(width: 30, height: 30)
                 .background(toneColor.opacity(0.13), in: RoundedRectangle(cornerRadius: DSRadius.xs, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(DSTypography.caption.weight(.semibold))
+                    .font(.system(.subheadline, design: .default, weight: .semibold))
                     .foregroundStyle(theme.colors.textPrimary)
                     .lineLimit(1)
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(theme.colors.textTertiary)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(theme.colors.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -98,9 +98,9 @@ public struct DSOpsStatusRow: View {
             HStack(spacing: DSSpacing.xs) {
                 Circle()
                     .fill(toneColor)
-                    .frame(width: 5, height: 5)
+                    .frame(width: 6, height: 6)
                 Text(statusLabel)
-                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
                     .foregroundStyle(toneColor)
                     .lineLimit(1)
             }
@@ -163,8 +163,8 @@ public struct DSFloatingBottomNav: View {
                     VStack(spacing: 2) {
                         ZStack(alignment: .topTrailing) {
                             Image(systemName: item.systemImage)
-                                .font(.system(size: 14, weight: .semibold))
-                                .frame(width: 36, height: 28)
+                                .font(.system(size: 17, weight: .semibold))
+                                .frame(width: 40, height: 30)
                             if item.badgeCount > 0 {
                                 Text("\(item.badgeCount)")
                                     .font(.system(size: 8, weight: .bold))
@@ -175,8 +175,9 @@ public struct DSFloatingBottomNav: View {
                             }
                         }
                         Text(item.title)
-                            .font(.system(size: 8, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                             .lineLimit(1)
+                            .minimumScaleFactor(0.82)
                     }
                     .foregroundStyle(item.id == selectedID ? theme.colors.primary600 : theme.colors.textTertiary)
                     .frame(maxWidth: .infinity)
@@ -199,7 +200,7 @@ public struct DSFloatingBottomNav: View {
             }
         }
         .padding(.horizontal, DSSpacing.sm)
-        .padding(.vertical, DSSpacing.xs)
+        .padding(.vertical, DSSpacing.sm)
         .background(theme.colors.surface.opacity(0.86), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)

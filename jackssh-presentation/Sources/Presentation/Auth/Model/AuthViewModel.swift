@@ -13,6 +13,10 @@ public final class AuthViewModel {
         get { uiState.email }
         set { uiState.email = newValue }
     }
+    public var displayName: String {
+        get { uiState.displayName }
+        set { uiState.displayName = newValue }
+    }
     public var password: String {
         get { uiState.password }
         set { uiState.password = newValue }
@@ -170,7 +174,7 @@ public final class AuthViewModel {
         defer { uiState.isLoading = false }
 
         do {
-            let user = try await signUp(email: email, password: password)
+            let user = try await signUp(email: email, password: password, displayName: displayName.trimmedNonEmpty)
             uiState.authState = .authenticated(user)
             effect = .authenticated(user)
         } catch {
@@ -185,6 +189,7 @@ public final class AuthViewModel {
             try await signOut()
             uiState.authState = .unauthenticated
             uiState.email = ""
+            uiState.displayName = ""
             uiState.password = ""
             uiState.confirmPassword = ""
             effect = .signedOut
@@ -215,5 +220,12 @@ public final class AuthViewModel {
     private func completeAuthentication(with user: User) {
         uiState.authState = .authenticated(user)
         effect = .authenticated(user)
+    }
+}
+
+private extension String {
+    var trimmedNonEmpty: String? {
+        let value = trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
     }
 }

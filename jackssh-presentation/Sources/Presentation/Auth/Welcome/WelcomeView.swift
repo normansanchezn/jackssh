@@ -49,30 +49,41 @@ public struct WelcomeView: View {
 
 struct _WelcomeContent: View {
     @Environment(\.jacksshTheme) var theme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @ObservedObject var viewModel: WelcomeViewModel
     let onSignIn: () -> Void
     let onSignUp: () -> Void
     
     var body: some View {
-        AuthAdaptiveLayout(
-            title: viewModel.uiState.title,
-            subtitle: viewModel.uiState.subtitle
-        ) {}
-        .safeAreaInset(
-            edge: .bottom,
-            content: {
+        welcomeLayout
+            .overlay {
+                if viewModel.uiState.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black.opacity(0.2))
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var welcomeLayout: some View {
+        if horizontalSizeClass == .regular {
+            AuthAdaptiveLayout(
+                title: viewModel.uiState.title,
+                subtitle: viewModel.uiState.subtitle
+            ) {
+                authButtons()
+            }
+        } else {
+            AuthAdaptiveLayout(
+                title: viewModel.uiState.title,
+                subtitle: viewModel.uiState.subtitle
+            ) {}
+            .safeAreaInset(edge: .bottom) {
                 authButtons()
                     .padding(.horizontal, DSSpacing.md)
                     .padding(.vertical, DSSpacing.md)
-            }
-        )
-        
-        .overlay {
-            if viewModel.uiState.isLoading {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.2))
             }
         }
     }
@@ -81,7 +92,6 @@ struct _WelcomeContent: View {
         VStack {
             DSButton(
                 viewModel.uiState.signInButtonText,
-                icon: "arrow.right.circle.fill",
                 style: .filled,
                 fullWidth: true
             ) {
@@ -91,7 +101,6 @@ struct _WelcomeContent: View {
             
             DSButton(
                 viewModel.uiState.signUpButtonText,
-                icon: "person.badge.plus",
                 style: .outline,
                 fullWidth: true
             ) {

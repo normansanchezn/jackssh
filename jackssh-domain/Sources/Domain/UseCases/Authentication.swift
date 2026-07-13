@@ -21,8 +21,8 @@ public struct SignUp: Sendable {
         self.repository = repository
     }
 
-    public func callAsFunction(email: String, password: String) async throws -> User {
-        try await repository.signUp(email: email, password: password)
+    public func callAsFunction(email: String, password: String, displayName: String?) async throws -> User {
+        try await repository.signUp(email: email, password: password, displayName: displayName)
     }
 }
 

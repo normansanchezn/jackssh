@@ -10,18 +10,24 @@ public struct HomeView: View {
     @Environment(\.jacksshTheme) private var theme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let router: AppRouter
+    private let dashboardTitle: String
     private let onLogout: () async -> Void
+    private let onAddHost: () -> Void
     private let showsAccountMenu: Bool
     
     public init(
         viewModel: HomeViewModel,
         router: AppRouter,
+        dashboardTitle: String = "Gest test",
         showsAccountMenu: Bool = true,
+        onAddHost: @escaping () -> Void = {},
         onLogout: @escaping () async -> Void = {}
     ) {
         _viewModel = State(initialValue: viewModel)
         self.router = router
+        self.dashboardTitle = dashboardTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Gest test" : dashboardTitle
         self.showsAccountMenu = showsAccountMenu
+        self.onAddHost = onAddHost
         self.onLogout = onLogout
     }
     
@@ -29,10 +35,10 @@ public struct HomeView: View {
         DSBackground(showGrid: true) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DSSpacing.lg) {
-                    Text("JackSSH")
-                        .font(.system(.title2, weight: .bold))
+                    Text(dashboardTitle)
+                        .font(.system(.title, weight: .bold))
                         .foregroundStyle(theme.colors.textPrimary)
-                        .padding(.top, DSSpacing.md)
+                        .padding(.top, horizontalSizeClass == .regular ? DSSpacing.xl : DSSpacing.lg)
 
                     switch viewModel.state {
                     case .idle, .loading:
@@ -57,7 +63,16 @@ public struct HomeView: View {
             Task { await viewModel.load() }
         }
         .toolbar {
-            if showsAccountMenu {
+            if shouldShowCompactAddHostButton {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        onAddHost()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add host")
+                }
+            } else if showsAccountMenu {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(role: .destructive) {
@@ -73,6 +88,10 @@ public struct HomeView: View {
             }
         }
     }
+
+    private var shouldShowCompactAddHostButton: Bool {
+        horizontalSizeClass != .regular && viewModel.shouldOfferHostCreation
+    }
     
     private var loadingView: some View {
         DSGlassSurface {
@@ -86,13 +105,13 @@ public struct HomeView: View {
     }
     
     private func loadedView(_ status: HomeStatus) -> some View {
-        VStack(alignment: .leading, spacing: DSSpacing.lg) {
+        VStack(alignment: .leading, spacing: DSSpacing.xl) {
             metrics(status)
             statusSection(status)
             manageHostsCard(activeSession: viewModel.activeSession)
             recentActivity(status.recentActivity)
         }
-        .frame(maxWidth: horizontalSizeClass == .regular ? 780 : .infinity, alignment: .leading)
+        .frame(maxWidth: horizontalSizeClass == .regular ? 860 : .infinity, alignment: .leading)
     }
 
     private func metrics(_ status: HomeStatus) -> some View {
@@ -106,8 +125,8 @@ public struct HomeView: View {
     private func statusSection(_ status: HomeStatus) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.md) {
             Text("INFRASTRUCTURE")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(theme.colors.textTertiary)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(theme.colors.textSecondary)
                 .accessibilityAddTraits(.isHeader)
             
             DSGlassSurface {
@@ -153,8 +172,8 @@ public struct HomeView: View {
         } label: {
             VStack(alignment: .leading, spacing: DSSpacing.md) {
                 Text("HOSTS")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(theme.colors.textTertiary)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(theme.colors.textSecondary)
 
                 DSOpsStatusRow(
                     systemImage: "server.rack",
@@ -175,8 +194,8 @@ public struct HomeView: View {
     private func recentActivity(_ events: [ActivityEvent]) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.md) {
             Text("RECENT")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(theme.colors.textTertiary)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(theme.colors.textSecondary)
 
             DSGlassSurface {
                 VStack(alignment: .leading, spacing: DSSpacing.sm) {
@@ -191,7 +210,7 @@ public struct HomeView: View {
                     }
                     if events.isEmpty {
                         Text("No alerts recorded")
-                            .font(DSTypography.caption)
+                            .font(.system(.footnote, design: .default))
                             .foregroundStyle(theme.colors.textSecondary)
                             .padding(DSSpacing.md)
                     }

@@ -14,7 +14,7 @@ public struct DSBackground<Content: View>: View {
     public var body: some View {
         ZStack {
             theme.colors.background
-                .ignoresSafeArea()
+                .ignoresSafeArea(.container)
 
             LinearGradient(
                 colors: [
@@ -25,7 +25,7 @@ public struct DSBackground<Content: View>: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .ignoresSafeArea()
+            .ignoresSafeArea(.container)
 
             if showGrid {
                 Canvas { context, size in
@@ -60,7 +60,7 @@ public struct DSBackground<Content: View>: View {
                 }
                 .opacity(0.45)
                 .blendMode(.overlay)
-                .ignoresSafeArea()
+                .ignoresSafeArea(.container)
             }
 
             content()

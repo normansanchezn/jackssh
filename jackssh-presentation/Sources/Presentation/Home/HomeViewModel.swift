@@ -13,16 +13,26 @@ public final class HomeViewModel {
     public private(set) var effect: HomeEffect = .none
     public var state: ViewState { uiState.state }
     public var activeSession: ConnectedHostSession? { uiState.activeSession }
+    public var hasConfiguredHosts: Bool { uiState.hostCount > 0 }
+    public var shouldOfferHostCreation: Bool {
+        if case .loaded = uiState.state {
+            return uiState.hostCount == 0
+        }
+        return false
+    }
 
     private let loadHomeStatus: LoadHomeStatus
     private let loadActiveSession: LoadActiveConnectionSession?
+    private let loadHosts: LoadHosts?
 
     public init(
         loadHomeStatus: LoadHomeStatus,
-        loadActiveSession: LoadActiveConnectionSession? = nil
+        loadActiveSession: LoadActiveConnectionSession? = nil,
+        loadHosts: LoadHosts? = nil
     ) {
         self.loadHomeStatus = loadHomeStatus
         self.loadActiveSession = loadActiveSession
+        self.loadHosts = loadHosts
     }
 
     public func load() async {
@@ -30,8 +40,10 @@ public final class HomeViewModel {
         do {
             async let status = loadHomeStatus()
             async let session = loadActiveSession?()
+            async let hosts = loadHosts?()
             uiState.state = .loaded(try await status)
             uiState.activeSession = await session
+            uiState.hostCount = (try? await hosts)?.count ?? uiState.hostCount
         } catch let error as DomainError {
             uiState.state = .failed(error)
             effect = .showError(error.localizedDescription)

@@ -15,9 +15,13 @@ public struct SupabaseAuthService: Sendable {
         self.session = session
     }
 
-    func signUp(email: String, password: String) async throws -> SupabaseAuthSessionDTO? {
+    func signUp(email: String, password: String, displayName: String?) async throws -> SupabaseAuthSessionDTO? {
         let endpoint = endpoint(path: "signup")
-        let data = try await post(endpoint: endpoint, body: ["email": email, "password": password], successCodes: 200...201)
+        var body: [String: Any] = ["email": email, "password": password]
+        if let displayName, !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["data"] = ["display_name": displayName]
+        }
+        let data = try await post(endpoint: endpoint, body: body, successCodes: 200...201)
         return try JSONDecoder().decode(SupabaseSignUpResponseDTO.self, from: data).session
     }
 
@@ -53,7 +57,7 @@ public struct SupabaseAuthService: Sendable {
 
     private func post(
         endpoint: URL,
-        body: [String: String],
+        body: [String: Any],
         successCodes: ClosedRange<Int>
     ) async throws -> Data {
         var request = URLRequest(url: endpoint)
@@ -77,6 +81,24 @@ public struct SupabaseAuthService: Sendable {
 struct SupabaseUserDTO: Decodable, Sendable {
     let id: UUID
     let email: String
+    let userMetadata: [String: String]?
+
+    var displayName: String? {
+        userMetadata?["display_name"] ?? userMetadata?["full_name"] ?? userMetadata?["name"]
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case email
+        case userMetadata = "user_metadata"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        email = try container.decode(String.self, forKey: .email)
+        userMetadata = try? container.decode([String: String].self, forKey: .userMetadata)
+    }
 }
 
 struct SupabaseAuthSessionDTO: Decodable, Sendable {

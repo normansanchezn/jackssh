@@ -153,7 +153,7 @@ public struct DashboardTunnel: Equatable, Sendable {
 
 /// Authentication repository (Supabase). Implemented in Data.
 public protocol AuthRepository: Sendable {
-    func signUp(email: String, password: String) async throws -> User
+    func signUp(email: String, password: String, displayName: String?) async throws -> User
     func signIn(email: String, password: String) async throws -> User
     func signOut() async throws
     func getCurrentUser() async throws -> User?

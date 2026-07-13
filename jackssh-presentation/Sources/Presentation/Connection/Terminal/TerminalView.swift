@@ -31,7 +31,7 @@ struct TerminalScreen: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0x02/255, green: 0x05/255, blue: 0x0B/255).ignoresSafeArea()
+            terminalBackground
 
             if let session = viewModel.session {
                 VStack(spacing: 0) {
@@ -58,10 +58,21 @@ struct TerminalScreen: View {
             }
         }
         .modifier(TerminalNavigationModifier(isEmbedded: embedded))
+        .clipped()
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         #endif
+    }
+
+    @ViewBuilder
+    private var terminalBackground: some View {
+        let color = Color(red: 0x02/255, green: 0x05/255, blue: 0x0B/255)
+        if embedded {
+            color
+        } else {
+            color.ignoresSafeArea(.container)
+        }
     }
 }
 

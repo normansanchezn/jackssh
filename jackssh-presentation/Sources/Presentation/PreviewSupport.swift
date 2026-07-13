@@ -92,7 +92,10 @@ enum PreviewFixtures {
     }
 
     static func homeViewModel() -> HomeViewModel {
-        HomeViewModel(loadHomeStatus: LoadHomeStatus(repository: PreviewHomeRepository()))
+        HomeViewModel(
+            loadHomeStatus: LoadHomeStatus(repository: PreviewHomeRepository()),
+            loadHosts: LoadHosts(repository: PreviewHostRepository(hosts: [host, secondaryHost]))
+        )
     }
 
     static func authViewModel() -> AuthViewModel {
@@ -128,7 +131,9 @@ private struct PreviewHomeRepository: HomeStatusRepository {
 }
 
 private actor PreviewAuthRepository: AuthRepository {
-    func signUp(email: String, password: String) async throws -> User { User(id: UUID(), email: email) }
+    func signUp(email: String, password: String, displayName: String?) async throws -> User {
+        User(id: UUID(), email: email, displayName: displayName)
+    }
     func signIn(email: String, password: String) async throws -> User { User(id: UUID(), email: email) }
     func signOut() async throws {}
     func getCurrentUser() async throws -> User? { User(id: UUID(), email: "preview@jackssh.app") }

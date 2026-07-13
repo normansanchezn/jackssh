@@ -4,11 +4,13 @@ import Foundation
 public struct User: Equatable, Sendable {
     public let id: UUID
     public let email: String
+    public let displayName: String?
     public let createdAt: Date
 
-    public init(id: UUID, email: String, createdAt: Date = Date()) {
+    public init(id: UUID, email: String, displayName: String? = nil, createdAt: Date = Date()) {
         self.id = id
         self.email = email
+        self.displayName = displayName
         self.createdAt = createdAt
     }
 }

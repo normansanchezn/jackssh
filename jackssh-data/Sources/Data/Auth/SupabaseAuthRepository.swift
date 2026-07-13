@@ -12,15 +12,15 @@ public actor SupabaseAuthRepository: AuthRepository {
         self.secureStore = secureStore
     }
 
-    public func signUp(email: String, password: String) async throws -> User {
+    public func signUp(email: String, password: String, displayName: String?) async throws -> User {
         AppLogger.logAuth(action: "SignUp", email: email, success: false)
-        guard let session = try await service.signUp(email: email, password: password) else {
+        guard let session = try await service.signUp(email: email, password: password, displayName: displayName) else {
             throw DomainError.unauthorized
         }
         try await persist(session)
 
         AppLogger.logAuth(action: "SignUp", email: email, success: true)
-        return User(id: session.user.id, email: session.user.email)
+        return User(id: session.user.id, email: session.user.email, displayName: session.user.displayName)
     }
 
     public func signIn(email: String, password: String) async throws -> User {
@@ -35,7 +35,7 @@ public actor SupabaseAuthRepository: AuthRepository {
         print("[SupabaseAuth] ✅ Sign in successful")
         #endif
 
-        return User(id: session.user.id, email: session.user.email)
+        return User(id: session.user.id, email: session.user.email, displayName: session.user.displayName)
     }
 
     public func signOut() async throws {
@@ -46,7 +46,7 @@ public actor SupabaseAuthRepository: AuthRepository {
 
     public func getCurrentUser() async throws -> User? {
         guard let session = try await currentStoredSession() else { return nil }
-        return User(id: session.userID, email: session.email)
+        return User(id: session.userID, email: session.email, displayName: session.displayName)
     }
 
     public func currentSessionContext() async throws -> SupabaseSessionContext? {
@@ -108,6 +108,7 @@ private struct StoredSession: Codable, Sendable {
     let expiresAt: Date
     let userID: UUID
     let email: String
+    let displayName: String?
 
     init(_ session: SupabaseAuthSessionDTO, now: Date = Date()) {
         accessToken = session.accessToken
@@ -115,5 +116,6 @@ private struct StoredSession: Codable, Sendable {
         expiresAt = now.addingTimeInterval(TimeInterval(session.expiresIn))
         userID = session.user.id
         email = session.user.email
+        displayName = session.user.displayName
     }
 }
