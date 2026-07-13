@@ -4,6 +4,7 @@ import Domain
 public enum OpenClawDashboardStatus: Equatable {
     case idle
     case connectingTunnel
+    case preparingAuthentication
     case ready
     case failed(String)
 }
@@ -13,6 +14,7 @@ public struct OpenClawDashboardUIState {
     public var status: OpenClawDashboardStatus = .idle
     public var dashboardURL: URL?
     public var tunnelDescription: String?
+    public var authToken: String?
 
     public init() {}
 }

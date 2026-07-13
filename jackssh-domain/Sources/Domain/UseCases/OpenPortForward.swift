@@ -22,3 +22,23 @@ public struct OpenPortForward: Sendable {
         )
     }
 }
+
+/// Resolves a short-lived dashboard token from the remote host.
+public protocol OpenClawAuthenticating: Sendable {
+    func token(for host: Host, configuration: OpenClawConfiguration) async throws -> String?
+}
+
+public struct ResolveOpenClawAuthToken: Sendable {
+    private let authenticator: OpenClawAuthenticating
+
+    public init(authenticator: OpenClawAuthenticating) {
+        self.authenticator = authenticator
+    }
+
+    public func callAsFunction(
+        for host: Host,
+        configuration: OpenClawConfiguration
+    ) async throws -> String? {
+        try await authenticator.token(for: host, configuration: configuration)
+    }
+}

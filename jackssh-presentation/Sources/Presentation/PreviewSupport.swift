@@ -84,7 +84,8 @@ enum PreviewFixtures {
                 OpenClawDashboardViewModel(
                     hostID: hostID,
                     loadHosts: LoadHosts(repository: PreviewHostRepository(hosts: [host, secondaryHost])),
-                    openPortForward: OpenPortForward(forwarding: PreviewPortForwarding())
+                    openPortForward: OpenPortForward(forwarding: PreviewPortForwarding()),
+                    resolveAuthToken: ResolveOpenClawAuthToken(authenticator: PreviewOpenClawAuthenticator())
                 )
             }
         )
@@ -186,5 +187,11 @@ private struct PreviewPortForwarding: PortForwarding {
 private struct PreviewPortForwardSession: PortForwardSession {
     let endpoint: PortForwardEndpoint
     func stop() async {}
+}
+
+private struct PreviewOpenClawAuthenticator: OpenClawAuthenticating {
+    func token(for host: Domain.Host, configuration: OpenClawConfiguration) async throws -> String? {
+        "preview-openclaw-token"
+    }
 }
 #endif

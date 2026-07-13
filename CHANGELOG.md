@@ -17,6 +17,7 @@ The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): 
 - Local-to-remote host migration bridge through `SyncingHostRepository`.
 - Splash screen architecture with `SplashViewModel`, `SplashUIState`, and `SplashEffect`.
 - OpenClaw dashboard access through app-scoped SSH local port forwarding.
+- OpenClaw auto-authentication bootstrap by resolving a dashboard token over SSH and injecting it into the tunneled WebView session.
 - Root `README.md` for GitHub onboarding and project positioning.
 - Successful connection best-practices guide under the Obsidian docs vault.
 
