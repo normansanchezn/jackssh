@@ -16,6 +16,8 @@ public struct Host: Identifiable, Equatable, Sendable {
     public var openClawConfiguration: OpenClawConfiguration?
     /// Optional favorite remote directory to open on connection.
     public var favoriteRemotePath: String?
+    /// Favorite remote directories shown as quick routes in the file browser.
+    public var favoriteRemotePaths: [String]
     /// Timestamp of last successful connection.
     public var lastSuccessfulConnection: Date?
     /// Whether this host is starred as a favorite.
@@ -32,6 +34,7 @@ public struct Host: Identifiable, Equatable, Sendable {
         authenticationMethod: SSHAuthMethod = .password,
         openClawConfiguration: OpenClawConfiguration? = nil,
         favoriteRemotePath: String? = nil,
+        favoriteRemotePaths: [String] = [],
         lastSuccessfulConnection: Date? = nil,
         isFavorite: Bool = false
     ) {
@@ -44,8 +47,30 @@ public struct Host: Identifiable, Equatable, Sendable {
         self.tags = tags
         self.authenticationMethod = authenticationMethod
         self.openClawConfiguration = openClawConfiguration
-        self.favoriteRemotePath = favoriteRemotePath
+        let normalizedFavoritePaths = Self.normalizedFavoritePaths(
+            favoriteRemotePaths,
+            fallback: favoriteRemotePath
+        )
+        self.favoriteRemotePath = normalizedFavoritePaths.first
+        self.favoriteRemotePaths = normalizedFavoritePaths
         self.lastSuccessfulConnection = lastSuccessfulConnection
         self.isFavorite = isFavorite
+    }
+
+    public var primaryFavoriteRemotePath: String? {
+        favoriteRemotePaths.first ?? favoriteRemotePath
+    }
+
+    private static func normalizedFavoritePaths(_ paths: [String], fallback: String?) -> [String] {
+        var seen = Set<String>()
+        let candidates = paths + [fallback].compactMap { $0 }
+        return candidates.compactMap { path in
+            let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            let normalized = trimmed.hasPrefix("/") ? trimmed : "/\(trimmed)"
+            guard !seen.contains(normalized) else { return nil }
+            seen.insert(normalized)
+            return normalized
+        }
     }
 }

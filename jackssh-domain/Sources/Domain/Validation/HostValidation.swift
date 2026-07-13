@@ -29,6 +29,7 @@ public struct HostDraft: Equatable, Sendable {
     public var openClawScheme: String?
     public var openClawBasePath: String?
     public var favoriteRemotePath: String?
+    public var favoriteRemotePaths: [String]
 
     public init(
         name: String,
@@ -40,7 +41,8 @@ public struct HostDraft: Equatable, Sendable {
         openClawPort: Int? = nil,
         openClawScheme: String? = nil,
         openClawBasePath: String? = nil,
-        favoriteRemotePath: String? = nil
+        favoriteRemotePath: String? = nil,
+        favoriteRemotePaths: [String] = []
     ) {
         self.name = name
         self.hostname = hostname
@@ -52,6 +54,7 @@ public struct HostDraft: Equatable, Sendable {
         self.openClawScheme = openClawScheme
         self.openClawBasePath = openClawBasePath
         self.favoriteRemotePath = favoriteRemotePath
+        self.favoriteRemotePaths = favoriteRemotePaths
     }
 }
 

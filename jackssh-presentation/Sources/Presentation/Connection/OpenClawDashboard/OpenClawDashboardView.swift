@@ -127,20 +127,31 @@ private struct WebViewContainer: UIViewRepresentable {
             return
         }
 
-        let cookie = HTTPCookie(properties: [
-            .domain: host,
-            .path: "/",
-            .name: "openclaw_token",
-            .value: authToken,
-            .secure: url.scheme == "https",
-            .expires: Date().addingTimeInterval(60 * 60),
-        ])
+        let cookieStore = webView.configuration.websiteDataStore.httpCookieStore
+        let cookies = Self.cookieNames.compactMap { name in
+            HTTPCookie(properties: [
+                .domain: host,
+                .path: "/",
+                .name: name,
+                .value: authToken,
+                .secure: url.scheme == "https",
+                .expires: Date().addingTimeInterval(60 * 60),
+            ])
+        }
 
-        if let cookie {
-            webView.configuration.websiteDataStore.httpCookieStore.setCookie(cookie) {
-                webView.load(Self.request(url: url, token: authToken))
+        guard !cookies.isEmpty else {
+            webView.load(Self.request(url: url, token: authToken))
+            return
+        }
+
+        let group = DispatchGroup()
+        for cookie in cookies {
+            group.enter()
+            cookieStore.setCookie(cookie) {
+                group.leave()
             }
-        } else {
+        }
+        group.notify(queue: .main) {
             webView.load(Self.request(url: url, token: authToken))
         }
     }
@@ -148,6 +159,9 @@ private struct WebViewContainer: UIViewRepresentable {
     private static func request(url: URL, token: String) -> URLRequest {
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(token, forHTTPHeaderField: "X-OpenClaw-Token")
+        request.setValue(token, forHTTPHeaderField: "X-Auth-Token")
+        request.setValue(cookieNames.map { "\($0)=\(token)" }.joined(separator: "; "), forHTTPHeaderField: "Cookie")
         return request
     }
 
@@ -164,14 +178,32 @@ private struct WebViewContainer: UIViewRepresentable {
             localStorage.setItem('token', token);
             localStorage.setItem('authToken', token);
             localStorage.setItem('access_token', token);
+            localStorage.setItem('jwt', token);
+            localStorage.setItem('authorization', 'Bearer ' + token);
             sessionStorage.setItem('openclaw_token', token);
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('authToken', token);
+            sessionStorage.setItem('access_token', token);
+            sessionStorage.setItem('jwt', token);
+            sessionStorage.setItem('authorization', 'Bearer ' + token);
             document.cookie = 'openclaw_token=' + encodeURIComponent(token) + '; path=/; SameSite=Lax';
             document.cookie = 'token=' + encodeURIComponent(token) + '; path=/; SameSite=Lax';
+            document.cookie = 'authToken=' + encodeURIComponent(token) + '; path=/; SameSite=Lax';
+            document.cookie = 'access_token=' + encodeURIComponent(token) + '; path=/; SameSite=Lax';
+            document.cookie = 'jwt=' + encodeURIComponent(token) + '; path=/; SameSite=Lax';
           } catch (_) {}
         })();
         """
         return WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: false)
     }
+
+    private static let cookieNames = [
+        "openclaw_token",
+        "token",
+        "authToken",
+        "access_token",
+        "jwt",
+    ]
 }
 #else
 private struct WebViewContainer: View {

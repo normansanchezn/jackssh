@@ -159,6 +159,14 @@ private struct CompactAppShell: View {
             return items
         }
 
+        if homeViewModel.hasOpenClawForActiveSession {
+            items.append(
+                DSBottomNavItem(id: "openclaw", title: "OpenClaw", systemImage: "point.topleft.down.curvedto.point.bottomright.up") {
+                    router.path = [.openClawSession(id: session.hostID.uuidString)]
+                }
+            )
+        }
+
         items.append(contentsOf: [
             DSBottomNavItem(id: "shell", title: "Shell", systemImage: "terminal") {
                 router.path = [.terminal(hostID: session.hostID.uuidString)]
@@ -184,7 +192,9 @@ private struct CompactAppShell: View {
             return "files"
         case .alerts:
             return "alerts"
-        case .openClawSession, .serviceLogs:
+        case .openClawSession:
+            return "openclaw"
+        case .serviceLogs:
             return "home"
         }
     }
@@ -195,7 +205,6 @@ private struct IPadAppShell: View {
     @State private var selection: IPadSidebarSelection? = .dashboard
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var isLogoutConfirmationPresented = false
-    @State private var showsOpenClawShortcut = false
 
     @Bindable var router: AppRouter
     let homeViewModel: HomeViewModel
@@ -220,8 +229,8 @@ private struct IPadAppShell: View {
                     }
 
                     if homeViewModel.activeSession != nil {
-                        if showsOpenClawShortcut {
-                            sidebarButton(.openClaw, title: "OpenClaw", systemImage: "pawprint.fill")
+                        if homeViewModel.hasOpenClawForActiveSession {
+                            sidebarButton(.openClaw, title: "OpenClaw", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
                         }
                         sidebarButton(.terminal, title: "Terminal", systemImage: "terminal")
                         sidebarButton(.files, title: "Explorador", systemImage: "folder")
@@ -270,7 +279,6 @@ private struct IPadAppShell: View {
             if path.last == .hosts {
                 selection = .hosts
             } else if case .openClawSession = path.last {
-                showsOpenClawShortcut = true
                 selection = .openClaw
             }
         }

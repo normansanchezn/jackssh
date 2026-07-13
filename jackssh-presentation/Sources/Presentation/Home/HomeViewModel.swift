@@ -15,6 +15,10 @@ public final class HomeViewModel {
     public var activeSession: ConnectedHostSession? { uiState.activeSession }
     public var hostCount: Int { uiState.hostCount }
     public var hasConfiguredHosts: Bool { uiState.hostCount > 0 }
+    public var hasOpenClawForActiveSession: Bool {
+        guard let activeSession else { return false }
+        return uiState.openClawHostIDs.contains(activeSession.hostID)
+    }
     public var shouldOfferHostCreation: Bool {
         if case .loaded = uiState.state {
             return uiState.hostCount == 0
@@ -44,7 +48,14 @@ public final class HomeViewModel {
             async let hosts = loadHosts?()
             uiState.state = .loaded(try await status)
             uiState.activeSession = await session
-            uiState.hostCount = (try? await hosts)?.count ?? uiState.hostCount
+            if let hosts = try? await hosts {
+                uiState.hostCount = hosts.count
+                uiState.openClawHostIDs = Set(
+                    hosts
+                        .filter { $0.openClawConfiguration != nil }
+                        .map(\.id)
+                )
+            }
         } catch let error as DomainError {
             uiState.state = .failed(error)
             effect = .showError(error.localizedDescription)

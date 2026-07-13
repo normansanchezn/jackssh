@@ -14,6 +14,27 @@ private struct FailingRepo: HomeStatusRepository {
     func currentStatus() async throws -> HomeStatus { throw error }
 }
 
+private struct HostsRepo: HostRepository {
+    let hosts: [Domain.Host]
+
+    func all() async throws -> [Domain.Host] { hosts }
+    func host(id: UUID) async throws -> Domain.Host? { hosts.first { $0.id == id } }
+    func save(_ host: Domain.Host) async throws {}
+    func delete(id: UUID) async throws {}
+}
+
+private struct SessionStore: ConnectionSessionStore {
+    let session: ConnectedHostSession?
+
+    func activeSession(for hostID: UUID) async -> ConnectedHostSession? {
+        session?.hostID == hostID ? session : nil
+    }
+
+    func mostRecentActiveSession() async -> ConnectedHostSession? { session }
+    func activate(_ session: ConnectedHostSession) async {}
+    func deactivate(hostID: UUID) async {}
+}
+
 @MainActor
 @Suite("HomeViewModel")
 struct HomeViewModelTests {
@@ -38,5 +59,31 @@ struct HomeViewModelTests {
         let vm = HomeViewModel(loadHomeStatus: LoadHomeStatus(repository: FailingRepo(error: .offline)))
         await vm.load()
         #expect(vm.state == .failed(.offline))
+    }
+
+    @Test func exposesOpenClawForActiveSessionWhenConfigured() async {
+        let hostID = UUID()
+        let host = Domain.Host(
+            id: hostID,
+            name: "Production",
+            hostname: "vps.example.com",
+            username: "root",
+            openClawConfiguration: OpenClawConfiguration(host: "127.0.0.1")
+        )
+        let session = ConnectedHostSession(
+            hostID: hostID,
+            hostname: host.hostname,
+            username: host.username,
+            port: host.port
+        )
+        let vm = HomeViewModel(
+            loadHomeStatus: LoadHomeStatus(repository: SuccessRepo(status: makeStatus())),
+            loadActiveSession: LoadActiveConnectionSession(store: SessionStore(session: session)),
+            loadHosts: LoadHosts(repository: HostsRepo(hosts: [host]))
+        )
+
+        await vm.load()
+
+        #expect(vm.hasOpenClawForActiveSession)
     }
 }

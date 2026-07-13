@@ -31,7 +31,7 @@ public struct CitadelOpenClawAuthenticator: OpenClawAuthenticating {
 
         let command = "sh -lc \(Self.shellQuoted(configuration.resolvedAuthTokenCommand))"
         let output = try await client.executeCommand(command, maxResponseSize: 16_384)
-        return Self.extractToken(from: String(buffer: output))
+        return OpenClawTokenExtractor.extract(from: String(buffer: output))
     }
 
     private func authentication(for host: Domain.Host) async throws -> SSHAuthenticationMethod {
@@ -49,26 +49,143 @@ public struct CitadelOpenClawAuthenticator: OpenClawAuthenticating {
         }
     }
 
-    private static func extractToken(from output: String) -> String? {
+    private static func shellQuoted(_ value: String) -> String {
+        "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
+    }
+}
+
+enum OpenClawTokenExtractor {
+    private static let jsonKeys = [
+        "token",
+        "openclaw_token",
+        "access_token",
+        "authToken",
+        "jwt",
+    ]
+
+    private static let keyValueNames = [
+        "OPENCLAW_TOKEN",
+        "OPENCLAW_AUTH_TOKEN",
+        "OPENCLAW_DASHBOARD_TOKEN",
+        "DASHBOARD_TOKEN",
+        "AUTH_TOKEN",
+        "AUTHORIZATION",
+        "ACCESS_TOKEN",
+        "JWT",
+        "TOKEN",
+        "openclaw_token",
+        "access_token",
+        "authToken",
+        "jwt",
+        "token",
+    ]
+
+    static func extract(from output: String) -> String? {
         let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
-        if let data = trimmed.data(using: .utf8),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            for key in ["token", "access_token", "authToken", "jwt"] {
-                if let value = json[key] as? String, !value.isEmpty {
-                    return value
-                }
+        if let token = tokenFromJSON(trimmed) {
+            return token
+        }
+
+        let lines = trimmed
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        for line in lines {
+            if let token = tokenFromJSON(line) {
+                return token
+            }
+            if let token = tokenFromBearerHeader(line) {
+                return token
+            }
+            if let token = tokenFromKeyValue(line) {
+                return token
+            }
+            if let token = tokenFromJWT(in: line) {
+                return token
             }
         }
 
-        return trimmed
-            .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .first { !$0.isEmpty }
+        return lines.first(where: isPlainToken)
     }
 
-    private static func shellQuoted(_ value: String) -> String {
-        "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
+    private static func tokenFromJSON(_ value: String) -> String? {
+        guard let data = value.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+
+        for key in jsonKeys {
+            if let token = json[key] as? String, isUsableToken(token) {
+                return normalized(token)
+            }
+        }
+
+        if let auth = json["authorization"] as? String,
+           let token = tokenFromBearerHeader(auth) {
+            return token
+        }
+
+        return nil
+    }
+
+    private static func tokenFromBearerHeader(_ line: String) -> String? {
+        let marker = "Bearer "
+        guard let range = line.range(of: marker, options: [.caseInsensitive]) else { return nil }
+        let token = String(line[range.upperBound...])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "'\""))
+        return isUsableToken(token) ? token : nil
+    }
+
+    private static func tokenFromKeyValue(_ line: String) -> String? {
+        for name in keyValueNames {
+            if let token = value(after: "\(name)=", in: line) ?? value(after: "\(name):", in: line) {
+                return token
+            }
+        }
+        return nil
+    }
+
+    private static func value(after marker: String, in line: String) -> String? {
+        guard let range = line.range(of: marker, options: [.caseInsensitive]) else { return nil }
+        let token = String(line[range.upperBound...])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "'\""))
+        return isUsableToken(token) ? normalized(token) : nil
+    }
+
+    private static func tokenFromJWT(in line: String) -> String? {
+        let pattern = #"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
+              let range = Range(match.range, in: line) else {
+            return nil
+        }
+        return String(line[range])
+    }
+
+    private static func isPlainToken(_ line: String) -> Bool {
+        let token = normalized(line)
+        guard isUsableToken(token) else { return false }
+        guard token.count >= 16 else { return false }
+        guard token.rangeOfCharacter(from: .whitespacesAndNewlines) == nil else { return false }
+        guard !token.contains("/") || token.contains(".") else { return false }
+
+        let lowercased = token.lowercased()
+        let rejectedPrefixes = ["warning", "error", "docker", "unable", "cannot", "failed", "usage"]
+        return !rejectedPrefixes.contains { lowercased.hasPrefix($0) }
+    }
+
+    private static func isUsableToken(_ value: String) -> Bool {
+        !normalized(value).isEmpty
+    }
+
+    private static func normalized(_ value: String) -> String {
+        value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "'\""))
     }
 }
