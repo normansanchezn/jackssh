@@ -1,84 +1,110 @@
 import SwiftUI
-import Domain
 import DesignSystem
 import WebKit
 
 public struct OpenClawDashboardView: View {
-    @State private var viewModel: ConnectedHostViewModel
-    private let dependencies: HostsDependencies
+    @State private var viewModel: OpenClawDashboardViewModel
 
-    public init(hostID: UUID, dependencies: HostsDependencies) {
-        _viewModel = State(initialValue: dependencies.makeConnectedViewModel(hostID))
-        self.dependencies = dependencies
+    public init(viewModel: OpenClawDashboardViewModel) {
+        _viewModel = State(initialValue: viewModel)
     }
 
     public var body: some View {
         Group {
-            if let session = viewModel.session, let host = viewModel.host, let config = host.openClawConfiguration {
-                OpenClawDashboardContent(session: session, host: host, config: config)
-            } else if let error = viewModel.loadError {
-                ContentUnavailableView(
-                    "Dashboard unavailable",
-                    systemImage: "rectangle.slash",
-                    description: Text(error)
-                )
-            } else {
-                ProgressView("Opening dashboard…")
+            switch viewModel.status {
+            case .idle, .connectingTunnel:
+                openingTunnelView
+            case .ready:
+                if let url = viewModel.dashboardURL {
+                    OpenClawDashboardContent(
+                        title: viewModel.host?.name ?? "OpenClaw",
+                        tunnelDescription: viewModel.tunnelDescription,
+                        dashboardURL: url
+                    )
+                } else {
+                    unavailableView("Dashboard URL is not available")
+                }
+            case let .failed(message):
+                unavailableView(message)
             }
         }
-        .task {
-            await viewModel.load()
+        .navigationTitle("OpenClaw")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .task { await viewModel.open() }
+        .onDisappear {
+            Task { await viewModel.close() }
         }
+    }
+
+    private var openingTunnelView: some View {
+        VStack(spacing: DSSpacing.lg) {
+            ProgressView()
+            VStack(spacing: DSSpacing.xs) {
+                Text("Opening secure bridge")
+                    .font(DSTypography.sectionTitle)
+                Text("Creating an SSH tunnel from this iPad to OpenClaw.")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(DSSpacing.lg)
+    }
+
+    private func unavailableView(_ message: String) -> some View {
+        ContentUnavailableView(
+            "Dashboard unavailable",
+            systemImage: "point.topleft.down.curvedto.point.bottomright.up",
+            description: Text(message)
+        )
     }
 }
 
-struct OpenClawDashboardContent: View {
-    private let session: ConnectedHostSession
-    private let host: Domain.Host
-    private let config: OpenClawConfiguration
-
-    init(session: ConnectedHostSession, host: Domain.Host, config: OpenClawConfiguration) {
-        self.session = session
-        self.host = host
-        self.config = config
-    }
+private struct OpenClawDashboardContent: View {
+    let title: String
+    let tunnelDescription: String?
+    let dashboardURL: URL
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                Text("OpenClaw Dashboard")
-                    .font(DSTypography.sectionTitle)
-                Text(host.name)
-                    .font(DSTypography.caption)
-                    .foregroundStyle(.secondary)
+            HStack(alignment: .center, spacing: DSSpacing.md) {
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                    Text("OpenClaw Dashboard")
+                        .font(DSTypography.sectionTitle)
+                    Text(title)
+                        .font(DSTypography.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if let tunnelDescription {
+                    Label(tunnelDescription, systemImage: "lock.shield")
+                        .font(DSTypography.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
             .padding(DSSpacing.md)
-
-            Divider()
+            .background(.bar)
 
             WebViewContainer(url: dashboardURL)
         }
-        .navigationTitle("Dashboard")
-    }
-
-    private var dashboardURL: URL {
-        let scheme = config.scheme
-        let host = config.host
-        let port = config.port
-        let basePath = config.basePath
-        let urlString = "\(scheme)://\(host):\(port)\(basePath)"
-        return URL(string: urlString) ?? URL(string: "about:blank")!
     }
 }
 
 #if os(iOS)
-struct WebViewContainer: UIViewRepresentable {
+private struct WebViewContainer: UIViewRepresentable {
     let url: URL
 
     func makeUIView(context: UIViewRepresentableContext<WebViewContainer>) -> WKWebView {
-        let webView = WKWebView()
-        let request = URLRequest(url: url)
-        webView.load(request)
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.allowsBackForwardNavigationGestures = true
+        webView.load(URLRequest(url: url))
         return webView
     }
 
@@ -88,11 +114,13 @@ struct WebViewContainer: UIViewRepresentable {
     }
 }
 #else
-struct WebViewContainer: View {
+private struct WebViewContainer: View {
     let url: URL
 
     var body: some View {
-        Text("WebView not available on macOS")
+        Text(url.absoluteString)
+            .font(DSTypography.mono)
+            .padding()
     }
 }
 #endif

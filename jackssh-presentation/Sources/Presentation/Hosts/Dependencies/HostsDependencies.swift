@@ -11,6 +11,7 @@ public struct HostsDependencies {
     public let makeConnectedViewModel: (UUID) -> ConnectedHostViewModel
     public let makeTerminalViewModel: (UUID) -> TerminalViewModel
     public let makeRemoteFilesViewModel: (UUID, String) -> RemoteFilesViewModel
+    public let makeOpenClawDashboardViewModel: (UUID) -> OpenClawDashboardViewModel
 
     public init(
         makeListViewModel: @escaping () -> HostsViewModel,
@@ -18,7 +19,8 @@ public struct HostsDependencies {
         makeConnectingViewModel: @escaping (UUID) -> ConnectingHostViewModel,
         makeConnectedViewModel: @escaping (UUID) -> ConnectedHostViewModel,
         makeTerminalViewModel: @escaping (UUID) -> TerminalViewModel,
-        makeRemoteFilesViewModel: @escaping (UUID, String) -> RemoteFilesViewModel
+        makeRemoteFilesViewModel: @escaping (UUID, String) -> RemoteFilesViewModel,
+        makeOpenClawDashboardViewModel: @escaping (UUID) -> OpenClawDashboardViewModel
     ) {
         self.makeListViewModel = makeListViewModel
         self.makeEditorViewModel = makeEditorViewModel
@@ -26,5 +28,6 @@ public struct HostsDependencies {
         self.makeConnectedViewModel = makeConnectedViewModel
         self.makeTerminalViewModel = makeTerminalViewModel
         self.makeRemoteFilesViewModel = makeRemoteFilesViewModel
+        self.makeOpenClawDashboardViewModel = makeOpenClawDashboardViewModel
     }
 }

@@ -26,6 +26,7 @@ final class CompositionRoot {
     private let homeStatusRepository: HomeStatusRepository
     private let sshConnector: SSHConnector
     private let terminalConnecting: TerminalConnecting
+    private let portForwarding: PortForwarding
     private let sessionStore: ConnectionSessionStore
 
     private(set) lazy var authViewModel: AuthViewModel = {
@@ -89,6 +90,7 @@ final class CompositionRoot {
         )
         sshConnector = CitadelSSHConnector(credentialStore: secretStore)
         terminalConnecting = CitadelTerminalConnecting(secretStore: secretStore)
+        portForwarding = CitadelPortForwarding(secretStore: secretStore)
         sessionStore = InMemoryConnectionSessionStore()
         router = AppRouter()
     }
@@ -139,11 +141,18 @@ final class CompositionRoot {
                     initialPath: path,
                     loadHosts: LoadHosts(repository: hostRepository),
                     makeDirectoryRepository: { host in
-                        CitadelRemoteDirectoryRepository(host: host, secretStore: secretStore)
+                        CitadelRemoteDirectoryRepository(host: host, secretStore: self.secretStore)
                     },
                     makeFileRepository: { host in
-                        CitadelRemoteDirectoryRepository(host: host, secretStore: secretStore)
+                        CitadelRemoteDirectoryRepository(host: host, secretStore: self.secretStore)
                     }
+                )
+            },
+            makeOpenClawDashboardViewModel: { [self] hostID in
+                OpenClawDashboardViewModel(
+                    hostID: hostID,
+                    loadHosts: LoadHosts(repository: hostRepository),
+                    openPortForward: OpenPortForward(forwarding: portForwarding)
                 )
             }
         )

@@ -20,12 +20,14 @@ public final class TerminalSession {
     private let openTerminal: OpenTerminal
     private let activateSession: ActivateConnectionSession
     private let endSession: EndConnectionSession
+    private let startupDirectory: String?
 
     @ObservationIgnored private weak var terminalView: SwiftTerm.TerminalView?
     @ObservationIgnored private var channel: TerminalChannel?
     @ObservationIgnored private var lifecycleTask: Task<Void, Never>?
     @ObservationIgnored private var started = false
     @ObservationIgnored private var userClosed = false
+    @ObservationIgnored private var startupDirectoryCommandSent = false
     @ObservationIgnored private var reconnectAttempt = 0
 
     private let maxReconnectAttempts = 5
@@ -34,12 +36,14 @@ public final class TerminalSession {
         host: Domain.Host,
         openTerminal: OpenTerminal,
         activateSession: ActivateConnectionSession,
-        endSession: EndConnectionSession
+        endSession: EndConnectionSession,
+        startupDirectory: String? = nil
     ) {
         self.host = host
         self.openTerminal = openTerminal
         self.activateSession = activateSession
         self.endSession = endSession
+        self.startupDirectory = startupDirectory
     }
 
     /// Called by the representable once the SwiftTerm view exists. Kicks off the
@@ -114,6 +118,7 @@ public final class TerminalSession {
                     )
                 )
                 phase = .connected
+                await sendStartupDirectoryCommandIfNeeded(on: ch)
 
                 // Pump remote bytes until the stream ends (connection closed).
                 for await bytes in ch.output {
@@ -152,6 +157,20 @@ public final class TerminalSession {
     /// Write a local status line into the emulator (not sent to the remote).
     private func feedLocalNotice(_ text: String) {
         terminalView?.feed(text: text)
+    }
+
+    private func sendStartupDirectoryCommandIfNeeded(on channel: TerminalChannel) async {
+        guard !startupDirectoryCommandSent,
+              let startupDirectory,
+              !startupDirectory.isEmpty
+        else { return }
+
+        startupDirectoryCommandSent = true
+        await channel.send(Array("cd \(Self.shellQuoted(startupDirectory))\n".utf8))
+    }
+
+    private static func shellQuoted(_ value: String) -> String {
+        "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
 
     private static func message(for error: Error) -> String {

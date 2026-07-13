@@ -30,7 +30,12 @@ public struct RemoteFilesView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    isTerminalVisible.toggle()
+                    if isTerminalVisible {
+                        isTerminalVisible = false
+                    } else {
+                        terminalViewModel.prepareEmbeddedTerminal(startupDirectory: viewModel.path)
+                        isTerminalVisible = true
+                    }
                 } label: {
                     Image(systemName: isTerminalVisible ? "terminal.fill" : "terminal")
                 }
@@ -186,8 +191,8 @@ private struct CodeFileViewer: View {
                             .textSelection(.enabled)
                     }
                     .font(DSTypography.mono)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, DSSpacing.md)
+                    .padding(.leading, DSSpacing.xs)
+                    .padding(.trailing, DSSpacing.sm)
                     .padding(.vertical, 2)
                 }
             }
@@ -208,10 +213,9 @@ private struct CodeFileViewer: View {
                     .font(DSTypography.caption)
                     .foregroundStyle(theme.colors.textTertiary)
             }
-            .padding(.horizontal, DSSpacing.lg)
+            .padding(.horizontal, DSSpacing.md)
             .padding(.vertical, DSSpacing.sm)
             .dsGlassSurface()
-            .padding(.horizontal, DSSpacing.sm)
         }
     }
 }

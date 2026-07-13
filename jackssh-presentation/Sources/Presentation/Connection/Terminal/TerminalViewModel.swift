@@ -19,6 +19,7 @@ public final class TerminalViewModel {
     private let openTerminal: OpenTerminal
     private let activateSession: ActivateConnectionSession
     private let endSession: EndConnectionSession
+    private var startupDirectory: String?
 
     public init(
         hostID: UUID,
@@ -39,6 +40,13 @@ public final class TerminalViewModel {
         uiState.connectionTitle
     }
 
+    public func prepareEmbeddedTerminal(startupDirectory: String) {
+        uiState.session?.stop()
+        uiState.session = nil
+        uiState.loadError = nil
+        self.startupDirectory = startupDirectory
+    }
+
     public func load() async {
         do {
             let hosts = try await loadHosts()
@@ -52,7 +60,8 @@ public final class TerminalViewModel {
                 host: match,
                 openTerminal: openTerminal,
                 activateSession: activateSession,
-                endSession: endSession
+                endSession: endSession,
+                startupDirectory: startupDirectory
             )
         } catch {
             uiState.loadError = error.localizedDescription

@@ -10,6 +10,7 @@ enum PreviewFixtures {
         port: 22,
         username: "deploy",
         tags: ["production"],
+        openClawConfiguration: OpenClawConfiguration(host: "127.0.0.1", port: 18789),
         favoriteRemotePath: "/var/www",
         lastSuccessfulConnection: Date().addingTimeInterval(-3_600),
         isFavorite: true
@@ -77,6 +78,13 @@ enum PreviewFixtures {
                     loadHosts: LoadHosts(repository: PreviewHostRepository(hosts: [host, secondaryHost])),
                     makeDirectoryRepository: { _ in PreviewDirectoryRepository() },
                     makeFileRepository: { _ in PreviewDirectoryRepository() }
+                )
+            },
+            makeOpenClawDashboardViewModel: { hostID in
+                OpenClawDashboardViewModel(
+                    hostID: hostID,
+                    loadHosts: LoadHosts(repository: PreviewHostRepository(hosts: [host, secondaryHost])),
+                    openPortForward: OpenPortForward(forwarding: PreviewPortForwarding())
                 )
             }
         )
@@ -155,5 +163,28 @@ private struct PreviewDirectoryRepository: RemoteDirectoryRepository, RemoteFile
 
 private struct PreviewTerminalConnecting: TerminalConnecting {
     func connect(to host: Domain.Host, cols: Int, rows: Int) async throws -> TerminalChannel { throw DomainError.offline }
+}
+
+private struct PreviewPortForwarding: PortForwarding {
+    func startLocalForward(
+        to host: Domain.Host,
+        target: PortForwardTarget,
+        scheme: String,
+        basePath: String
+    ) async throws -> PortForwardSession {
+        PreviewPortForwardSession(endpoint: PortForwardEndpoint(
+            localHost: "127.0.0.1",
+            localPort: 18789,
+            remoteHost: target.host,
+            remotePort: target.port,
+            scheme: scheme,
+            basePath: basePath
+        ))
+    }
+}
+
+private struct PreviewPortForwardSession: PortForwardSession {
+    let endpoint: PortForwardEndpoint
+    func stop() async {}
 }
 #endif

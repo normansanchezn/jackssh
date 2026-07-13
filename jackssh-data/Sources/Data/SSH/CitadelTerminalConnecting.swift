@@ -38,7 +38,7 @@ public struct CitadelTerminalConnecting: TerminalConnecting {
         )
 
         let channel = CitadelTerminalChannel(client: client, cols: cols, rows: rows)
-        await channel.start()
+        channel.start()
         return channel
     }
 

@@ -12,6 +12,7 @@ let package = Package(
         .package(path: "../jackssh-domain"),
         .package(path: "../jackssh-shared"),
         .package(url: "https://github.com/orlandos-nl/Citadel.git", from: "0.12.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.81.0"),
     ],
     targets: [
         .target(
@@ -20,6 +21,7 @@ let package = Package(
                 .product(name: "Domain", package: "jackssh-domain"),
                 .product(name: "Shared", package: "jackssh-shared"),
                 .product(name: "Citadel", package: "Citadel"),
+                .product(name: "NIO", package: "swift-nio"),
             ]
         ),
         .testTarget(

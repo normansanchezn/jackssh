@@ -186,7 +186,7 @@ private struct RootDestinationView: View {
             ComingSoonView(title: "Host \(id)")
         case let .openClawSession(id):
             if let uuid = UUID(uuidString: id) {
-                OpenClawDashboardView(hostID: uuid, dependencies: hostsDependencies)
+                OpenClawDashboardView(viewModel: hostsDependencies.makeOpenClawDashboardViewModel(uuid))
             } else {
                 ComingSoonView(title: "Invalid host ID")
             }
