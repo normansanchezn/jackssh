@@ -15,11 +15,14 @@ public final class RemoteFilesViewModel {
     public var codeFile: CodeFile? { uiState.codeFile }
     public var fileLoadError: String? { uiState.fileLoadError }
     public var isLoadingFile: Bool { uiState.isLoadingFile }
+    public var favoriteRoutes: [String] { uiState.favoriteRoutes }
 
     private let hostID: UUID
+    private let initialPath: String
     private let loadHosts: LoadHosts
     private let makeDirectoryRepository: @Sendable (Domain.Host) -> RemoteDirectoryRepository
     private let makeFileRepository: @Sendable (Domain.Host) -> RemoteFileRepository
+    private var didResolveInitialPath = false
 
     public init(
         hostID: UUID,
@@ -29,6 +32,7 @@ public final class RemoteFilesViewModel {
         makeFileRepository: @escaping @Sendable (Domain.Host) -> RemoteFileRepository
     ) {
         self.hostID = hostID
+        self.initialPath = initialPath
         self.uiState = RemoteFilesUIState(path: initialPath)
         self.loadHosts = loadHosts
         self.makeDirectoryRepository = makeDirectoryRepository
@@ -44,12 +48,25 @@ public final class RemoteFilesViewModel {
                 effect = .showError("Host not found")
                 return
             }
+            uiState.favoriteRoutes = host.favoriteRemotePaths
+            if !didResolveInitialPath, initialPath == "/", let favoritePath = host.primaryFavoriteRemotePath {
+                uiState.path = favoritePath
+            }
+            didResolveInitialPath = true
             let files = try await ListRemoteDirectory(repository: makeDirectoryRepository(host))(at: path)
             uiState.state = .loaded(files)
         } catch {
             uiState.state = .failed(error.localizedDescription)
             effect = .showError(error.localizedDescription)
         }
+    }
+
+    public func go(to path: String) async {
+        let normalized = Self.normalizedPath(path)
+        guard !normalized.isEmpty else { return }
+        uiState.path = normalized
+        didResolveInitialPath = true
+        await load()
     }
 
     public func open(_ file: SFTPFileInfo) async {
@@ -120,4 +137,10 @@ public final class RemoteFilesViewModel {
     }
 
     private static let maximumPreviewSize = 1_000_000
+
+    private static func normalizedPath(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+        return trimmed.hasPrefix("/") ? trimmed : "/\(trimmed)"
+    }
 }

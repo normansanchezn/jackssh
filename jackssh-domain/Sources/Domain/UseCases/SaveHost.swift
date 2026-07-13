@@ -30,6 +30,10 @@ public struct SaveHost: Sendable {
         } else {
             openClawConfig = nil
         }
+        let favoriteRemotePaths = Self.normalizedFavoritePaths(
+            draft.favoriteRemotePaths,
+            fallback: draft.favoriteRemotePath
+        )
 
         let host = Host(
             id: id,
@@ -39,7 +43,8 @@ public struct SaveHost: Sendable {
             username: draft.username.trimmingCharacters(in: .whitespacesAndNewlines),
             authenticationMethod: draft.authenticationMethod,
             openClawConfiguration: openClawConfig,
-            favoriteRemotePath: draft.favoriteRemotePath
+            favoriteRemotePath: favoriteRemotePaths.first,
+            favoriteRemotePaths: favoriteRemotePaths
         )
 
         // Store credential if provided
@@ -57,5 +62,17 @@ public struct SaveHost: Sendable {
 
         try await repository.save(host)
         return host
+    }
+
+    private static func normalizedFavoritePaths(_ paths: [String], fallback: String?) -> [String] {
+        var seen = Set<String>()
+        return (paths + [fallback].compactMap { $0 }).compactMap { rawPath in
+            let trimmed = rawPath.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            let path = trimmed.hasPrefix("/") ? trimmed : "/\(trimmed)"
+            guard !seen.contains(path) else { return nil }
+            seen.insert(path)
+            return path
+        }
     }
 }

@@ -6,6 +6,7 @@ import DesignSystem
 public struct RemoteFilesView: View {
     @State private var viewModel: RemoteFilesViewModel
     @State private var isTerminalVisible = false
+    @Environment(\.jacksshTheme) private var theme
     private let terminalViewModel: TerminalViewModel
 
     public init(viewModel: RemoteFilesViewModel, terminalViewModel: TerminalViewModel) {
@@ -18,6 +19,8 @@ public struct RemoteFilesView: View {
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: DSSpacing.md) {
                     HStack(alignment: .center) {
+                        backButton
+
                         Text("Files")
                             .font(.system(.title2, weight: .bold))
                             .foregroundStyle(.primary)
@@ -27,6 +30,7 @@ public struct RemoteFilesView: View {
                         terminalToggleButton
                     }
                     directoryHeader
+                    favoriteRoutesView
                 }
                 .padding(.horizontal, DSSpacing.lg)
                 .padding(.top, DSSpacing.md)
@@ -62,6 +66,21 @@ public struct RemoteFilesView: View {
         .task { await viewModel.load() }
     }
 
+    private var backButton: some View {
+        Button {
+            Task { await viewModel.goUp() }
+        } label: {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(viewModel.path == "/")
+        .foregroundStyle(viewModel.path == "/" ? .tertiary : .primary)
+        .accessibilityLabel("Go back")
+    }
+
     private var terminalToggleButton: some View {
         Button {
             if isTerminalVisible {
@@ -83,37 +102,56 @@ public struct RemoteFilesView: View {
 
     private var directoryHeader: some View {
         HStack(spacing: DSSpacing.sm) {
-            Button {
-                Task { await viewModel.goUp() }
-            } label: {
-                Image(systemName: "arrow.up")
-                    .frame(width: 36, height: 36)
-            }
-            .buttonStyle(.bordered)
-            .disabled(viewModel.path == "/")
-            .accessibilityLabel("Go to parent folder")
-
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
             Text(viewModel.path)
                 .font(DSTypography.mono)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-            Button {
-                Task { await viewModel.load() }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .frame(width: 36, height: 36)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("Refresh folder")
         }
-        .padding(DSSpacing.xs)
+        .padding(.horizontal, DSSpacing.md)
+        .padding(.vertical, DSSpacing.sm)
         .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
                 .stroke(.white.opacity(0.10), lineWidth: 1)
         }
+    }
+
+    @ViewBuilder
+    private var favoriteRoutesView: some View {
+        if !viewModel.favoriteRoutes.isEmpty {
+            VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                Text("Fav routes")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: DSSpacing.xs) {
+                        ForEach(viewModel.favoriteRoutes, id: \.self) { route in
+                            Button {
+                                Task { await viewModel.go(to: route) }
+                            } label: {
+                                Label(route, systemImage: "folder")
+                                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                    .lineLimit(1)
+                                    .padding(.horizontal, DSSpacing.sm)
+                                    .padding(.vertical, 7)
+                                    .background(favoriteRouteBackground(for: route), in: Capsule())
+                                    .foregroundStyle(route == viewModel.path ? theme.colors.textInverse : theme.colors.textSecondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func favoriteRouteBackground(for route: String) -> Color {
+        route == viewModel.path ? theme.colors.primary600 : theme.colors.surface.opacity(0.72)
     }
 
     @ViewBuilder
@@ -130,7 +168,13 @@ public struct RemoteFilesView: View {
             )
         case let .loaded(files):
             if files.isEmpty {
-                ContentUnavailableView("Empty folder", systemImage: "folder")
+                ScrollView {
+                    ContentUnavailableView("Empty folder", systemImage: "folder")
+                        .frame(maxWidth: .infinity, minHeight: 360)
+                }
+                .refreshable {
+                    await viewModel.load()
+                }
             } else {
                 ScrollView {
                     DSGlassSurface {
@@ -153,6 +197,9 @@ public struct RemoteFilesView: View {
                     }
                     .padding(DSSpacing.lg)
                     .padding(.bottom, 96)
+                }
+                .refreshable {
+                    await viewModel.load()
                 }
             }
         }

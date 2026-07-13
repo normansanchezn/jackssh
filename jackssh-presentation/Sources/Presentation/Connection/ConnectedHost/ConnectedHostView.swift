@@ -168,7 +168,7 @@ private struct _ConnectedHostContent: View {
                     router.push(.terminal(hostID: session.hostID.uuidString))
                 }
                 WorkspaceAction(title: "Files", icon: "folder") {
-                    router.push(.files(hostID: session.hostID.uuidString, path: host?.favoriteRemotePath ?? "/"))
+                    router.push(.files(hostID: session.hostID.uuidString, path: host?.primaryFavoriteRemotePath ?? "/"))
                 }
             }
         }

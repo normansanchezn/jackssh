@@ -15,6 +15,7 @@ public struct HostEditorUIState: Equatable {
     public var openClawScheme: String = "http"
     public var openClawBasePath: String = "/"
     public var favoriteRemotePath: String = ""
+    public var favoriteRemotePaths: [String] = []
     public var issues: [ValidationIssue] = []
     public var isSaving = false
 
@@ -37,9 +38,7 @@ public struct HostEditorUIState: Equatable {
                 self.openClawScheme = openClaw.scheme
                 self.openClawBasePath = openClaw.basePath
             }
-            if let favoriteRemotePath = host.favoriteRemotePath {
-                self.favoriteRemotePath = favoriteRemotePath
-            }
+            self.favoriteRemotePaths = host.favoriteRemotePaths
         } else {
             self.name = ""
             self.hostname = ""

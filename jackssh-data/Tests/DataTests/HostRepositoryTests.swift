@@ -40,4 +40,20 @@ struct HostRepositoryTests {
         try await repo.delete(id: host.id)
         #expect(try await repo.all().isEmpty)
     }
+
+    @Test func persistsMultipleFavoriteRemotePaths() async throws {
+        let repo = try makeRepository()
+        let host = Domain.Host(
+            name: "VPS",
+            hostname: "vps.example",
+            username: "root",
+            favoriteRemotePaths: ["/var/www", "/etc/nginx", "/srv/openclaw"]
+        )
+
+        try await repo.save(host)
+
+        let saved = try #require(await repo.host(id: host.id))
+        #expect(saved.primaryFavoriteRemotePath == "/var/www")
+        #expect(saved.favoriteRemotePaths == ["/var/www", "/etc/nginx", "/srv/openclaw"])
+    }
 }

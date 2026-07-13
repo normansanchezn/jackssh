@@ -56,6 +56,7 @@ public final class HostEditorViewModel {
         get { uiState.favoriteRemotePath }
         set { uiState.favoriteRemotePath = newValue }
     }
+    public var favoriteRemotePaths: [String] { uiState.favoriteRemotePaths }
     public var issues: [ValidationIssue] { uiState.issues }
     public var isSaving: Bool { uiState.isSaving }
 
@@ -93,6 +94,17 @@ public final class HostEditorViewModel {
         }
     }
 
+    public func addFavoriteRemotePath() {
+        let path = normalizedPath(favoriteRemotePath)
+        guard !path.isEmpty, !uiState.favoriteRemotePaths.contains(path) else { return }
+        uiState.favoriteRemotePaths.append(path)
+        uiState.favoriteRemotePath = ""
+    }
+
+    public func removeFavoriteRemotePath(_ path: String) {
+        uiState.favoriteRemotePaths.removeAll { $0 == path }
+    }
+
     /// Attempts to save. Returns the saved host on success, or `nil` when the
     /// draft is invalid (issues populated) or a save error occurs.
     @discardableResult
@@ -113,7 +125,8 @@ public final class HostEditorViewModel {
             openClawPort: openClawPort,
             openClawScheme: openClawHost.isEmpty ? nil : openClawScheme,
             openClawBasePath: openClawHost.isEmpty ? nil : openClawBasePath,
-            favoriteRemotePath: favoriteRemotePath.isEmpty ? nil : favoriteRemotePath
+            favoriteRemotePath: normalizedPath(favoriteRemotePath).isEmpty ? nil : normalizedPath(favoriteRemotePath),
+            favoriteRemotePaths: favoriteRemotePaths
         )
 
         let draftIssues = HostValidator.validate(draft)
@@ -166,5 +179,11 @@ public final class HostEditorViewModel {
 
     public func clearEffect() {
         effect = .none
+    }
+
+    private func normalizedPath(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+        return trimmed.hasPrefix("/") ? trimmed : "/\(trimmed)"
     }
 }

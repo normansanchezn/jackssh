@@ -58,7 +58,39 @@ public struct HostEditorView: View {
                 field("Base Path", text: $viewModel.openClawBasePath, field: .openClawBasePath, kind: .plain)
             }
             Section("Project Settings") {
-                field("Favorite Remote Path", text: $viewModel.favoriteRemotePath, field: .favoriteRemotePath, kind: .plain)
+                HStack(spacing: DSSpacing.sm) {
+                    field("Favorite Remote Path", text: $viewModel.favoriteRemotePath, field: .favoriteRemotePath, kind: .plain)
+                    Button {
+                        viewModel.addFavoriteRemotePath()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.favoriteRemotePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityLabel("Add favorite remote path")
+                }
+
+                if !viewModel.favoriteRemotePaths.isEmpty {
+                    ForEach(viewModel.favoriteRemotePaths, id: \.self) { path in
+                        HStack(spacing: DSSpacing.sm) {
+                            Image(systemName: "folder")
+                                .foregroundStyle(.secondary)
+                            Text(path)
+                                .font(DSTypography.mono)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Spacer()
+                            Button(role: .destructive) {
+                                viewModel.removeFavoriteRemotePath(path)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Remove \(path)")
+                        }
+                    }
+                }
             }
         }
         .navigationTitle(viewModel.title)

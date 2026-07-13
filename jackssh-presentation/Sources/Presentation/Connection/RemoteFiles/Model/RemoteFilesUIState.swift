@@ -20,6 +20,7 @@ public struct RemoteFilesUIState: Equatable {
     public var codeFile: CodeFile?
     public var fileLoadError: String?
     public var isLoadingFile = false
+    public var favoriteRoutes: [String] = []
 
     public init(path: String = "/") {
         self.path = path

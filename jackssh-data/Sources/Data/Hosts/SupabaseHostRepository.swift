@@ -208,7 +208,7 @@ private struct SupabaseHostDTO: Codable, Sendable {
         openClawPort = host.openClawConfiguration?.port
         openClawScheme = host.openClawConfiguration?.scheme
         openClawBasePath = host.openClawConfiguration?.basePath
-        favoriteRemotePath = host.favoriteRemotePath
+        favoriteRemotePath = Self.encodeFavoriteRemotePaths(host.favoriteRemotePaths)
         isFavorite = host.isFavorite
         lastSuccessfulConnection = host.lastSuccessfulConnection
     }
@@ -244,8 +244,29 @@ private struct SupabaseHostDTO: Codable, Sendable {
             authenticationMethod: authenticationMethod,
             openClawConfiguration: openClawConfiguration,
             favoriteRemotePath: favoriteRemotePath,
+            favoriteRemotePaths: Self.decodeFavoriteRemotePaths(favoriteRemotePath),
             lastSuccessfulConnection: lastSuccessfulConnection,
             isFavorite: isFavorite
         )
+    }
+
+    private static func encodeFavoriteRemotePaths(_ paths: [String]) -> String? {
+        guard !paths.isEmpty else { return nil }
+        guard paths.count > 1 else { return paths[0] }
+        guard let data = try? JSONEncoder().encode(paths) else { return paths[0] }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func decodeFavoriteRemotePaths(_ value: String?) -> [String] {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !value.isEmpty else {
+            return []
+        }
+        if value.hasPrefix("["),
+           let data = value.data(using: .utf8),
+           let paths = try? JSONDecoder().decode([String].self, from: data) {
+            return paths
+        }
+        return [value]
     }
 }

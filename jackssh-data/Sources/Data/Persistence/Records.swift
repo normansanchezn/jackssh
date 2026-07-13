@@ -93,13 +93,13 @@ extension HostRecord {
             openClawPort: openClawPort,
             openClawScheme: openClawScheme,
             openClawBasePath: openClawBasePath,
-            favoriteRemotePath: host.favoriteRemotePath,
+            favoriteRemotePath: host.primaryFavoriteRemotePath,
             lastSuccessfulConnection: host.lastSuccessfulConnection,
             isFavorite: host.isFavorite
         )
     }
 
-    var asDomain: Domain.Host {
+    func asDomain(favoriteRemotePaths: [String] = []) -> Domain.Host {
         let authMethod: Domain.SSHAuthMethod
         if authMethodType == "publicKey", let keyID = sshKeyID {
             authMethod = .publicKey(keyID: keyID)
@@ -119,6 +119,8 @@ extension HostRecord {
             openClawConfig = nil
         }
 
+        let orderedFavoritePaths = [favoriteRemotePath].compactMap { $0 } + favoriteRemotePaths
+
         return Domain.Host(
             id: id,
             name: name,
@@ -130,6 +132,7 @@ extension HostRecord {
             authenticationMethod: authMethod,
             openClawConfiguration: openClawConfig,
             favoriteRemotePath: favoriteRemotePath,
+            favoriteRemotePaths: orderedFavoritePaths,
             lastSuccessfulConnection: lastSuccessfulConnection,
             isFavorite: isFavorite
         )
