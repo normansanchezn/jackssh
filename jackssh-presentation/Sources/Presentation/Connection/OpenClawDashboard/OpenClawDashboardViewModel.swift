@@ -59,7 +59,7 @@ public final class OpenClawDashboardViewModel {
             uiState.host = host
             let session = try await openPortForward(
                 to: host,
-                target: PortForwardTarget(host: config.host, port: config.port),
+                target: PortForwardTarget(host: config.host, port: config.port, preferredLocalPort: config.port),
                 scheme: config.scheme,
                 basePath: config.basePath
             )

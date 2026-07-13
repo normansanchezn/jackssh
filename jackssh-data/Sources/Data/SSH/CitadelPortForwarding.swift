@@ -7,7 +7,7 @@ import NIOSSH
 /// Local SSH port forwarding backed by Citadel direct-tcpip channels.
 ///
 /// This is the app-scoped equivalent of:
-/// `ssh -L 127.0.0.1:0:<target-host>:<target-port> user@vps`.
+/// `ssh -L 127.0.0.1:<local-port>:<target-host>:<target-port> user@vps`.
 /// The returned local endpoint is intended for in-app consumers such as WKWebView.
 @available(macOS 15.0, *)
 public struct CitadelPortForwarding: PortForwarding {
@@ -91,28 +91,9 @@ private final class CitadelLocalPortForwardSession: PortForwardSession, @uncheck
         basePath: String
     ) async throws -> CitadelLocalPortForwardSession {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let clientBox = UnsafeSendableBox(value: client)
 
         do {
-            let server = try await ServerBootstrap(group: group)
-                .serverChannelOption(ChannelOptions.backlog, value: 64)
-                .serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-                .childChannelInitializer { localChannel in
-                    let promise = localChannel.eventLoop.makePromise(of: Void.self)
-                    Task {
-                        do {
-                            try await Self.bridge(localChannel: localChannel, client: clientBox.value, target: target)
-                            promise.succeed(())
-                        } catch {
-                            promise.fail(error)
-                            try? await localChannel.close()
-                        }
-                    }
-                    return promise.futureResult
-                }
-                .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-                .bind(host: "127.0.0.1", port: 0)
-                .get()
+            let server = try await bindLocalServer(group: group, client: client, target: target)
 
             guard let localPort = server.localAddress?.port else {
                 try? await server.close()
@@ -137,6 +118,52 @@ private final class CitadelLocalPortForwardSession: PortForwardSession, @uncheck
             try? await group.shutdownGracefully()
             throw error
         }
+    }
+
+    private static func bindLocalServer(
+        group: MultiThreadedEventLoopGroup,
+        client: SSHClient,
+        target: PortForwardTarget
+    ) async throws -> Channel {
+        if let preferredLocalPort = target.preferredLocalPort {
+            do {
+                return try await makeServerBootstrap(group: group, client: client, target: target)
+                    .bind(host: "127.0.0.1", port: preferredLocalPort)
+                    .get()
+            } catch {
+                // Keep the feature usable if the stable local port is already taken.
+            }
+        }
+
+        return try await makeServerBootstrap(group: group, client: client, target: target)
+            .bind(host: "127.0.0.1", port: 0)
+            .get()
+    }
+
+    private static func makeServerBootstrap(
+        group: MultiThreadedEventLoopGroup,
+        client: SSHClient,
+        target: PortForwardTarget
+    ) -> ServerBootstrap {
+        let clientBox = UnsafeSendableBox(value: client)
+
+        return ServerBootstrap(group: group)
+            .serverChannelOption(ChannelOptions.backlog, value: 64)
+            .serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+            .childChannelInitializer { localChannel in
+                let promise = localChannel.eventLoop.makePromise(of: Void.self)
+                Task {
+                    do {
+                        try await Self.bridge(localChannel: localChannel, client: clientBox.value, target: target)
+                        promise.succeed(())
+                    } catch {
+                        promise.fail(error)
+                        try? await localChannel.close()
+                    }
+                }
+                return promise.futureResult
+            }
+            .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
     }
 
     func stop() async {

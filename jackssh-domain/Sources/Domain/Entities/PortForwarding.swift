@@ -4,10 +4,12 @@ import Foundation
 public struct PortForwardTarget: Equatable, Sendable {
     public let host: String
     public let port: Int
+    public let preferredLocalPort: Int?
 
-    public init(host: String, port: Int) {
+    public init(host: String, port: Int, preferredLocalPort: Int? = nil) {
         self.host = host
         self.port = port
+        self.preferredLocalPort = preferredLocalPort
     }
 }
 
