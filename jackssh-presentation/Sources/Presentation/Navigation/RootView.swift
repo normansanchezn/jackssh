@@ -89,6 +89,7 @@ public struct RootView: View {
 
 private enum IPadSidebarSelection: Hashable {
     case dashboard
+    case openClaw
     case hosts
     case terminal
     case files
@@ -144,14 +145,21 @@ private struct CompactAppShell: View {
             }
         ]
 
+        guard homeViewModel.hasConfiguredHosts else {
+            return items
+        }
+
+        items.append(
+            DSBottomNavItem(id: "hosts", title: "Hosts", systemImage: "server.rack") {
+                router.path = [.hosts]
+            }
+        )
+
         guard let session = homeViewModel.activeSession else {
             return items
         }
 
         items.append(contentsOf: [
-            DSBottomNavItem(id: "hosts", title: "Hosts", systemImage: "server.rack") {
-                router.path = [.hosts]
-            },
             DSBottomNavItem(id: "shell", title: "Shell", systemImage: "terminal") {
                 router.path = [.terminal(hostID: session.hostID.uuidString)]
             },
@@ -187,6 +195,7 @@ private struct IPadAppShell: View {
     @State private var selection: IPadSidebarSelection? = .dashboard
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var isLogoutConfirmationPresented = false
+    @State private var showsOpenClawShortcut = false
 
     @Bindable var router: AppRouter
     let homeViewModel: HomeViewModel
@@ -206,8 +215,14 @@ private struct IPadAppShell: View {
                 VStack(alignment: .leading, spacing: DSSpacing.xs) {
                     sidebarButton(.dashboard, title: "Dashboard", systemImage: "gauge.with.dots.needle.67percent")
 
-                    if homeViewModel.activeSession != nil {
+                    if homeViewModel.hasConfiguredHosts {
                         sidebarButton(.hosts, title: "Hosts", systemImage: "server.rack")
+                    }
+
+                    if homeViewModel.activeSession != nil {
+                        if showsOpenClawShortcut {
+                            sidebarButton(.openClaw, title: "OpenClaw", systemImage: "pawprint.fill")
+                        }
                         sidebarButton(.terminal, title: "Terminal", systemImage: "terminal")
                         sidebarButton(.files, title: "Explorador", systemImage: "folder")
                         sidebarButton(.alerts, title: "Notificaciones", systemImage: "bell")
@@ -254,6 +269,9 @@ private struct IPadAppShell: View {
         .onChange(of: router.path) { _, path in
             if path.last == .hosts {
                 selection = .hosts
+            } else if case .openClawSession = path.last {
+                showsOpenClawShortcut = true
+                selection = .openClaw
             }
         }
         .onChange(of: homeViewModel.activeSession) { _, session in
@@ -308,6 +326,12 @@ private struct IPadAppShell: View {
                 showsAccountMenu: false,
                 onLogout: onLogout
             )
+        case .openClaw:
+            if let session = homeViewModel.activeSession {
+                OpenClawDashboardView(viewModel: hostsDependencies.makeOpenClawDashboardViewModel(session.hostID))
+            } else {
+                HomeView(viewModel: homeViewModel, router: router, dashboardTitle: dashboardTitle, showsAccountMenu: false, onLogout: onLogout)
+            }
         case .hosts:
             HostsListView(dependencies: hostsDependencies)
         case .terminal:

@@ -27,7 +27,7 @@ public final class TerminalSession {
     @ObservationIgnored private var lifecycleTask: Task<Void, Never>?
     @ObservationIgnored private var started = false
     @ObservationIgnored private var userClosed = false
-    @ObservationIgnored private var startupDirectoryCommandSent = false
+    @ObservationIgnored private var startupCommandsSent = false
     @ObservationIgnored private var reconnectAttempt = 0
 
     private let maxReconnectAttempts = 5
@@ -118,7 +118,7 @@ public final class TerminalSession {
                     )
                 )
                 phase = .connected
-                await sendStartupDirectoryCommandIfNeeded(on: ch)
+                await sendStartupCommandsIfNeeded(on: ch)
 
                 // Pump remote bytes until the stream ends (connection closed).
                 for await bytes in ch.output {
@@ -159,19 +159,26 @@ public final class TerminalSession {
         terminalView?.feed(text: text)
     }
 
-    private func sendStartupDirectoryCommandIfNeeded(on channel: TerminalChannel) async {
-        guard !startupDirectoryCommandSent,
-              let startupDirectory,
-              !startupDirectory.isEmpty
-        else { return }
+    private func sendStartupCommandsIfNeeded(on channel: TerminalChannel) async {
+        guard !startupCommandsSent else { return }
 
-        startupDirectoryCommandSent = true
-        await channel.send(Array("cd \(Self.shellQuoted(startupDirectory))\n".utf8))
+        startupCommandsSent = true
+        var commands = [Self.promptCommand]
+        if let startupDirectory, !startupDirectory.isEmpty {
+            commands.append("cd \(Self.shellQuoted(startupDirectory))")
+        }
+        await channel.send(Array("\(commands.joined(separator: "\n"))\n".utf8))
     }
 
     private static func shellQuoted(_ value: String) -> String {
         "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
+
+    private static let promptCommand = """
+if [ -n "$BASH_VERSION" ]; then export PS1='\\[\\033[38;5;75m\\]\\u\\[\\033[0m\\]\\[\\033[38;5;244m\\]@\\[\\033[0m\\]\\[\\033[38;5;114m\\]\\h\\[\\033[0m\\] \\[\\033[38;5;179m\\]\\w\\[\\033[0m\\]\\n\\[\\033[38;5;75m\\]➜\\[\\033[0m\\] '; elif [ -n "$ZSH_VERSION" ]; then export PROMPT='%F{75}%n%f%F{244}@%f%F{114}%m%f %F{179}%~%f
+%F{75}➜%f '; else export PS1='\\033[38;5;75m$(whoami)\\033[0m\\033[38;5;244m@\\033[0m\\033[38;5;114m$(hostname -s 2>/dev/null || hostname)\\033[0m \\033[38;5;179m$PWD\\033[0m
+\\033[38;5;75m➜\\033[0m '; fi
+"""
 
     private static func message(for error: Error) -> String {
         if let domain = error as? DomainError {

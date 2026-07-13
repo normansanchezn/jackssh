@@ -43,8 +43,8 @@ public struct HomeView: View {
                     switch viewModel.state {
                     case .idle, .loading:
                         loadingView
-                    case let .loaded(status):
-                        loadedView(status)
+                    case .loaded:
+                        loadedView()
                     case let .failed(error):
                         errorView(error)
                     }
@@ -104,120 +104,118 @@ public struct HomeView: View {
         .accessibilityLabel("Checking status")
     }
     
-    private func loadedView(_ status: HomeStatus) -> some View {
+    private func loadedView() -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.xl) {
-            metrics(status)
-            statusSection(status)
-            manageHostsCard(activeSession: viewModel.activeSession)
-            recentActivity(status.recentActivity)
+            hostCountCard
+            openClawCard
+            portForwardingCard
+            statusRefreshedRow
         }
         .frame(maxWidth: horizontalSizeClass == .regular ? 860 : .infinity, alignment: .leading)
     }
 
-    private func metrics(_ status: HomeStatus) -> some View {
-        HStack(spacing: DSSpacing.sm) {
-            DSMetricTile(value: "3", label: "Hosts", caption: "active", tone: .positive)
-            DSMetricTile(value: "\(status.recentActivity.count)", label: "Alerts", caption: "unread", tone: status.recentActivity.isEmpty ? .neutral : .warning)
-            DSMetricTile(value: status.privateNetworkOnline ? "Up" : "Down", label: "VPN", caption: "status", tone: status.privateNetworkOnline ? .positive : .critical)
-        }
-    }
-    
-    private func statusSection(_ status: HomeStatus) -> some View {
-        VStack(alignment: .leading, spacing: DSSpacing.md) {
-            Text("INFRASTRUCTURE")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(theme.colors.textSecondary)
-                .accessibilityAddTraits(.isHeader)
-            
-            DSGlassSurface {
-                VStack(spacing: DSSpacing.sm) {
-                    DSOpsStatusRow(
-                        systemImage: "network",
-                        title: "Private network",
-                        subtitle: "secure route",
-                        tone: status.privateNetworkOnline ? .positive : .critical,
-                        statusLabel: status.privateNetworkOnline ? "Online" : "Down"
-                    )
-                    DSOpsStatusRow(
-                        systemImage: "server.rack",
-                        title: "VPS · Production",
-                        subtitle: "root@108.174.154.104",
-                        tone: status.vps.tone,
-                        statusLabel: status.vps.label
-                    )
-                    DSOpsStatusRow(
-                        systemImage: "sparkles",
-                        title: "OpenClaw",
-                        subtitle: "dashboard bridge",
-                        tone: status.openClaw.tone,
-                        statusLabel: status.openClaw.label
-                    )
-#if os(macOS)
-                    DSOpsStatusRow(
-                        systemImage: "cpu",
-                        title: "Ollama",
-                        tone: status.ollama.tone,
-                        statusLabel: status.ollama.label
-                    )
-#endif
-                }
-                .padding(DSSpacing.md)
-            }
-        }
-    }
-    
-    private func manageHostsCard(activeSession: ConnectedHostSession?) -> some View {
-        Button {
-            router.push(.hosts)
-        } label: {
-            VStack(alignment: .leading, spacing: DSSpacing.md) {
-                Text("HOSTS")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(theme.colors.textSecondary)
+    private var hostCountCard: some View {
+        DSGlassSurface {
+            HStack(alignment: .center, spacing: DSSpacing.lg) {
+                DSIconTile(symbol: "server.rack", tint: theme.colors.primary600, size: 52)
 
-                DSOpsStatusRow(
-                    systemImage: "server.rack",
-                    title: activeSession.map { $0.hostname } ?? "Manage hosts",
-                    subtitle: activeSession.map { "\($0.username)@\($0.hostname):\($0.port)" } ?? "Configure and connect to your servers",
-                    tone: activeSession == nil ? .neutral : .positive,
-                    statusLabel: activeSession == nil ? "Open" : "Connected"
-                )
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                    Text("\(viewModel.hostCount)")
+                        .font(.system(.largeTitle, design: .monospaced, weight: .bold))
+                        .foregroundStyle(theme.colors.textPrimary)
+                    Text(viewModel.hostCount == 1 ? "host agregado" : "hosts agregados")
+                        .font(.system(.subheadline, weight: .semibold))
+                        .foregroundStyle(theme.colors.textSecondary)
+                }
+
+                Spacer()
             }
-            .padding(DSSpacing.md)
+            .padding(DSSpacing.lg)
+        }
+    }
+
+    private var openClawCard: some View {
+        Button {
+            if let session = viewModel.activeSession {
+                router.push(.openClawSession(id: session.hostID.uuidString))
+            } else {
+                router.push(.hosts)
+            }
+        } label: {
+            HStack(alignment: .center, spacing: DSSpacing.lg) {
+                OpenClawMark()
+
+                VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                    Text("OpenClaw")
+                        .font(.system(.title3, weight: .bold))
+                        .foregroundStyle(theme.colors.textPrimary)
+                    Text("Abre el dashboard a través del túnel SSH del host activo.")
+                        .font(.system(.subheadline))
+                        .foregroundStyle(theme.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(theme.colors.primary600)
+            }
+            .padding(DSSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
             .dsGlassSurface()
         }
         .buttonStyle(.plain)
-        .accessibilityHint("Opens your saved hosts")
+        .accessibilityHint("Opens OpenClaw dashboard through port forwarding")
     }
 
-    private func recentActivity(_ events: [ActivityEvent]) -> some View {
-        VStack(alignment: .leading, spacing: DSSpacing.md) {
-            Text("RECENT")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(theme.colors.textSecondary)
-
-            DSGlassSurface {
+    private var portForwardingCard: some View {
+        Button {
+            if let session = viewModel.activeSession {
+                router.push(.openClawSession(id: session.hostID.uuidString))
+            } else {
+                router.push(.hosts)
+            }
+        } label: {
+            DSGlassSurface(tint: theme.colors.primary600.opacity(0.12)) {
                 VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                    ForEach(events.prefix(3)) { event in
-                        DSOpsStatusRow(
-                            systemImage: "bell",
-                            title: event.title,
-                            subtitle: event.timestamp.formatted(date: .omitted, time: .shortened),
-                            tone: event.state.tone,
-                            statusLabel: event.state.label
-                        )
+                    HStack {
+                        Label("Port Forwarding", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
+                            .font(.system(.headline, weight: .semibold))
+                            .foregroundStyle(theme.colors.textPrimary)
+                        Spacer()
+                        Text(viewModel.activeSession == nil ? "Requiere host" : "Disponible")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(viewModel.activeSession == nil ? theme.colors.textSecondary : theme.colors.primary600)
                     }
-                    if events.isEmpty {
-                        Text("No alerts recorded")
-                            .font(.system(.footnote, design: .default))
-                            .foregroundStyle(theme.colors.textSecondary)
-                            .padding(DSSpacing.md)
-                    }
+
+                    Text("Crea el puente local iPad/iPhone → VPS para acceder a servicios remotos como OpenClaw.")
+                        .font(.system(.subheadline))
+                        .foregroundStyle(theme.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(DSSpacing.md)
+                .padding(DSSpacing.lg)
             }
         }
+        .buttonStyle(.plain)
+    }
+
+    private var statusRefreshedRow: some View {
+        HStack(spacing: DSSpacing.sm) {
+            Image(systemName: "arrow.clockwise")
+                .foregroundStyle(theme.colors.primary600)
+            Text("Status refreshed")
+                .font(.system(.footnote, weight: .semibold))
+                .foregroundStyle(theme.colors.textSecondary)
+            Spacer()
+            Button("Refresh") {
+                Task { await viewModel.load() }
+            }
+            .font(.system(.footnote, weight: .semibold))
+        }
+        .padding(.horizontal, DSSpacing.md)
+        .padding(.vertical, DSSpacing.sm)
+        .background(theme.colors.surface.opacity(0.66), in: Capsule())
     }
     
     private func errorView(_ error: DomainError) -> some View {
@@ -232,6 +230,37 @@ public struct HomeView: View {
                 .buttonStyle(.borderedProminent)
             }
         }
+    }
+}
+
+private struct OpenClawMark: View {
+    @Environment(\.jacksshTheme) private var theme
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: DSRadius.lg, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            theme.colors.primary600.opacity(0.95),
+                            theme.colors.primary800.opacity(0.90)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            Image(systemName: "pawprint.fill")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(theme.colors.textInverse)
+        }
+        .frame(width: 58, height: 58)
+        .overlay {
+            RoundedRectangle(cornerRadius: DSRadius.lg, style: .continuous)
+                .stroke(theme.colors.primary700.opacity(0.55), lineWidth: 1)
+        }
+        .shadow(color: theme.colors.primary600.opacity(0.28), radius: 18, x: 0, y: 10)
+        .accessibilityHidden(true)
     }
 }
 

@@ -1,6 +1,9 @@
 import SwiftUI
 import Domain
 import DesignSystem
+#if canImport(LocalAuthentication)
+import LocalAuthentication
+#endif
 
 public struct ConnectedHostView: View {
     let session: ConnectedHostSession
@@ -26,6 +29,8 @@ private struct _ConnectedHostContent: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.jacksshTheme) private var theme
     @State private var isDisconnectConfirmationVisible = false
+    @State private var isSessionDetailsUnlocked = false
+    @State private var sessionUnlockError: String?
 
     let session: ConnectedHostSession
     let host: Domain.Host?
@@ -35,9 +40,8 @@ private struct _ConnectedHostContent: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DSSpacing.xl) {
                 hostHeader
-                sessionDetails
                 workspaceActions
-                disconnectControl
+                sessionDetails
             }
             .padding(DSSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -63,6 +67,7 @@ private struct _ConnectedHostContent: View {
                     router.popToRoot()
                 }
             }
+            Button("Cancel", role: .cancel) {}
         } message: {
             Text("The active SSH session will be closed.")
         }
@@ -86,6 +91,18 @@ private struct _ConnectedHostContent: View {
                     .padding(.top, DSSpacing.xs)
             }
             Spacer(minLength: 0)
+
+            Button(role: .destructive) {
+                isDisconnectConfirmationVisible = true
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(theme.colors.statusDisconnected)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Disconnect")
         }
     }
 
@@ -93,22 +110,48 @@ private struct _ConnectedHostContent: View {
         VStack(alignment: .leading, spacing: DSSpacing.md) {
             Text("Session")
                 .font(DSTypography.sectionTitle)
+                .foregroundStyle(theme.colors.textSecondary)
                 .accessibilityAddTraits(.isHeader)
 
-            DSGlassSurface {
-                VStack(spacing: 0) {
-                    DSDetailRow(label: "User", value: session.username, symbol: "person")
-                Divider().padding(.leading, 34)
-                    DSDetailRow(label: "Host", value: "\(session.hostname):\(session.port)", symbol: "network")
-                Divider().padding(.leading, 34)
-                    DSDetailRow(
-                        label: "Connected",
-                        value: session.connectedAt.formatted(date: .abbreviated, time: .shortened),
-                        symbol: "clock"
-                    )
+            Button {
+                Task { await revealSessionDetails() }
+            } label: {
+                DSGlassSurface {
+                    ZStack {
+                        VStack(spacing: 0) {
+                            DSDetailRow(label: "User", value: session.username, symbol: "person")
+                            Divider().padding(.leading, 34)
+                            DSDetailRow(label: "Host", value: "\(session.hostname):\(session.port)", symbol: "network")
+                            Divider().padding(.leading, 34)
+                            DSDetailRow(
+                                label: "Connected",
+                                value: session.connectedAt.formatted(date: .abbreviated, time: .shortened),
+                                symbol: "clock"
+                            )
+                        }
+                        .padding(.horizontal, DSSpacing.lg)
+                        .padding(.vertical, DSSpacing.xs)
+                        .blur(radius: isSessionDetailsUnlocked ? 0 : 6)
+                        .opacity(isSessionDetailsUnlocked ? 1 : 0.46)
+
+                        if !isSessionDetailsUnlocked {
+                            Label("Reveal session details", systemImage: "lock.fill")
+                                .font(.system(.footnote, weight: .semibold))
+                                .foregroundStyle(theme.colors.textSecondary)
+                                .padding(.horizontal, DSSpacing.md)
+                                .padding(.vertical, DSSpacing.sm)
+                                .background(theme.colors.surface.opacity(0.78), in: Capsule())
+                        }
+                    }
                 }
-                .padding(.horizontal, DSSpacing.lg)
-                .padding(.vertical, DSSpacing.xs)
+            }
+            .buttonStyle(.plain)
+            .disabled(isSessionDetailsUnlocked)
+
+            if let sessionUnlockError {
+                Text(sessionUnlockError)
+                    .font(DSTypography.caption)
+                    .foregroundStyle(theme.colors.statusDisconnected)
             }
         }
     }
@@ -116,36 +159,43 @@ private struct _ConnectedHostContent: View {
     private var workspaceActions: some View {
         VStack(alignment: .leading, spacing: DSSpacing.md) {
             Text("Workspace")
-                .font(DSTypography.sectionTitle)
+                .font(.system(.title3, weight: .bold))
+                .foregroundStyle(theme.colors.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
-            PrimaryWorkspaceAction(title: "Terminal", subtitle: "Open an interactive shell", icon: "terminal") {
-                router.push(.terminal(hostID: session.hostID.uuidString))
-            }
-
             HStack(spacing: DSSpacing.sm) {
+                WorkspaceAction(title: "Terminal", icon: "terminal") {
+                    router.push(.terminal(hostID: session.hostID.uuidString))
+                }
                 WorkspaceAction(title: "Files", icon: "folder") {
                     router.push(.files(hostID: session.hostID.uuidString, path: host?.favoriteRemotePath ?? "/"))
-                }
-                if host?.openClawConfiguration != nil {
-                    WorkspaceAction(title: "Dashboard", icon: "rectangle.3.group") {
-                        router.push(.openClawSession(id: session.hostID.uuidString))
-                    }
                 }
             }
         }
     }
 
-    private var disconnectControl: some View {
-        Button(role: .destructive) {
-            isDisconnectConfirmationVisible = true
-        } label: {
-            Label("Disconnect", systemImage: "xmark.circle")
-                .font(DSTypography.body.weight(.semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, DSSpacing.md)
+    private func revealSessionDetails() async {
+        guard !isSessionDetailsUnlocked else { return }
+        #if canImport(LocalAuthentication)
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            sessionUnlockError = "Device authentication is not available."
+            return
         }
-        .buttonStyle(.bordered)
+        do {
+            let granted = try await context.evaluatePolicy(
+                .deviceOwnerAuthentication,
+                localizedReason: "Reveal SSH session details"
+            )
+            isSessionDetailsUnlocked = granted
+            sessionUnlockError = granted ? nil : "Authentication was not completed."
+        } catch {
+            sessionUnlockError = "Authentication was cancelled."
+        }
+        #else
+        isSessionDetailsUnlocked = true
+        #endif
     }
 }
 

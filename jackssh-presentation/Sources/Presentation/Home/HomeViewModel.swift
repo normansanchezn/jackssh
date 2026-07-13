@@ -13,6 +13,7 @@ public final class HomeViewModel {
     public private(set) var effect: HomeEffect = .none
     public var state: ViewState { uiState.state }
     public var activeSession: ConnectedHostSession? { uiState.activeSession }
+    public var hostCount: Int { uiState.hostCount }
     public var hasConfiguredHosts: Bool { uiState.hostCount > 0 }
     public var shouldOfferHostCreation: Bool {
         if case .loaded = uiState.state {
