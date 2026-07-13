@@ -8,6 +8,7 @@ public struct ConnectingHostView: View {
     @Environment(\.jacksshTheme) private var theme
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var didStartConnection = false
 
     public init(viewModel: ConnectingHostViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -45,7 +46,7 @@ public struct ConnectingHostView: View {
 
                 if case let .failed(failure) = viewModel.state, failure.canRetry {
                     Button {
-                        Task { await viewModel.retry() }
+                        Task { await retryConnection() }
                     } label: {
                         Text("Retry")
                             .frame(maxWidth: .infinity)
@@ -63,12 +64,14 @@ public struct ConnectingHostView: View {
             content()
         }
         .alert("Connection Failed", isPresented: $showErrorAlert) {
-            Button("Retry") { Task { await viewModel.retry() } }
+            Button("Retry") { Task { await retryConnection() } }
             Button("Cancel", role: .cancel) { router.popToRoot() }
         } message: {
             Text(errorMessage)
         }
         .task {
+            guard !didStartConnection else { return }
+            didStartConnection = true
             await viewModel.connect()
         }
         .onChange(of: viewModel.state) { oldValue, newValue in
@@ -79,6 +82,11 @@ public struct ConnectingHostView: View {
                 showErrorAlert = true
             }
         }
+    }
+
+    private func retryConnection() async {
+        didStartConnection = true
+        await viewModel.retry()
     }
 
     private func stateRow(_ label: String, state: HostConnectionState, position: Int) -> some View {

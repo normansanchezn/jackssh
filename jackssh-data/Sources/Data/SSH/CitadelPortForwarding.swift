@@ -207,23 +207,38 @@ private final class PortForwardPipeHandler: ChannelInboundHandler, @unchecked Se
     typealias OutboundOut = ByteBuffer
 
     private let peer: Channel
+    private var didClose = false
 
     init(peer: Channel) {
         self.peer = peer
     }
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+        guard context.channel.isActive, peer.isActive else {
+            closePair(context: context)
+            return
+        }
         let buffer = unwrapInboundIn(data)
         peer.writeAndFlush(buffer, promise: nil)
     }
 
     func channelInactive(context: ChannelHandlerContext) {
-        peer.close(promise: nil)
+        closePair(context: context)
         context.fireChannelInactive()
     }
 
     func errorCaught(context: ChannelHandlerContext, error: Error) {
-        peer.close(promise: nil)
-        context.close(promise: nil)
+        closePair(context: context)
+    }
+
+    private func closePair(context: ChannelHandlerContext) {
+        guard !didClose else { return }
+        didClose = true
+        if peer.isActive {
+            peer.close(promise: nil)
+        }
+        if context.channel.isActive {
+            context.close(promise: nil)
+        }
     }
 }

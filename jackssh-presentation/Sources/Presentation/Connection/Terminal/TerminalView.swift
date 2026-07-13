@@ -101,47 +101,14 @@ private enum TerminalKeyboardMode: String, CaseIterable {
 
 /// Compact status header: hostname + live connection state, Termius-style.
 private struct TerminalStatusBar: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     let title: String
     let phase: TerminalConnectionPhase
     @Binding var keyboardMode: TerminalKeyboardMode
     let onReconnect: () -> Void
 
     var body: some View {
-        HStack(spacing: DSSpacing.sm) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 9, height: 9)
-
-            Text(title)
-                .font(.system(.footnote, design: .monospaced))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .truncationMode(.middle)
-
-            Spacer(minLength: DSSpacing.sm)
-
-            Text(statusLabel)
-                .font(.system(.caption2, design: .monospaced))
-                .foregroundStyle(statusColor)
-
-            Picker("Keyboard", selection: $keyboardMode) {
-                ForEach(TerminalKeyboardMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 154)
-            .accessibilityLabel("Keyboard mode")
-
-            if showReconnect {
-                Button(action: onReconnect) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                }
-                .accessibilityLabel("Reconnect")
-            }
-        }
+        content
         .padding(.horizontal, DSSpacing.md)
         .padding(.vertical, DSSpacing.sm)
         .background(Color(red: 0x08/255, green: 0x0D/255, blue: 0x14/255))
@@ -174,6 +141,67 @@ private struct TerminalStatusBar: View {
         case .connecting, .reconnecting: return .yellow
         case .connected: return .green
         case .disconnected, .failed: return .red
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if horizontalSizeClass == .compact {
+            VStack(alignment: .leading, spacing: DSSpacing.xs) {
+                HStack(spacing: DSSpacing.sm) {
+                    connectionIdentity
+                    Spacer(minLength: DSSpacing.sm)
+                    reconnectButton
+                }
+                keyboardPicker(width: nil)
+            }
+        } else {
+            HStack(spacing: DSSpacing.sm) {
+                connectionIdentity
+                Spacer(minLength: DSSpacing.sm)
+                keyboardPicker(width: 154)
+                reconnectButton
+            }
+        }
+    }
+
+    private var connectionIdentity: some View {
+        HStack(spacing: DSSpacing.sm) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 9, height: 9)
+            Text(title)
+                .font(.system(.footnote, design: .monospaced))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Text(statusLabel)
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(statusColor)
+                .lineLimit(1)
+        }
+    }
+
+    private func keyboardPicker(width: CGFloat?) -> some View {
+        Picker("Keyboard", selection: $keyboardMode) {
+            ForEach(TerminalKeyboardMode.allCases, id: \.self) { mode in
+                Text(mode.rawValue).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .frame(width: width)
+        .accessibilityLabel("Keyboard mode")
+    }
+
+    @ViewBuilder
+    private var reconnectButton: some View {
+        if showReconnect {
+            Button(action: onReconnect) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.caption)
+                    .foregroundStyle(.white)
+            }
+            .accessibilityLabel("Reconnect")
         }
     }
 }

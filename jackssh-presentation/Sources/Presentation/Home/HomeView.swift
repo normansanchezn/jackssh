@@ -107,8 +107,7 @@ public struct HomeView: View {
     private func loadedView() -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.xl) {
             hostCountCard
-            openClawCard
-            portForwardingCard
+            sessionFlowCard
             statusRefreshedRow
         }
         .frame(maxWidth: horizontalSizeClass == .regular ? 860 : .infinity, alignment: .leading)
@@ -134,7 +133,7 @@ public struct HomeView: View {
         }
     }
 
-    private var openClawCard: some View {
+    private var sessionFlowCard: some View {
         Button {
             if let session = viewModel.activeSession {
                 router.push(.openClawSession(id: session.hostID.uuidString))
@@ -143,13 +142,17 @@ public struct HomeView: View {
             }
         } label: {
             HStack(alignment: .center, spacing: DSSpacing.lg) {
-                OpenClawMark()
+                DSIconTile(
+                    symbol: viewModel.activeSession == nil ? "server.rack" : "bolt.circle.fill",
+                    tint: viewModel.activeSession == nil ? theme.colors.textSecondary : theme.colors.primary600,
+                    size: 58
+                )
 
                 VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                    Text("OpenClaw")
+                    Text(sessionFlowTitle)
                         .font(.system(.title3, weight: .bold))
                         .foregroundStyle(theme.colors.textPrimary)
-                    Text("Abre el dashboard a través del túnel SSH del host activo.")
+                    Text(sessionFlowSubtitle)
                         .font(.system(.subheadline))
                         .foregroundStyle(theme.colors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -166,38 +169,26 @@ public struct HomeView: View {
             .dsGlassSurface()
         }
         .buttonStyle(.plain)
-        .accessibilityHint("Opens OpenClaw dashboard through port forwarding")
+        .accessibilityHint(viewModel.activeSession == nil ? "Opens the host list" : "Opens the active host workspace")
     }
 
-    private var portForwardingCard: some View {
-        Button {
-            if let session = viewModel.activeSession {
-                router.push(.openClawSession(id: session.hostID.uuidString))
-            } else {
-                router.push(.hosts)
-            }
-        } label: {
-            DSGlassSurface(tint: theme.colors.primary600.opacity(0.12)) {
-                VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                    HStack {
-                        Label("Port Forwarding", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
-                            .font(.system(.headline, weight: .semibold))
-                            .foregroundStyle(theme.colors.textPrimary)
-                        Spacer()
-                        Text(viewModel.activeSession == nil ? "Requiere host" : "Disponible")
-                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(viewModel.activeSession == nil ? theme.colors.textSecondary : theme.colors.primary600)
-                    }
-
-                    Text("Crea el puente local iPad/iPhone → VPS para acceder a servicios remotos como OpenClaw.")
-                        .font(.system(.subheadline))
-                        .foregroundStyle(theme.colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(DSSpacing.lg)
-            }
+    private var sessionFlowTitle: String {
+        guard let session = viewModel.activeSession else {
+            return viewModel.hostCount == 0 ? "Agrega tu primer host" : "Elige un host"
         }
-        .buttonStyle(.plain)
+        return viewModel.hasOpenClawForActiveSession ? "OpenClaw Dashboard" : viewModel.activeHost?.name ?? session.hostname
+    }
+
+    private var sessionFlowSubtitle: String {
+        guard viewModel.activeSession != nil else {
+            return viewModel.hostCount == 0
+                ? "Configura un VPS para habilitar Terminal, Files, Notificaciones y OpenClaw."
+                : "Conecta un host para abrir su workspace operativo."
+        }
+        if viewModel.hasOpenClawForActiveSession {
+            return "Abre OpenClaw por el túnel SSH del host activo."
+        }
+        return "Intenta abrir OpenClaw para el host activo. Si no está configurado, la app mostrará el error del host."
     }
 
     private var statusRefreshedRow: some View {
@@ -232,38 +223,6 @@ public struct HomeView: View {
         }
     }
 }
-
-private struct OpenClawMark: View {
-    @Environment(\.jacksshTheme) private var theme
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: DSRadius.lg, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            theme.colors.primary600.opacity(0.95),
-                            theme.colors.primary800.opacity(0.90)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(theme.colors.textInverse)
-        }
-        .frame(width: 58, height: 58)
-        .overlay {
-            RoundedRectangle(cornerRadius: DSRadius.lg, style: .continuous)
-                .stroke(theme.colors.primary700.opacity(0.55), lineWidth: 1)
-        }
-        .shadow(color: theme.colors.primary600.opacity(0.28), radius: 18, x: 0, y: 10)
-        .accessibilityHidden(true)
-    }
-}
-
 
 #Preview("Home") {
     let router = AppRouter()

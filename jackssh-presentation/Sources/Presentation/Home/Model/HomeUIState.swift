@@ -11,6 +11,7 @@ public struct HomeUIState: Equatable {
 
     public var state: ViewState = .idle
     public var activeSession: ConnectedHostSession?
+    public var activeHost: Domain.Host?
     public var hostCount: Int = 0
     public var openClawHostIDs: Set<UUID> = []
     public var openClawLogs: [OpenClawLogEntry] = []

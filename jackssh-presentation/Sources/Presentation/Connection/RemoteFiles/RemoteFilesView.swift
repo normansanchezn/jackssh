@@ -267,24 +267,12 @@ private struct CodeFileViewer: View {
     let codeFile: RemoteFilesViewModel.CodeFile
 
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(codeFile.content.split(separator: "\n", omittingEmptySubsequences: false).enumerated()), id: \.offset) { index, line in
-                    HStack(alignment: .firstTextBaseline, spacing: DSSpacing.md) {
-                        Text("\(index + 1)")
-                            .foregroundStyle(theme.colors.textTertiary)
-                            .frame(minWidth: 34, alignment: .trailing)
-                        Text(String(line))
-                            .foregroundStyle(theme.colors.textPrimary)
-                            .textSelection(.enabled)
-                    }
-                    .font(DSTypography.mono)
-                    .padding(.leading, DSSpacing.xs)
-                    .padding(.trailing, DSSpacing.sm)
-                    .padding(.vertical, 2)
-                }
+        GeometryReader { proxy in
+            if wrapsContent {
+                wrappedFileContent(minWidth: proxy.size.width)
+            } else {
+                codeFileContent(minWidth: proxy.size.width)
             }
-            .padding(.vertical, DSSpacing.sm)
         }
         .background(theme.colors.background)
         .navigationTitle(codeFile.file.name)
@@ -305,6 +293,56 @@ private struct CodeFileViewer: View {
             .padding(.vertical, DSSpacing.sm)
             .dsGlassSurface()
         }
+    }
+
+    private var lines: [Substring] {
+        codeFile.content.split(separator: "\n", omittingEmptySubsequences: false)
+    }
+
+    private var wrapsContent: Bool {
+        CodeLanguage.detect(for: codeFile.file.name) == .markdown
+    }
+
+    private func wrappedFileContent(minWidth: CGFloat) -> some View {
+        ScrollView(.vertical) {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+                    fileLine(index: index, line: String(line), wraps: true)
+                }
+            }
+            .frame(minWidth: minWidth, alignment: .leading)
+            .padding(.horizontal, DSSpacing.md)
+            .padding(.vertical, DSSpacing.sm)
+        }
+    }
+
+    private func codeFileContent(minWidth: CGFloat) -> some View {
+        ScrollView([.horizontal, .vertical]) {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+                    fileLine(index: index, line: String(line), wraps: false)
+                }
+            }
+            .frame(minWidth: minWidth, alignment: .leading)
+            .padding(.horizontal, DSSpacing.md)
+            .padding(.vertical, DSSpacing.sm)
+        }
+    }
+
+    private func fileLine(index: Int, line: String, wraps: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: DSSpacing.md) {
+            Text("\(index + 1)")
+                .foregroundStyle(theme.colors.textTertiary)
+                .frame(width: 34, alignment: .trailing)
+            Text(line.isEmpty ? " " : line)
+                .foregroundStyle(theme.colors.textPrimary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: !wraps, vertical: true)
+                .frame(maxWidth: wraps ? .infinity : nil, alignment: .leading)
+        }
+        .font(DSTypography.mono)
+        .frame(maxWidth: wraps ? .infinity : nil, alignment: .leading)
+        .padding(.vertical, 2)
     }
 }
 

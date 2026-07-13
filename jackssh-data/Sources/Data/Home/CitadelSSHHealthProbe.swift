@@ -51,7 +51,13 @@ public struct CitadelSSHHealthProbe: SSHHealthProbe {
                 reconnect: .never,
                 connectTimeout: .seconds(Int64(connectTimeout))
             )
-            try? await client.close()
+            do {
+                _ = try await client.executeCommand("true", maxResponseSize: 1024)
+                try? await client.close()
+            } catch {
+                try? await client.close()
+                throw error
+            }
             return .online
         } catch {
             // Network-level failure → offline. Handshake/auth/host-key failure →

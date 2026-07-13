@@ -122,9 +122,11 @@ private struct CompactAppShell: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            DSFloatingBottomNav(selectedID: selectedID, items: navItems)
-                .padding(.horizontal, 22)
-                .padding(.bottom, 8)
+            if !hidesBottomNavigation {
+                DSFloatingBottomNav(selectedID: selectedID, items: navItems)
+                    .padding(.horizontal, 22)
+                    .padding(.bottom, 8)
+            }
         }
         .sheet(isPresented: $isAddHostSheetPresented) {
             NavigationStack {
@@ -159,13 +161,11 @@ private struct CompactAppShell: View {
             return items
         }
 
-        if homeViewModel.hasOpenClawForActiveSession {
-            items.append(
-                DSBottomNavItem(id: "openclaw", title: "OpenClaw", systemImage: "point.topleft.down.curvedto.point.bottomright.up") {
-                    router.path = [.openClawSession(id: session.hostID.uuidString)]
-                }
-            )
-        }
+        items.append(
+            DSBottomNavItem(id: "openclaw", title: "OpenClaw", systemImage: "point.topleft.down.curvedto.point.bottomright.up") {
+                router.path = [.openClawSession(id: session.hostID.uuidString)]
+            }
+        )
 
         items.append(contentsOf: [
             DSBottomNavItem(id: "shell", title: "Shell", systemImage: "terminal") {
@@ -196,6 +196,16 @@ private struct CompactAppShell: View {
             return "openclaw"
         case .serviceLogs:
             return "home"
+        }
+    }
+
+    private var hidesBottomNavigation: Bool {
+        guard let last = router.path.last else { return false }
+        switch last {
+        case .terminal, .openClawSession:
+            return true
+        default:
+            return false
         }
     }
 }
@@ -229,9 +239,7 @@ private struct IPadAppShell: View {
                     }
 
                     if homeViewModel.activeSession != nil {
-                        if homeViewModel.hasOpenClawForActiveSession {
-                            sidebarButton(.openClaw, title: "OpenClaw", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
-                        }
+                        sidebarButton(.openClaw, title: "OpenClaw", systemImage: "point.topleft.down.curvedto.point.bottomright.up")
                         sidebarButton(.terminal, title: "Terminal", systemImage: "terminal")
                         sidebarButton(.files, title: "Explorador", systemImage: "folder")
                         sidebarButton(.alerts, title: "Notificaciones", systemImage: "bell")

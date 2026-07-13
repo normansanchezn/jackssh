@@ -163,15 +163,27 @@ private struct _ConnectedHostContent: View {
                 .foregroundStyle(theme.colors.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
-            HStack(spacing: DSSpacing.sm) {
+            LazyVGrid(columns: workspaceColumns, spacing: DSSpacing.sm) {
                 WorkspaceAction(title: "Terminal", icon: "terminal") {
                     router.push(.terminal(hostID: session.hostID.uuidString))
                 }
                 WorkspaceAction(title: "Files", icon: "folder") {
                     router.push(.files(hostID: session.hostID.uuidString, path: host?.primaryFavoriteRemotePath ?? "/"))
                 }
+                if host?.openClawConfiguration != nil {
+                    WorkspaceAction(title: "OpenClaw", icon: "point.topleft.down.curvedto.point.bottomright.up", isPrimary: true) {
+                        router.push(.openClawSession(id: session.hostID.uuidString))
+                    }
+                    WorkspaceAction(title: "Logs", icon: "bell.badge") {
+                        router.push(.alerts)
+                    }
+                }
             }
         }
+    }
+
+    private var workspaceColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: 148), spacing: DSSpacing.sm, alignment: .top)]
     }
 
     private func revealSessionDetails() async {
@@ -243,6 +255,7 @@ private struct WorkspaceAction: View {
     @Environment(\.jacksshTheme) private var theme
     let title: String
     let icon: String
+    var isPrimary = false
     let action: () -> Void
 
     var body: some View {
@@ -250,19 +263,19 @@ private struct WorkspaceAction: View {
             VStack(alignment: .leading, spacing: DSSpacing.sm) {
                 Image(systemName: icon)
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(theme.colors.primary600)
+                    .foregroundStyle(isPrimary ? theme.colors.textInverse : theme.colors.primary600)
                     .frame(width: 36, height: 36)
-                    .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+                    .background(isPrimary ? theme.colors.primary600 : theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
                 Text(title)
                     .font(DSTypography.body.weight(.semibold))
                     .foregroundStyle(theme.colors.textPrimary)
             }
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
             .padding(DSSpacing.md)
-            .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .background(isPrimary ? theme.colors.primary600.opacity(0.12) : theme.colors.surface, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                    .stroke(theme.colors.border, lineWidth: 1)
+                    .stroke(isPrimary ? theme.colors.primary600.opacity(0.5) : theme.colors.border, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)

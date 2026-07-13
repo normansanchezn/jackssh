@@ -93,6 +93,7 @@ struct HomeViewModelTests {
         await vm.load()
 
         #expect(vm.hasOpenClawForActiveSession)
+        #expect(vm.activeHost == host)
     }
 
     @Test func loadsOpenClawLogsForActiveConfiguredHost() async {

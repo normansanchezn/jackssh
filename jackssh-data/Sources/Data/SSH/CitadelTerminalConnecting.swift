@@ -84,6 +84,8 @@ final class CitadelTerminalChannel: TerminalChannel, @unchecked Sendable {
     nonisolated(unsafe) private let client: SSHClient
     private let cols: Int
     private let rows: Int
+    private let stateLock = NSLock()
+    private var isClosed = false
 
     let output: AsyncStream<[UInt8]>
     private let outputContinuation: AsyncStream<[UInt8]>.Continuation
@@ -156,18 +158,35 @@ final class CitadelTerminalChannel: TerminalChannel, @unchecked Sendable {
     }
 
     func send(_ bytes: [UInt8]) async {
+        guard !closed else { return }
         outboundContinuation.yield(.bytes(bytes))
     }
 
     func resize(cols: Int, rows: Int) async {
+        guard !closed else { return }
         outboundContinuation.yield(.resize(cols: cols, rows: rows))
     }
 
     func close() async {
+        guard markClosed() else { return }
         outboundContinuation.finish()
-        ptyTask?.cancel()
-        outputContinuation.finish()
         let client = UnsafeSendableBox(value: self.client)
         try? await client.value.close()
+        await ptyTask?.value
+        outputContinuation.finish()
+    }
+
+    private var closed: Bool {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        return isClosed
+    }
+
+    private func markClosed() -> Bool {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        guard !isClosed else { return false }
+        isClosed = true
+        return true
     }
 }

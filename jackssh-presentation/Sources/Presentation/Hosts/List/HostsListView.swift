@@ -8,6 +8,7 @@ public struct HostsListView: View {
     @State private var viewModel: HostsViewModel
     @State private var editorTarget: EditorTarget?
     @State private var pendingDeletion: Domain.Host?
+    @State private var pendingNavigationHostID: UUID?
     @Environment(\.jacksshTheme) private var theme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(AppRouter.self) private var router
@@ -34,6 +35,9 @@ public struct HostsListView: View {
             }
         }
         .task { await viewModel.load() }
+        .onAppear {
+            pendingNavigationHostID = nil
+        }
         .sheet(item: $editorTarget) { target in
             createHost(host: target.host)
         }
@@ -151,9 +155,11 @@ public struct HostsListView: View {
         HostRowLabel(host: host, isConnected: isConnected(host))
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
-            .simultaneousGesture(TapGesture().onEnded {
+            .onTapGesture {
+                guard pendingNavigationHostID == nil else { return }
+                pendingNavigationHostID = host.id
                 router.push(.connecting(hostID: host.id.uuidString))
-            })
+            }
             .contextMenu {
                 Button("Edit", systemImage: "pencil") {
                     editorTarget = .edit(host)

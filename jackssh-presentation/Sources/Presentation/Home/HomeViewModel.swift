@@ -13,6 +13,7 @@ public final class HomeViewModel {
     public private(set) var effect: HomeEffect = .none
     public var state: ViewState { uiState.state }
     public var activeSession: ConnectedHostSession? { uiState.activeSession }
+    public var activeHost: Domain.Host? { uiState.activeHost }
     public var hostCount: Int { uiState.hostCount }
     public var openClawLogs: [OpenClawLogEntry] { uiState.openClawLogs }
     public var openClawLogsError: String? { uiState.openClawLogsError }
@@ -53,8 +54,12 @@ public final class HomeViewModel {
             async let hosts = loadHosts?()
             uiState.state = .loaded(try await status)
             uiState.activeSession = await session
+            uiState.activeHost = nil
             if let hosts = try? await hosts {
                 uiState.hostCount = hosts.count
+                uiState.activeHost = uiState.activeSession.flatMap { session in
+                    hosts.first(where: { $0.id == session.hostID })
+                }
                 uiState.openClawHostIDs = Set(
                     hosts
                         .filter { $0.openClawConfiguration != nil }

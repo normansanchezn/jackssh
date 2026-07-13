@@ -40,7 +40,13 @@ public actor CitadelSSHConnector: SSHConnector {
                     reconnect: .never,
                     connectTimeout: .seconds(15)
                 )
-                try await client.close()
+                do {
+                    _ = try await client.executeCommand("true", maxResponseSize: 1024)
+                    try await client.close()
+                } catch {
+                    try? await client.close()
+                    throw error
+                }
                 return .success
 
             case .publicKey:

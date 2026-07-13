@@ -57,11 +57,13 @@ public final class TerminalSession {
 
     /// Forward raw keystroke bytes from the emulator to the remote PTY stdin.
     func sendToRemote(_ data: ArraySlice<UInt8>) {
+        guard !userClosed else { return }
         let bytes = Array(data)
         Task { await channel?.send(bytes) }
     }
 
     public func sendBytes(_ bytes: [UInt8]) {
+        guard !userClosed else { return }
         Task { await channel?.send(bytes) }
     }
 
@@ -71,6 +73,7 @@ public final class TerminalSession {
 
     /// Propagate a window-size change to the remote so full-screen apps reflow.
     func resizeRemote(cols: Int, rows: Int) {
+        guard !userClosed else { return }
         Task { await channel?.resize(cols: cols, rows: rows) }
     }
 
@@ -130,8 +133,10 @@ public final class TerminalSession {
 
                 // Pump remote bytes until the stream ends (connection closed).
                 for await bytes in ch.output {
+                    guard !userClosed && !Task.isCancelled else { break }
                     terminalView?.feed(byteArray: ArraySlice(bytes))
                 }
+                await ch.close()
             } catch {
                 phase = .failed(Self.message(for: error))
             }
