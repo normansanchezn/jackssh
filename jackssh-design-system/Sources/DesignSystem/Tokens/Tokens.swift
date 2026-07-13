@@ -14,17 +14,19 @@ public enum DSSpacing {
 }
 
 public enum DSRadius {
+    public static let xs: CGFloat = 6
     public static let sm: CGFloat = 8
-    public static let md: CGFloat = 12
-    public static let lg: CGFloat = 16
+    public static let md: CGFloat = 10
+    public static let lg: CGFloat = 14
 }
 
 /// Semantic typography. All styles are relative to Dynamic Type text styles,
 /// so they scale with the user's preferred content size automatically.
 public enum DSTypography {
-    public static let screenTitle: Font = .system(.largeTitle, design: .rounded, weight: .bold)
-    public static let sectionTitle: Font = .system(.headline, design: .rounded)
-    public static let body: Font = .body
-    public static let caption: Font = .caption
-    public static let mono: Font = .system(.body, design: .monospaced)
+    public static let screenTitle: Font = .system(.title2, design: .default, weight: .bold)
+    public static let sectionTitle: Font = .system(.headline, design: .default, weight: .semibold)
+    public static let body: Font = .system(.subheadline, design: .default)
+    public static let caption: Font = .system(.caption2, design: .default)
+    public static let mono: Font = .system(.caption, design: .monospaced)
+    public static let monoBody: Font = .system(.subheadline, design: .monospaced)
 }

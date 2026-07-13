@@ -43,16 +43,14 @@ public struct RootView: View {
                             }
                             .environment(router)
                         } else {
-                            NavigationStack(path: $router.path) {
-                                HomeView(viewModel: homeViewModel, router: router) {
-                                    await authViewModel.logout()
-                                }
-                                    .environment(router)
-                                    .navigationDestination(for: AppRoute.self) { route in
-                                        RootDestinationView(route: route, hostsDependencies: hostsDependencies)
-                                            .environment(router)
-                                    }
+                            CompactAppShell(
+                                router: router,
+                                homeViewModel: homeViewModel,
+                                hostsDependencies: hostsDependencies
+                            ) {
+                                await authViewModel.logout()
                             }
+                            .environment(router)
                         }
                     default:
                         AuthFlowView(authViewModel: authViewModel)
@@ -64,6 +62,7 @@ public struct RootView: View {
         .task {
             await bootstrap()
         }
+        .preferredColorScheme(.dark)
     }
 
     private func bootstrap() async {
@@ -81,6 +80,76 @@ public struct RootView: View {
 private enum IPadSidebarSelection: Hashable {
     case dashboard
     case hosts
+}
+
+private struct CompactAppShell: View {
+    @Bindable var router: AppRouter
+    let homeViewModel: HomeViewModel
+    let hostsDependencies: HostsDependencies
+    let onLogout: () async -> Void
+
+    var body: some View {
+        NavigationStack(path: $router.path) {
+            HomeView(viewModel: homeViewModel, router: router) {
+                await onLogout()
+            }
+            .environment(router)
+            .navigationDestination(for: AppRoute.self) { route in
+                RootDestinationView(
+                    route: route,
+                    hostsDependencies: hostsDependencies,
+                    homeViewModel: homeViewModel
+                )
+                .environment(router)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            DSFloatingBottomNav(selectedID: selectedID, items: navItems)
+                .padding(.horizontal, 22)
+                .padding(.bottom, 8)
+        }
+    }
+
+    private var navItems: [DSBottomNavItem] {
+        let session = homeViewModel.activeSession
+        return [
+            DSBottomNavItem(id: "home", title: "Home", systemImage: "square.grid.2x2") {
+                router.popToRoot()
+            },
+            DSBottomNavItem(id: "hosts", title: "Hosts", systemImage: "server.rack") {
+                router.path = [.hosts]
+            },
+            DSBottomNavItem(id: "shell", title: "Shell", systemImage: "terminal", isEnabled: session != nil) {
+                if let session {
+                    router.path = [.terminal(hostID: session.hostID.uuidString)]
+                }
+            },
+            DSBottomNavItem(id: "files", title: "Files", systemImage: "folder", isEnabled: session != nil) {
+                if let session {
+                    router.path = [.files(hostID: session.hostID.uuidString, path: "/")]
+                }
+            },
+            DSBottomNavItem(id: "alerts", title: "Alerts", systemImage: "bell", badgeCount: 2) {
+                router.path = [.alerts]
+            },
+        ]
+    }
+
+    private var selectedID: String {
+        guard let last = router.path.last else { return "home" }
+        switch last {
+        case .hosts, .connecting, .connected, .host:
+            return "hosts"
+        case .terminal:
+            return "shell"
+        case .files:
+            return "files"
+        case .alerts:
+            return "alerts"
+        case .openClawSession, .serviceLogs:
+            return "home"
+        }
+    }
 }
 
 private struct IPadAppShell: View {
@@ -159,6 +228,13 @@ private struct IPadAppShell: View {
 private struct RootDestinationView: View {
     let route: AppRoute
     let hostsDependencies: HostsDependencies
+    let homeViewModel: HomeViewModel?
+
+    init(route: AppRoute, hostsDependencies: HostsDependencies, homeViewModel: HomeViewModel? = nil) {
+        self.route = route
+        self.hostsDependencies = hostsDependencies
+        self.homeViewModel = homeViewModel
+    }
 
     var body: some View {
         destination
@@ -169,6 +245,12 @@ private struct RootDestinationView: View {
         switch route {
         case .hosts:
             HostsListView(dependencies: hostsDependencies)
+        case .alerts:
+            if let homeViewModel {
+                AlertsView(viewModel: homeViewModel)
+            } else {
+                ComingSoonView(title: "Alerts")
+            }
         case let .connecting(hostID):
             if let uuid = UUID(uuidString: hostID) {
                 ConnectingHostView(viewModel: hostsDependencies.makeConnectingViewModel(uuid))

@@ -14,16 +14,27 @@ public struct RemoteFilesView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            directoryHeader
-            content
-            if isTerminalVisible {
-                Divider()
-                TerminalScreen(viewModel: terminalViewModel, embedded: true)
-                    .frame(height: 280)
+        DSBackground(showGrid: true) {
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: DSSpacing.md) {
+                    Text("Files")
+                        .font(.system(.title2, weight: .bold))
+                        .foregroundStyle(.primary)
+                    directoryHeader
+                }
+                .padding(.horizontal, DSSpacing.lg)
+                .padding(.top, DSSpacing.md)
+
+                content
+
+                if isTerminalVisible {
+                    Divider()
+                    TerminalScreen(viewModel: terminalViewModel, embedded: true)
+                        .frame(height: 280)
+                }
             }
         }
-        .navigationTitle("Files")
+        .navigationTitle("")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -87,9 +98,12 @@ public struct RemoteFilesView: View {
             .buttonStyle(.bordered)
             .accessibilityLabel("Refresh folder")
         }
-        .padding(.horizontal, DSSpacing.lg)
-        .padding(.vertical, DSSpacing.sm)
-        .background(.bar)
+        .padding(DSSpacing.xs)
+        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
+                .stroke(.white.opacity(0.10), lineWidth: 1)
+        }
     }
 
     @ViewBuilder
@@ -108,16 +122,28 @@ public struct RemoteFilesView: View {
             if files.isEmpty {
                 ContentUnavailableView("Empty folder", systemImage: "folder")
             } else {
-                List(files, id: \.path) { file in
-                    Button {
-                        Task { await viewModel.open(file) }
-                    } label: {
-                        RemoteFileRow(file: file)
+                ScrollView {
+                    DSGlassSurface {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(files.enumerated()), id: \.element.path) { index, file in
+                                Button {
+                                    Task { await viewModel.open(file) }
+                                } label: {
+                                    RemoteFileRow(file: file)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(!file.isDirectory && CodeLanguage.detect(for: file.name) == .plainText)
+                                if index < files.count - 1 {
+                                    Divider().padding(.leading, 34)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, DSSpacing.md)
+                        .padding(.vertical, DSSpacing.xs)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(!file.isDirectory && CodeLanguage.detect(for: file.name) == .plainText)
+                    .padding(DSSpacing.lg)
+                    .padding(.bottom, 96)
                 }
-                .listStyle(.plain)
             }
         }
     }
@@ -143,13 +169,16 @@ private struct RemoteFileRow: View {
     var body: some View {
         HStack(spacing: DSSpacing.md) {
             Image(systemName: file.isDirectory ? "folder.fill" : "doc")
-                .foregroundStyle(file.isDirectory ? .blue : .secondary)
-                .frame(width: 24)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(file.isDirectory ? Color.cyan : .secondary)
+                .frame(width: 22, height: 22)
+                .background((file.isDirectory ? Color.cyan : Color.gray).opacity(0.12), in: RoundedRectangle(cornerRadius: DSRadius.xs))
             VStack(alignment: .leading, spacing: DSSpacing.xxs) {
                 Text(file.name)
+                    .font(DSTypography.caption.weight(.semibold))
                     .foregroundStyle(.primary)
                 Text(detail)
-                    .font(DSTypography.caption)
+                    .font(.system(size: 9))
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -164,6 +193,7 @@ private struct RemoteFileRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .padding(.vertical, DSSpacing.sm)
         .contentShape(Rectangle())
     }
 

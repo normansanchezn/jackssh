@@ -18,7 +18,11 @@ public struct DSIconTile: View {
             .font(.system(size: size * 0.40, weight: .semibold))
             .foregroundStyle(resolvedTint)
             .frame(width: size, height: size)
-            .background(resolvedTint.opacity(0.14), in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .background(resolvedTint.opacity(0.13), in: RoundedRectangle(cornerRadius: DSRadius.xs, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: DSRadius.xs, style: .continuous)
+                    .stroke(resolvedTint.opacity(0.28), lineWidth: 1)
+            }
             .accessibilityHidden(true)
     }
 

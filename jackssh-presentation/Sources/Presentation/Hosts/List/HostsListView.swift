@@ -87,16 +87,16 @@ public struct HostsListView: View {
         case let .loaded(hosts):
             ScrollView {
                 VStack(alignment: .leading, spacing: DSSpacing.md) {
-                    Text("\(hosts.count) saved \(hosts.count == 1 ? "host" : "hosts")")
-                        .font(DSTypography.caption)
-                        .foregroundStyle(.secondary)
+                    Text("\(hosts.count) SAVED")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(theme.colors.textTertiary)
 
                     hostsCollection(hosts)
                     
-                    Color.clear.frame(height: DSSpacing.xl)
+                    Color.clear.frame(height: 96)
                 }
                 .padding(DSSpacing.lg)
-                .frame(maxWidth: horizontalSizeClass == .regular ? 1080 : .infinity, alignment: .leading)
+                .frame(maxWidth: horizontalSizeClass == .regular ? 900 : .infinity, alignment: .leading)
             }
         }
     }
@@ -110,46 +110,46 @@ public struct HostsListView: View {
                 spacing: DSSpacing.md
             ) {
                 ForEach(hosts) { host in
-                    hostRow(host)
+                    DSGlassSurface {
+                        hostRow(host)
+                            .padding(.horizontal, DSSpacing.md)
+                            .padding(.vertical, DSSpacing.sm)
+                    }
                 }
             }
         } else {
-            LazyVStack(alignment: .leading, spacing: DSSpacing.md) {
-                ForEach(hosts) { host in
-                    hostRow(host)
+            DSGlassSurface {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(hosts.enumerated()), id: \.element.id) { index, host in
+                        hostRow(host)
+                        if index < hosts.count - 1 {
+                            Divider()
+                                .overlay(theme.colors.border.opacity(0.5))
+                                .padding(.leading, 32)
+                        }
+                    }
                 }
+                .padding(.horizontal, DSSpacing.md)
+                .padding(.vertical, DSSpacing.sm)
             }
         }
     }
 
     private func hostRow(_ host: Domain.Host) -> some View {
         HostRowLabel(host: host)
-            .overlay(alignment: .topTrailing) {
-                optionButton(host: host)
-            }
-            .onTapGesture {
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .simultaneousGesture(TapGesture().onEnded {
                 router.push(.connecting(hostID: host.id.uuidString))
+            })
+            .contextMenu {
+                Button("Edit", systemImage: "pencil") {
+                    editorTarget = .edit(host)
+                }
+                Button("Delete", systemImage: "trash", role: .destructive) {
+                    pendingDeletion = host
+                }
             }
-    }
-    
-    private func optionButton(host: Domain.Host) -> some View {
-        Menu {
-            Button("Edit", systemImage: "pencil", action: {
-                editorTarget = .edit(host)
-            })
-            Button("Delete", systemImage: "trash", role: .destructive, action: {
-                pendingDeletion = host
-            })
-        } label: {
-            Image(systemName: "ellipsis.circle.fill")
-                .font(.title3)
-                .foregroundStyle(theme.colors.textSecondary)
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
-        }
-        .padding([.top, .trailing], DSSpacing.md)
-        .accessibilityLabel("More options for \(host.name)")
-        .buttonStyle(.plain)
     }
     
     private var deletionBinding: Binding<Bool> {
@@ -185,31 +185,37 @@ private struct HostRowLabel: View {
     let host: Domain.Host
     
     var body: some View {
-        HStack(alignment: .top, spacing: DSSpacing.md) {
-            DSIconTile(
-                symbol: host.isFavorite ? "star.fill" : "server.rack",
-                tint: host.isFavorite ? theme.colors.warning : theme.colors.primary600
-            )
+        HStack(alignment: .center, spacing: DSSpacing.sm) {
+            Circle()
+                .fill(host.isFavorite ? theme.colors.statusPending : theme.colors.statusConnected)
+                .frame(width: 6, height: 6)
             
             VStack(alignment: .leading, spacing: DSSpacing.xs) {
                 Text(host.name)
-                    .font(DSTypography.sectionTitle)
+                    .font(DSTypography.caption.weight(.semibold))
                     .foregroundStyle(theme.colors.textPrimary)
                     .lineLimit(1)
                 Text("\(host.username)@\(host.hostname):\(host.port)")
-                    .font(DSTypography.mono)
+                    .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(theme.colors.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Text(lastConnectionLabel)
-                    .font(DSTypography.caption)
+                    .font(.system(size: 9))
                     .foregroundStyle(theme.colors.textTertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            
+
+            Text(host.isFavorite ? "Idle" : "Connected")
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundStyle(host.isFavorite ? theme.colors.statusPending : theme.colors.statusConnected)
+
+            Image(systemName: "chevron.right")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(theme.colors.textTertiary)
         }
-        .padding(DSSpacing.md)
-        .dsGlassSurface()
+        .padding(.vertical, DSSpacing.sm)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Connect to \(host.name), \(host.username) at \(host.hostname) port \(host.port)")
         .accessibilityHint("Tap to connect")

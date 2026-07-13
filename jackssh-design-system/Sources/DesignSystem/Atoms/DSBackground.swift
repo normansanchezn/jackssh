@@ -1,16 +1,10 @@
 import SwiftUI
 
-/// DSBackground principal con animaciones sutiles en tonos azules.
-/// Diseñado para aplicaciones SSH/OpenClaw con estética técnica moderna.
+/// Dark operational background used by JackSSH console screens.
 public struct DSBackground<Content: View>: View {
     @Environment(\.jacksshTheme) var theme
-    @Environment(\.colorScheme) var colorScheme
     private let content: () -> Content
     private let showGrid: Bool
-    
-    @State private var phase1: CGFloat = 0
-    @State private var phase2: CGFloat = 0
-    @State private var phase3: CGFloat = 0
     
     public init(showGrid: Bool = false, @ViewBuilder content: @escaping () -> Content) {
         self.showGrid = showGrid
@@ -19,85 +13,23 @@ public struct DSBackground<Content: View>: View {
 
     public var body: some View {
         ZStack {
-            // Color base
             theme.colors.background
                 .ignoresSafeArea()
-            
-            // Gradientes animados en AZUL
-            GeometryReader { geo in
-                ZStack {
-                    // Orbe azul claro 1
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.blue.opacity(colorScheme == .dark ? 0.3 : 0.15),
-                                    Color.blue.opacity(colorScheme == .dark ? 0.15 : 0.08),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 200
-                            )
-                        )
-                        .frame(width: 400, height: 400)
-                        .offset(
-                            x: geo.size.width * (0.2 + phase1 * 0.6) - 200,
-                            y: geo.size.height * (0.3 + sin(phase1 * .pi * 2) * 0.3) - 200
-                        )
-                        .blur(radius: 80)
-                        .blendMode(.screen)
-                    
-                    // Orbe azul oscuro 2
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color(red: 0.2, green: 0.4, blue: 0.8).opacity(colorScheme == .dark ? 0.25 : 0.12),
-                                    Color(red: 0.1, green: 0.3, blue: 0.7).opacity(colorScheme == .dark ? 0.12 : 0.06),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 180
-                            )
-                        )
-                        .frame(width: 360, height: 360)
-                        .offset(
-                            x: geo.size.width * (0.8 - phase2 * 0.5) - 180,
-                            y: geo.size.height * (0.7 + cos(phase2 * .pi * 2) * 0.25) - 180
-                        )
-                        .blur(radius: 70)
-                        .blendMode(.screen)
-                    
-                    // Orbe azul medio 3
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color(red: 0.3, green: 0.5, blue: 0.9).opacity(colorScheme == .dark ? 0.2 : 0.1),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 150
-                            )
-                        )
-                        .frame(width: 300, height: 300)
-                        .offset(
-                            x: geo.size.width * (0.5 + sin(phase3 * .pi * 2) * 0.3) - 150,
-                            y: geo.size.height * (0.5 + cos(phase3 * .pi * 2) * 0.3) - 150
-                        )
-                        .blur(radius: 60)
-                        .blendMode(.screen)
-                }
-            }
+
+            LinearGradient(
+                colors: [
+                    theme.colors.primary100.opacity(0.20),
+                    theme.colors.background.opacity(0.20),
+                    theme.colors.background
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
             .ignoresSafeArea()
-            
-            // Grid opcional
+
             if showGrid {
                 Canvas { context, size in
-                    let cellWidth: CGFloat = 10
+                    let cellWidth: CGFloat = 12
                     let cellHeight: CGFloat = 18
                     
                     var x: CGFloat = 0
@@ -107,7 +39,7 @@ public struct DSBackground<Content: View>: View {
                                 path.move(to: CGPoint(x: x, y: 0))
                                 path.addLine(to: CGPoint(x: x, y: size.height))
                             },
-                            with: .color(.white.opacity(0.1)),
+                            with: .color(theme.colors.border.opacity(0.45)),
                             lineWidth: 0.3
                         )
                         x += cellWidth
@@ -120,29 +52,18 @@ public struct DSBackground<Content: View>: View {
                                 path.move(to: CGPoint(x: 0, y: y))
                                 path.addLine(to: CGPoint(x: size.width, y: y))
                             },
-                            with: .color(.white.opacity(0.1)),
+                            with: .color(theme.colors.border.opacity(0.38)),
                             lineWidth: 0.3
                         )
                         y += cellHeight
                     }
                 }
-                .opacity(colorScheme == .dark ? 0.03 : 0.02)
+                .opacity(0.45)
                 .blendMode(.overlay)
                 .ignoresSafeArea()
             }
 
             content()
-        }
-        .onAppear {
-            withAnimation(.linear(duration: 25).repeatForever(autoreverses: false)) {
-                phase1 = 1
-            }
-            withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
-                phase2 = 1
-            }
-            withAnimation(.linear(duration: 15).repeatForever(autoreverses: false)) {
-                phase3 = 1
-            }
         }
     }
 }

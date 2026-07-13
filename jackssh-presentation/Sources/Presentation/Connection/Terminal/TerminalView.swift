@@ -31,7 +31,7 @@ struct TerminalScreen: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0x1B/255, green: 0x1D/255, blue: 0x21/255).ignoresSafeArea()
+            Color(red: 0x02/255, green: 0x05/255, blue: 0x0B/255).ignoresSafeArea()
 
             if let session = viewModel.session {
                 VStack(spacing: 0) {
@@ -113,7 +113,12 @@ private struct TerminalStatusBar: View {
         }
         .padding(.horizontal, DSSpacing.md)
         .padding(.vertical, DSSpacing.sm)
-        .background(Color(red: 0x14/255, green: 0x16/255, blue: 0x19/255))
+        .background(Color(red: 0x08/255, green: 0x0D/255, blue: 0x14/255))
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(.white.opacity(0.08))
+                .frame(height: 1)
+        }
     }
 
     private var showReconnect: Bool {

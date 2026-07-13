@@ -14,15 +14,18 @@ public struct DSGlassSurface<Content: View>: View {
 
     public var body: some View {
         content
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
+            .background((tint ?? theme.colors.surface).opacity(0.72), in: RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                    .fill((tint ?? theme.colors.surface).opacity(0.10))
+                    .fill(theme.colors.surfaceElevated.opacity(0.12))
+                    .allowsHitTesting(false)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: DSRadius.sm, style: .continuous)
-                    .stroke((tint ?? theme.colors.border).opacity(0.70), lineWidth: 1)
+                    .stroke((tint ?? theme.colors.border).opacity(0.82), lineWidth: 1)
+                    .allowsHitTesting(false)
             }
+            .shadow(color: .black.opacity(0.22), radius: 18, x: 0, y: 10)
     }
 }
 

@@ -12,6 +12,7 @@ public enum AppRoute: Hashable, Sendable {
     case serviceLogs(serviceID: String)
     case terminal(hostID: String)
     case files(hostID: String, path: String)
+    case alerts
 }
 
 public extension AppRoute {

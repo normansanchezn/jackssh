@@ -128,28 +128,28 @@ public let lightColorTokens = DSColorTokens(
 // MARK: - Dark Mode Colors
 public let darkColorTokens = DSColorTokens(
     // Neutral
-    neutral50: Color(red: 0.08, green: 0.08, blue: 0.08),
-    neutral100: Color(red: 0.12, green: 0.12, blue: 0.12),
-    neutral200: Color(red: 0.18, green: 0.18, blue: 0.18),
-    neutral300: Color(red: 0.26, green: 0.26, blue: 0.26),
-    neutral400: Color(red: 0.35, green: 0.35, blue: 0.35),
-    neutral500: Color(red: 0.45, green: 0.45, blue: 0.45),
-    neutral600: Color(red: 0.56, green: 0.56, blue: 0.56),
-    neutral700: Color(red: 0.72, green: 0.72, blue: 0.72),
-    neutral800: Color(red: 0.82, green: 0.82, blue: 0.82),
-    neutral900: Color(red: 0.96, green: 0.96, blue: 0.96),
+    neutral50: Color(red: 0.025, green: 0.035, blue: 0.052),
+    neutral100: Color(red: 0.045, green: 0.060, blue: 0.085),
+    neutral200: Color(red: 0.075, green: 0.095, blue: 0.125),
+    neutral300: Color(red: 0.120, green: 0.145, blue: 0.175),
+    neutral400: Color(red: 0.190, green: 0.220, blue: 0.255),
+    neutral500: Color(red: 0.340, green: 0.375, blue: 0.415),
+    neutral600: Color(red: 0.500, green: 0.540, blue: 0.585),
+    neutral700: Color(red: 0.690, green: 0.720, blue: 0.755),
+    neutral800: Color(red: 0.840, green: 0.865, blue: 0.890),
+    neutral900: Color(red: 0.940, green: 0.955, blue: 0.970),
 
     // Primary (Blue) — lighter in dark mode
-    primary50: Color(red: 0.0, green: 0.21, blue: 0.45),
-    primary100: Color(red: 0.0, green: 0.29, blue: 0.63),
-    primary200: Color(red: 0.0, green: 0.38, blue: 0.82),
-    primary300: Color(red: 0.0, green: 0.48, blue: 1.0),
-    primary400: Color(red: 0.25, green: 0.60, blue: 1.0),
-    primary500: Color(red: 0.47, green: 0.71, blue: 1.0),
-    primary600: Color(red: 0.63, green: 0.80, blue: 1.0),
-    primary700: Color(red: 0.77, green: 0.87, blue: 1.0),
-    primary800: Color(red: 0.88, green: 0.93, blue: 1.0),
-    primary900: Color(red: 0.95, green: 0.97, blue: 1.0),
+    primary50: Color(red: 0.020, green: 0.115, blue: 0.150),
+    primary100: Color(red: 0.035, green: 0.175, blue: 0.220),
+    primary200: Color(red: 0.045, green: 0.250, blue: 0.315),
+    primary300: Color(red: 0.055, green: 0.360, blue: 0.445),
+    primary400: Color(red: 0.075, green: 0.520, blue: 0.620),
+    primary500: Color(red: 0.110, green: 0.710, blue: 0.820),
+    primary600: Color(red: 0.180, green: 0.835, blue: 0.925),
+    primary700: Color(red: 0.430, green: 0.910, blue: 0.970),
+    primary800: Color(red: 0.690, green: 0.960, blue: 0.990),
+    primary900: Color(red: 0.880, green: 0.990, blue: 1.000),
 
     // Secondary (Teal) — lighter in dark mode
     secondary50: Color(red: 0.0, green: 0.28, blue: 0.32),
@@ -164,25 +164,25 @@ public let darkColorTokens = DSColorTokens(
     secondary900: Color(red: 0.94, green: 0.99, blue: 0.99),
 
     // Semantic
-    success: Color(red: 0.25, green: 0.85, blue: 0.50),
-    warning: Color(red: 1.0, green: 0.75, blue: 0.20),
-    error: Color(red: 1.0, green: 0.40, blue: 0.50),
-    info: Color(red: 0.47, green: 0.71, blue: 1.0),
+    success: Color(red: 0.140, green: 0.890, blue: 0.520),
+    warning: Color(red: 0.980, green: 0.700, blue: 0.220),
+    error: Color(red: 1.000, green: 0.320, blue: 0.500),
+    info: Color(red: 0.180, green: 0.835, blue: 0.925),
 
     // Surface
-    background: Color(red: 0.08, green: 0.08, blue: 0.08),
-    surface: Color(red: 0.12, green: 0.12, blue: 0.12),
-    surfaceElevated: Color(red: 0.18, green: 0.18, blue: 0.18),
-    border: Color(red: 0.26, green: 0.26, blue: 0.26),
+    background: Color(red: 0.018, green: 0.027, blue: 0.043),
+    surface: Color(red: 0.055, green: 0.070, blue: 0.095),
+    surfaceElevated: Color(red: 0.085, green: 0.105, blue: 0.135),
+    border: Color(red: 0.205, green: 0.250, blue: 0.300),
 
     // Text
-    textPrimary: Color(red: 0.96, green: 0.96, blue: 0.96),
-    textSecondary: Color(red: 0.72, green: 0.72, blue: 0.72),
-    textTertiary: Color(red: 0.45, green: 0.45, blue: 0.45),
-    textInverse: Color(red: 0.08, green: 0.08, blue: 0.08),
+    textPrimary: Color(red: 0.930, green: 0.960, blue: 0.985),
+    textSecondary: Color(red: 0.670, green: 0.730, blue: 0.790),
+    textTertiary: Color(red: 0.410, green: 0.470, blue: 0.535),
+    textInverse: Color(red: 0.018, green: 0.027, blue: 0.043),
 
     // Status
-    statusConnected: Color(red: 0.25, green: 0.85, blue: 0.50),
-    statusDisconnected: Color(red: 0.45, green: 0.45, blue: 0.45),
-    statusPending: Color(red: 1.0, green: 0.75, blue: 0.20)
+    statusConnected: Color(red: 0.140, green: 0.890, blue: 0.520),
+    statusDisconnected: Color(red: 1.000, green: 0.320, blue: 0.500),
+    statusPending: Color(red: 0.980, green: 0.700, blue: 0.220)
 )

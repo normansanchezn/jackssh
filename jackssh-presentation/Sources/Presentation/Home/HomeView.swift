@@ -26,16 +26,31 @@ public struct HomeView: View {
     }
     
     public var body: some View {
-        DSScreenScaffold(title: "JackSSH") {
-            switch viewModel.state {
-            case .idle, .loading:
-                loadingView
-            case let .loaded(status):
-                loadedView(status)
-            case let .failed(error):
-                errorView(error)
+        DSBackground(showGrid: true) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DSSpacing.lg) {
+                    Text("JackSSH")
+                        .font(.system(.title2, weight: .bold))
+                        .foregroundStyle(theme.colors.textPrimary)
+                        .padding(.top, DSSpacing.md)
+
+                    switch viewModel.state {
+                    case .idle, .loading:
+                        loadingView
+                    case let .loaded(status):
+                        loadedView(status)
+                    case let .failed(error):
+                        errorView(error)
+                    }
+                }
+                .padding(.horizontal, DSSpacing.lg)
+                .padding(.bottom, showsAccountMenu ? 96 : DSSpacing.xl)
             }
         }
+        .navigationTitle("")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
         .task { await viewModel.load() }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
@@ -60,7 +75,7 @@ public struct HomeView: View {
     }
     
     private var loadingView: some View {
-        DSCard {
+        DSGlassSurface {
             HStack(spacing: DSSpacing.md) {
                 ProgressView()
                 Text("Checking status…")
@@ -71,69 +86,63 @@ public struct HomeView: View {
     }
     
     private func loadedView(_ status: HomeStatus) -> some View {
-        Group {
-            if horizontalSizeClass == .regular {
-                HStack(alignment: .top, spacing: DSSpacing.xl) {
-                    VStack(alignment: .leading, spacing: DSSpacing.lg) {
-                        manageHostsCard(activeSession: viewModel.activeSession)
-                    }
-                    .frame(maxWidth: 380)
-
-                    statusSection(status)
-                        .frame(maxWidth: 520)
-
-                    Spacer(minLength: 0)
-                }
-            } else {
-                VStack(alignment: .leading, spacing: DSSpacing.lg) {
-                    manageHostsCard(activeSession: viewModel.activeSession)
-                    statusSection(status)
-                }
-            }
+        VStack(alignment: .leading, spacing: DSSpacing.lg) {
+            metrics(status)
+            statusSection(status)
+            manageHostsCard(activeSession: viewModel.activeSession)
+            recentActivity(status.recentActivity)
         }
-        .frame(maxWidth: 980, alignment: .leading)
+        .frame(maxWidth: horizontalSizeClass == .regular ? 780 : .infinity, alignment: .leading)
+    }
+
+    private func metrics(_ status: HomeStatus) -> some View {
+        HStack(spacing: DSSpacing.sm) {
+            DSMetricTile(value: "3", label: "Hosts", caption: "active", tone: .positive)
+            DSMetricTile(value: "\(status.recentActivity.count)", label: "Alerts", caption: "unread", tone: status.recentActivity.isEmpty ? .neutral : .warning)
+            DSMetricTile(value: status.privateNetworkOnline ? "Up" : "Down", label: "VPN", caption: "status", tone: status.privateNetworkOnline ? .positive : .critical)
+        }
     }
     
     private func statusSection(_ status: HomeStatus) -> some View {
         VStack(alignment: .leading, spacing: DSSpacing.md) {
-            Text("Status")
-                .font(DSTypography.sectionTitle)
+            Text("INFRASTRUCTURE")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(theme.colors.textTertiary)
                 .accessibilityAddTraits(.isHeader)
             
             DSGlassSurface {
-                VStack(spacing: 8) {
-                    DSStatusRow(
+                VStack(spacing: DSSpacing.sm) {
+                    DSOpsStatusRow(
                         systemImage: "network",
                         title: "Private network",
+                        subtitle: "secure route",
                         tone: status.privateNetworkOnline ? .positive : .critical,
-                        statusLabel: status.privateNetworkOnline ? "Connected" : "Down"
-                    ).padding(.vertical, 6)
-                    Divider()
-                    DSStatusRow(
+                        statusLabel: status.privateNetworkOnline ? "Online" : "Down"
+                    )
+                    DSOpsStatusRow(
                         systemImage: "server.rack",
-                        title: "VPS",
+                        title: "VPS · Production",
+                        subtitle: "root@108.174.154.104",
                         tone: status.vps.tone,
                         statusLabel: status.vps.label
-                    ).padding(.vertical, 6)
-                    Divider()
-                    DSStatusRow(
+                    )
+                    DSOpsStatusRow(
                         systemImage: "sparkles",
                         title: "OpenClaw",
+                        subtitle: "dashboard bridge",
                         tone: status.openClaw.tone,
                         statusLabel: status.openClaw.label
-                    ).padding(.vertical, 6)
+                    )
 #if os(macOS)
-                    Divider()
-                    DSStatusRow(
+                    DSOpsStatusRow(
                         systemImage: "cpu",
                         title: "Ollama",
                         tone: status.ollama.tone,
                         statusLabel: status.ollama.label
-                    ).padding(.vertical, 6)
+                    )
 #endif
                 }
-                .padding(.horizontal, DSSpacing.lg)
-                .padding(.vertical, DSSpacing.sm)
+                .padding(DSSpacing.md)
             }
         }
     }
@@ -142,30 +151,54 @@ public struct HomeView: View {
         Button {
             router.push(.hosts)
         } label: {
-            HStack(spacing: DSSpacing.md) {
-                DSIconTile(symbol: "server.rack", tint: theme.colors.primary600, size: 44)
-                
-                VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                    Text("Manage hosts")
-                        .font(DSTypography.sectionTitle)
-                        .foregroundStyle(theme.colors.textPrimary)
-                    Text(activeSession.map { "Connected to \($0.username)@\($0.hostname)" } ?? "Configure and connect to your servers")
-                        .font(DSTypography.caption)
-                        .foregroundStyle(activeSession == nil ? theme.colors.textSecondary : theme.colors.statusConnected)
-                }
-                
-                Spacer(minLength: DSSpacing.sm)
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
+            VStack(alignment: .leading, spacing: DSSpacing.md) {
+                Text("HOSTS")
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(theme.colors.textTertiary)
-                    .accessibilityHidden(true)
+
+                DSOpsStatusRow(
+                    systemImage: "server.rack",
+                    title: activeSession.map { $0.hostname } ?? "Manage hosts",
+                    subtitle: activeSession.map { "\($0.username)@\($0.hostname):\($0.port)" } ?? "Configure and connect to your servers",
+                    tone: activeSession == nil ? .neutral : .positive,
+                    statusLabel: activeSession == nil ? "Open" : "Connected"
+                )
             }
-            .padding(DSSpacing.lg)
+            .padding(DSSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .dsGlassSurface()
         }
         .buttonStyle(.plain)
         .accessibilityHint("Opens your saved hosts")
+    }
+
+    private func recentActivity(_ events: [ActivityEvent]) -> some View {
+        VStack(alignment: .leading, spacing: DSSpacing.md) {
+            Text("RECENT")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(theme.colors.textTertiary)
+
+            DSGlassSurface {
+                VStack(alignment: .leading, spacing: DSSpacing.sm) {
+                    ForEach(events.prefix(3)) { event in
+                        DSOpsStatusRow(
+                            systemImage: "bell",
+                            title: event.title,
+                            subtitle: event.timestamp.formatted(date: .omitted, time: .shortened),
+                            tone: event.state.tone,
+                            statusLabel: event.state.label
+                        )
+                    }
+                    if events.isEmpty {
+                        Text("No alerts recorded")
+                            .font(DSTypography.caption)
+                            .foregroundStyle(theme.colors.textSecondary)
+                            .padding(DSSpacing.md)
+                    }
+                }
+                .padding(DSSpacing.md)
+            }
+        }
     }
     
     private func errorView(_ error: DomainError) -> some View {
