@@ -15,6 +15,7 @@
 		CC0000000000000000000006 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000000000000000000005 /* Shared */; };
 		CC0000000000000000000007 /* JackSshPortForwardLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E10000000000000000000002 /* JackSshPortForwardLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CC0000000000000000000008 /* JackSshPacketTunnel.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* JackSshPacketTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D2229D6F3004BE04004428C7 /* MockNetworkExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2229D6E3004BE04004428C7 /* MockNetworkExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +57,6 @@
 			dstSubfolderSpec = 13;
 			files = (
 				CC0000000000000000000007 /* JackSshPortForwardLiveActivity.appex in Embed App Extensions */,
-				CC0000000000000000000008 /* JackSshPacketTunnel.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -64,6 +64,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D2229D6E3004BE04004428C7 /* MockNetworkExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockNetworkExtensions.swift; sourceTree = "<group>"; };
 		D2703E963002DA4D00259E7A /* JackSsh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JackSsh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2703EA73002DA4E00259E7A /* JackSshTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JackSshTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2703EB13002DA4E00259E7A /* JackSshUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JackSshUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -186,6 +187,7 @@
 				E10000000000000000000003 /* ../JackSshPortForwardLiveActivity */,
 				F10000000000000000000003 /* ../JackSshPacketTunnel */,
 				D2703E973002DA4D00259E7A /* Products */,
+				D2229D6E3004BE04004428C7 /* MockNetworkExtensions.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -217,7 +219,6 @@
 			);
 			dependencies = (
 				E10000000000000000000009 /* PBXTargetDependency */,
-				F10000000000000000000009 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D2703E983002DA4D00259E7A /* JackSsh */,
@@ -428,6 +429,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2229D6F3004BE04004428C7 /* MockNetworkExtensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,7 +492,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = JackSsh/JackSsh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WAFK7SAHVN;
@@ -512,7 +513,9 @@
 				INFOPLIST_FILE = JackSsh/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = JackSSH;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "JackSSH uses Face ID to unlock saved sign-in credentials on this device.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "JackSsh needs access to your local network to connect to SSH hosts on your private network.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -551,7 +554,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = JackSsh/JackSsh.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WAFK7SAHVN;
@@ -573,7 +575,9 @@
 				INFOPLIST_FILE = JackSsh/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = JackSSH;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "JackSSH uses Face ID to unlock saved sign-in credentials on this device.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "JackSsh needs access to your local network to connect to SSH hosts on your private network.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -591,7 +595,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.normansanchez.JackSsh;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.normansanchez.jackssg;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -643,6 +647,8 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = WAFK7SAHVN;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -660,6 +666,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "INFOPLIST_KEY_NSLocalNetworkUsageDescription = JackSsh needs access to your local network to connect to SSH hosts on your private network.\n";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -705,7 +712,9 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = WAFK7SAHVN;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -716,6 +725,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "INFOPLIST_KEY_NSLocalNetworkUsageDescription = JackSsh needs access to your local network to connect to SSH hosts on your private network.\n";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;

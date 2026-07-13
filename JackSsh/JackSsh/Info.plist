@@ -20,10 +20,6 @@
 	</array>
 	<key>NSNetworkExtensionUsageDescription</key>
 	<string>JackSsh uses network extensions to create secure tunnels for accessing remote services through SSH port forwarding.</string>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
-	<key>NSFaceIDUsageDescription</key>
-	<string>JackSSH uses Face ID to unlock saved sign-in credentials on this device.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

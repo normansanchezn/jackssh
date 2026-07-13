@@ -1,7 +1,10 @@
 import Foundation
+#if !MOCK_NETWORK_EXTENSIONS
 import NetworkExtension
+#endif
 import os
 
+#if !MOCK_NETWORK_EXTENSIONS
 final class PacketTunnelProvider: NEPacketTunnelProvider {
     private let logger = Logger(subsystem: "dev.normansanchez.JackSsh.PacketTunnel", category: "PacketTunnel")
     private var isTunnelActive = false
@@ -48,3 +51,4 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         completionHandler?(isTunnelActive ? Data("active".utf8) : Data("inactive".utf8))
     }
 }
+#endif
