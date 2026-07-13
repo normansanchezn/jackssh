@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-/// Estado observable de la pantalla de Welcome
 @MainActor
 public final class WelcomeUIState: ObservableObject {
     @Published public var isLoading: Bool = false

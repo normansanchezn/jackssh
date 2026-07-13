@@ -5,7 +5,7 @@ public struct WelcomeView: View {
     @StateObject private var viewModel: WelcomeViewModel
     let onSignIn: () -> Void
     let onSignUp: () -> Void
-
+    
     public init(
         viewModel: WelcomeViewModel = WelcomeViewModel(),
         onSignIn: @escaping () -> Void,
@@ -15,7 +15,7 @@ public struct WelcomeView: View {
         self.onSignIn = onSignIn
         self.onSignUp = onSignUp
     }
-
+    
     public var body: some View {
         _WelcomeContent(
             viewModel: viewModel,
@@ -27,7 +27,6 @@ public struct WelcomeView: View {
         }
     }
     
-    // MARK: - Effect Handling
     private func handleEffect(_ effect: WelcomeEffect) {
         switch effect {
         case .navigateToSignIn:
@@ -39,7 +38,6 @@ public struct WelcomeView: View {
             viewModel.clearEffect()
             
         case .showError(let message):
-            // Aquí puedes mostrar un alert o toast
             print("Error: \(message)")
             viewModel.clearEffect()
             
@@ -54,44 +52,52 @@ struct _WelcomeContent: View {
     @ObservedObject var viewModel: WelcomeViewModel
     let onSignIn: () -> Void
     let onSignUp: () -> Void
-
+    
     var body: some View {
         AuthAdaptiveLayout(
             title: viewModel.uiState.title,
             subtitle: viewModel.uiState.subtitle
-        ) {
-            VStack(spacing: DSSpacing.md) {
-                VStack(spacing: DSSpacing.md) {
-                    DSButton(
-                        viewModel.uiState.signInButtonText,
-                        icon: "arrow.right.circle.fill",
-                        style: .filled,
-                        fullWidth: true
-                    ) {
-                        viewModel.onSignInTapped()
-                    }
-                    .disabled(viewModel.uiState.isLoading)
-
-                    DSButton(
-                        viewModel.uiState.signUpButtonText,
-                        icon: "person.badge.plus",
-                        style: .outline,
-                        fullWidth: true
-                    ) {
-                        viewModel.onSignUpTapped()
-                    }
-                    .disabled(viewModel.uiState.isLoading)
-                }
+        ) {}
+        .safeAreaInset(
+            edge: .bottom,
+            content: {
+                authButtons()
+                    .padding(.horizontal, DSSpacing.md)
+                    .padding(.vertical, DSSpacing.md)
             }
-            .frame(maxWidth: .infinity)
-            .overlay {
-                if viewModel.uiState.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.2))
-                }
+        )
+        
+        .overlay {
+            if viewModel.uiState.isLoading {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.2))
             }
+        }
+    }
+    
+    private func authButtons() -> some View {
+        VStack {
+            DSButton(
+                viewModel.uiState.signInButtonText,
+                icon: "arrow.right.circle.fill",
+                style: .filled,
+                fullWidth: true
+            ) {
+                viewModel.onSignInTapped()
+            }
+            .disabled(viewModel.uiState.isLoading)
+            
+            DSButton(
+                viewModel.uiState.signUpButtonText,
+                icon: "person.badge.plus",
+                style: .outline,
+                fullWidth: true
+            ) {
+                viewModel.onSignUpTapped()
+            }
+            .disabled(viewModel.uiState.isLoading)
         }
     }
 }

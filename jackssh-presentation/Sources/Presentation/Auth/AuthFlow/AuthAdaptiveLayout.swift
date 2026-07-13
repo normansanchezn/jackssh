@@ -81,17 +81,30 @@ struct AuthAdaptiveLayout<Content: View>: View {
 
     private var header: some View {
         VStack(alignment: horizontalSizeClass == .regular ? .leading : .center, spacing: DSSpacing.md) {
-            Image(systemName: symbol)
-                .font(.system(size: horizontalSizeClass == .regular ? 42 : 56, weight: .semibold))
-                .foregroundStyle(theme.colors.primary600)
-                .frame(width: horizontalSizeClass == .regular ? 58 : 72, height: horizontalSizeClass == .regular ? 58 : 72)
-                .background(theme.colors.primary100, in: RoundedRectangle(cornerRadius: DSRadius.md, style: .continuous))
+            Image("logo_jack_ssh", bundle: .module)
+                
+                .resizable()
+                .frame(maxWidth: .infinity, alignment: .center)
+                .aspectRatio(contentMode: .fit)
+
+                .padding()
 
             VStack(alignment: horizontalSizeClass == .regular ? .leading : .center, spacing: DSSpacing.xs) {
                 Text(title)
-                    .font(horizontalSizeClass == .regular ? .system(.title, design: .rounded, weight: .bold) : DSTypography.screenTitle)
+                    .font(
+                        horizontalSizeClass == .regular ?
+                            .system(
+                                .title,
+                                design: .rounded,
+                                weight: .bold
+                            )
+                        : DSTypography.screenTitle
+                    )
                     .foregroundStyle(theme.colors.textPrimary)
-                    .multilineTextAlignment(horizontalSizeClass == .regular ? .leading : .center)
+                    .multilineTextAlignment(
+                        horizontalSizeClass == .regular ?
+                            .leading : .center
+                    )
 
                 Text(subtitle)
                     .font(DSTypography.body)
@@ -108,7 +121,7 @@ struct AuthAdaptiveLayout<Content: View>: View {
                 Text("JackSSH")
                     .font(.system(.largeTitle, design: .rounded, weight: .bold))
                     .foregroundStyle(theme.colors.textPrimary)
-                Text("Private ops console")
+                Text("Private OPS console")
                     .font(DSTypography.body)
                     .foregroundStyle(theme.colors.textSecondary)
             }

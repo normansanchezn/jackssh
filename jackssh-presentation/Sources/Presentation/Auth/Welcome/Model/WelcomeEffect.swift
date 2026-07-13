@@ -7,7 +7,6 @@
 
 import Foundation
 
-/// Efectos/Eventos one-shot que ocurren en la pantalla de Welcome
 public enum WelcomeEffect: Equatable {
     case navigateToSignIn
     case navigateToSignUp
